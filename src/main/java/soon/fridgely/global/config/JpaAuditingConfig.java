@@ -1,4 +1,4 @@
-package soon.fridgely.global;
+package soon.fridgely.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
