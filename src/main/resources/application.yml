@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: fridge
+  profiles:
+    active: local
+  config:
+    import:
+      - logging.yml
+      - db.yml
+  web:
+    resources:
+      add-mappings: false
+
+server:
+  tomcat:
+    max-connections: 20000
+    threads:
+      max: 600
+      min-spare: 100
+
+---
+spring.config.activate.on-profile: local
+spring.config.import: application-local.yml
+
+---
+spring.config.activate.on-profile: test
+spring.config.import: application-test.yml
+
+---
+spring.config.activate.on-profile: live
+spring.config.import: db.yml
