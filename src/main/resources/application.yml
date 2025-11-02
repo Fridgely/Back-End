@@ -5,8 +5,8 @@ spring:
     active: local
   config:
     import:
-      - logging.yml
-      - db.yml
+      - application-logging.yml
+      - application-db.yml
   web:
     resources:
       add-mappings: false
