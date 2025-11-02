@@ -5,8 +5,8 @@ spring:
     active: local
   config:
     import:
-      - logging.yml
-      - db.yml
+      - application-logging.yml
+      - application-db.yml
   web:
     resources:
       add-mappings: false
@@ -28,4 +28,4 @@ spring.config.import: application-test.yml
 
 ---
 spring.config.activate.on-profile: live
-spring.config.import: db.yml
+spring.config.import: application-db.yml

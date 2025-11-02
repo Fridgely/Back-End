@@ -45,7 +45,7 @@ public class BarcodeInput extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private VerificationStatus status;
+    private VerificationStatus verificationStatus;
 
     @Column
     private LocalDateTime verifiedAt;
@@ -67,7 +67,7 @@ public class BarcodeInput extends BaseEntity {
             .category(requireNonNull(category))
             .storageType(requireNonNull(storageType))
             .expirationDate(requireNonNull(expirationDate))
-            .status(VerificationStatus.PENDING)
+            .verificationStatus(VerificationStatus.PENDING)
             .build();
     }
 
