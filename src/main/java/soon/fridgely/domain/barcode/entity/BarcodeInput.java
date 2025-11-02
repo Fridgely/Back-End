@@ -67,7 +67,7 @@ public class BarcodeInput extends BaseEntity {
             .category(requireNonNull(category))
             .storageType(requireNonNull(storageType))
             .expirationDate(requireNonNull(expirationDate))
-            .verificationStatus(soon.fridgely.domain.barcode.entity.VerificationStatus.PENDING)
+            .verificationStatus(VerificationStatus.PENDING)
             .build();
     }
 
