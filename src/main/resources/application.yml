@@ -28,4 +28,4 @@ spring.config.import: application-test.yml
 
 ---
 spring.config.activate.on-profile: live
-spring.config.import: db.yml
+spring.config.import: application-db.yml
