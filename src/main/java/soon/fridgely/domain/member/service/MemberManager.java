@@ -21,10 +21,6 @@ public class MemberManager {
 
     @Transactional
     public Long register(MemberInfo memberInfo) {
-        if (memberRepository.existsByLoginId(memberInfo.loginId())) {
-            throw new CoreException(ErrorType.DUPLICATE_LOGIN_ID);
-        }
-
         Member member = Member.register(memberInfo.loginId(),
             memberInfo.password(),
             memberInfo.nickname(),
