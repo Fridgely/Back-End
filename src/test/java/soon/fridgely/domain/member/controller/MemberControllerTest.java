@@ -7,6 +7,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.member.controller.dto.request.MemberRegisterRequest;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.stream.Stream;
 
@@ -56,6 +58,25 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.error.data.%s", field).value(message));
     }
 
+    @Test
+    void 중복된_ID로_회원_등록시_예외가_발생한다() throws Exception {
+        // given
+        var request = new MemberRegisterRequest("duplicateId", "password", "nickname");
+
+        given(memberService.register(request.toInfo()))
+            .willThrow(new CoreException(ErrorType.DUPLICATE_LOGIN_ID));
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL)
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
     private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
         return Stream.of(
             Arguments.of(
@@ -68,6 +89,18 @@ class MemberControllerTest extends ControllerTestSupport {
             ),
             Arguments.of(
                 new MemberRegisterRequest("testId", "password", null),
+                "nickname", "닉네임은 필수입니다."
+            ),
+            Arguments.of(
+                new MemberRegisterRequest("", "password", "nickname"),
+                "loginId", "ID는 필수입니다."
+            ),
+            Arguments.of(
+                new MemberRegisterRequest("testId", "", "nickname"),
+                "password", "비밀번호는 필수입니다."
+            ),
+            Arguments.of(
+                new MemberRegisterRequest("testId", "password", ""),
                 "nickname", "닉네임은 필수입니다."
             )
         );
