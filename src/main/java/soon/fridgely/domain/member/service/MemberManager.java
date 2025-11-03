@@ -20,7 +20,7 @@ public class MemberManager {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long register(MemberInfo memberInfo) {
+    public Member register(MemberInfo memberInfo) {
         Member member = Member.register(memberInfo.loginId(),
             memberInfo.password(),
             memberInfo.nickname(),
@@ -29,7 +29,7 @@ public class MemberManager {
         );
 
         try {
-            return memberRepository.save(member).getId();
+            return memberRepository.save(member);
         } catch (DataIntegrityViolationException e) {
             throw new CoreException(ErrorType.DUPLICATE_LOGIN_ID);
         }

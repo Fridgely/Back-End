@@ -7,7 +7,6 @@ import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.TestSecurityConfig;
 import soon.fridgely.domain.member.dto.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
@@ -20,20 +19,16 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MemberManager memberManager;
 
-    @Autowired
-    private MemberRepository memberRepository;
-
     @Test
     void 회원을_생성한다() {
         // given
         MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
 
         // when
-        Long memberId = memberManager.register(memberInfo);
+        Member member = memberManager.register(memberInfo);
 
         // then
-        Member savedMember = memberRepository.findById(memberId).orElse(null);
-        assertThat(savedMember)
+        assertThat(member)
             .extracting("loginId", "nickname")
             .containsExactly("testId", "testNickname");
     }
@@ -44,11 +39,10 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
 
         // when
-        Long memberId = memberManager.register(memberInfo);
+        Member member = memberManager.register(memberInfo);
 
         // then
-        Member savedMember = memberRepository.findById(memberId).orElse(null);
-        assertThat(savedMember.getPassword())
+        assertThat(member.getPassword())
             .isNotNull()
             .isNotEqualTo("testPassword");
     }
