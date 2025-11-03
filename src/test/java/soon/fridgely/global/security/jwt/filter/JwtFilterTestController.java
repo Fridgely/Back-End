@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class JwtFilterTestController {
 
-    @GetMapping("api/test/secure")
+    @GetMapping("/api/test/secure")
     public String secureApi() {
         return "secure api";
     }
 
-    @GetMapping("api/test/public")
+    @GetMapping("/api/test/public")
     public String publicApi() {
         return "public api";
     }
