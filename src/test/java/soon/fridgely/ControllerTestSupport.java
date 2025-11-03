@@ -8,6 +8,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
+import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = {
@@ -20,6 +21,9 @@ public abstract class ControllerTestSupport {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @MockitoBean
+    protected JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockitoBean
     protected MemberService memberService;
