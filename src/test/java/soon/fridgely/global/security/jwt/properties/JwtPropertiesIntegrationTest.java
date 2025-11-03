@@ -2,17 +2,14 @@ package soon.fridgely.global.security.jwt.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.TestSecurityConfig;
 import soon.fridgely.global.security.jwt.provider.TokenProvider;
 
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(TestSecurityConfig.class)
 class JwtPropertiesIntegrationTest extends IntegrationTestSupport {
 
     @Autowired

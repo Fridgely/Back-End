@@ -2,9 +2,7 @@ package soon.fridgely.domain.member.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.TestSecurityConfig;
 import soon.fridgely.domain.member.dto.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.global.support.exception.CoreException;
@@ -13,7 +11,6 @@ import soon.fridgely.global.support.exception.ErrorType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Import(TestSecurityConfig.class)
 class MemberManagerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired

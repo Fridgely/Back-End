@@ -2,10 +2,8 @@ package soon.fridgely.domain.auth.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.TestSecurityConfig;
 import soon.fridgely.domain.auth.dto.LoginInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -17,7 +15,6 @@ import soon.fridgely.global.support.exception.ErrorType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Import(TestSecurityConfig.class)
 class AuthServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
