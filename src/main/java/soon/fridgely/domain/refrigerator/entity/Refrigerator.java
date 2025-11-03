@@ -23,9 +23,9 @@ public class Refrigerator extends BaseEntity {
 
     private static final String DEFAULT_NAME = "무제";
 
-    public static Refrigerator register(String name) {
+    public static Refrigerator register(String nickname) {
         return Refrigerator.builder()
-            .name(name == null ? DEFAULT_NAME : name)
+            .name(nickname == null ? DEFAULT_NAME : "%s의 냉장고".formatted(nickname))
             .invitationCode(null) // 초기에는 초대 코드 없음
             .build();
     }
