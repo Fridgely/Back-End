@@ -9,7 +9,7 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RefrigeratorManagerTest extends IntegrationTestSupport {
+class RefrigeratorIntegrationManagerTest extends IntegrationTestSupport {
 
     @Autowired
     private RefrigeratorManager refrigeratorManager;
