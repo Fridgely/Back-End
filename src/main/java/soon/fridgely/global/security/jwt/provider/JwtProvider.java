@@ -16,6 +16,7 @@ import java.security.Key;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 public class JwtProvider implements TokenProvider {
@@ -90,6 +91,7 @@ public class JwtProvider implements TokenProvider {
     private String generateRefreshToken(long memberId) {
         Date expirationDate = createExpirationDate(refreshTokenExpirationTime);
         return Jwts.builder()
+            .setId(UUID.randomUUID().toString())
             .setExpiration(expirationDate)
             .setSubject(String.valueOf(memberId))
             .signWith(key, SignatureAlgorithm.HS512)

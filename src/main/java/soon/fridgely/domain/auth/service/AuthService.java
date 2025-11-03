@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import soon.fridgely.domain.auth.dto.LoginInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -36,10 +37,33 @@ public class AuthService {
         return issueTokensAndUpdateMember(member);
     }
 
+    @Transactional
+    public TokenResponse reissue(String refreshToken) {
+        validateRefreshToken(refreshToken);
+
+        long memberId = Long.parseLong(tokenProvider.getSubjectFromToken(refreshToken));
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
+
+        if (!refreshToken.equals(member.getRefreshToken())) {
+            throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
+        }
+
+        log.info("[reissue success] memberId = {}", memberId);
+
+        return issueTokensAndUpdateMember(member);
+    }
+
     private TokenResponse issueTokensAndUpdateMember(Member member) {
         TokenResponse tokenResponse = tokenProvider.generateAllToken(member.getId(), member.getRole());
         member.updateRefreshToken(tokenResponse.refreshToken());
         return tokenResponse;
+    }
+
+    private void validateRefreshToken(String refreshToken) {
+        if (!StringUtils.hasText(refreshToken) || !tokenProvider.validateToken(refreshToken)) {
+            throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
+        }
     }
 
 }

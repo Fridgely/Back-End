@@ -77,6 +77,70 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
             .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
     }
 
+    @Test
+    void 유효한_Refresh_Token으로_토큰_재발급에_성공한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        var tokens = authService.login(new LoginInfo("testId", "testPassword"));
+
+        // when
+        var newTokens = authService.reissue(tokens.refreshToken());
+
+        // then
+        assertThat(newTokens.refreshToken()).isNotEqualTo(tokens.refreshToken());
+
+        Member updatedMember = memberRepository.findById(member.getId()).orElse(null);
+        assertThat(updatedMember.getRefreshToken())
+            .isNotNull()
+            .isEqualTo(newTokens.refreshToken());
+    }
+
+    @Test
+    void 만료되거나_유효하지_않은_토큰은_예외가_발생한다() {
+        // given
+        String invalidToken = "invalidToken";
+
+        // expected
+        assertThatThrownBy(() -> authService.reissue(invalidToken))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
+    @Test
+    void 유효한_토큰이지만_존재하지_않는_사용자는_예외가_발생한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        var tokens = authService.login(new LoginInfo("testId", "testPassword"));
+        memberRepository.delete(member);
+
+        // expected
+        assertThatThrownBy(() -> authService.reissue(tokens.refreshToken()))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
+    @Test
+    void DB와_일치하지_않는_토큰은_예외가_발생한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        var tokens = authService.login(new LoginInfo("testId", "testPassword"));
+        authService.login(new LoginInfo("testId", "testPassword")); // DB 토큰 갱신
+
+        // expected
+        assertThatThrownBy(() -> authService.reissue(tokens.refreshToken()))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
     private Member createMember() {
         return Member.register(
             "testId",
