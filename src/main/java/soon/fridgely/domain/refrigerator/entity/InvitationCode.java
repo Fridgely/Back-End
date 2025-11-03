@@ -10,10 +10,10 @@ import static java.util.Objects.requireNonNull;
 @Embeddable
 public record InvitationCode(
 
-    @Column(name = "invitation_code", length = 8, nullable = false)
+    @Column(name = "invitation_code", length = 8)
     String code,
 
-    @Column(nullable = false)
+    @Column
     LocalDateTime expirationAt
 
 ) {
