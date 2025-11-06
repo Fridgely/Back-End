@@ -1,7 +1,10 @@
 package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import soon.fridgely.domain.EntityStatus;
+import soon.fridgely.domain.category.dto.NewCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -28,15 +31,36 @@ public class CategoryAppender {
     private final MemberRepository memberRepository;
 
     public void appendDefaultCategories(long refrigeratorId, long memberId) {
-        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-
+        CategoryContext context = getContext(refrigeratorId, memberId);
         List<Category> categories = DEFAULT_CATEGORIES.stream()
-            .map(categoryName -> register(categoryName, refrigerator, member))
+            .map(categoryName -> register(categoryName, context.refrigerator(), context.member()))
             .toList();
         categoryRepository.saveAll(categories);
+    }
+
+    public void appendCustomCategory(NewCategory newCategory) {
+        CategoryContext context = getContext(newCategory.refrigeratorId(), newCategory.memberId());
+        if (categoryRepository.existsByNameAndRefrigeratorAndStatus(newCategory.name(), context.refrigerator(), EntityStatus.ACTIVE)) {
+            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
+        }
+
+        Category category = register(newCategory.name(), context.refrigerator(), context.member());
+        try {
+            categoryRepository.save(category);
+        } catch (DataIntegrityViolationException e) {
+            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
+        }
+    }
+
+    private CategoryContext getContext(long refrigeratorId, long memberId) {
+        Member member = memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        return new CategoryContext(refrigerator, member);
+    }
+
+    private record CategoryContext(Refrigerator refrigerator, Member member) {
     }
 
 }

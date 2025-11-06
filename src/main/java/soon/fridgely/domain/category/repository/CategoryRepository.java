@@ -11,4 +11,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findAllByRefrigeratorAndStatus(Refrigerator refrigerator, EntityStatus status);
 
+    boolean existsByNameAndRefrigeratorAndStatus(String name, Refrigerator refrigerator, EntityStatus status);
+
 }

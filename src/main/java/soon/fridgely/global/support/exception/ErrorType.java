@@ -22,6 +22,9 @@ public enum ErrorType {
     // 멤버 오류
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 ID입니다.", LogLevel.WARN),
 
+    // 카테고리 오류
+    DUPLICATE_CATEGORY_NAME(HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다.", LogLevel.WARN),
+
     ;
 
     private final HttpStatus status;
