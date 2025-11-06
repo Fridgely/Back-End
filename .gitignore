@@ -161,4 +161,9 @@ gradle-app.setting
 !ci.yml
 !cd.yml
 
+# Log files
+*.log
+*.gz
+*.log.*
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,intellij+all,gradle,redis
