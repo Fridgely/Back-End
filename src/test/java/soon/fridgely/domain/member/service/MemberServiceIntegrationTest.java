@@ -1,6 +1,7 @@
 package soon.fridgely.domain.member.service;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.IntegrationTestSupport;
@@ -32,7 +33,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
     private RefrigeratorRepository refrigeratorRepository;
 
     @Test
-    void 회원가입이_성공하면_모든_데이터가_저장된다() {
+    void 회원가입이_성공하면_모든_데이터가_저장되고_연결이_호출된다() {
         // given
         MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
 
@@ -43,13 +44,16 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
         Member member = memberRepository.findById(memberId).orElseThrow();
         assertThat(member.getLoginId()).isEqualTo("testId");
 
-        String expectedFridgeName = member.getNickname() + "의 냉장고";
-        Refrigerator fridge = refrigeratorRepository.findByName(expectedFridgeName).orElseThrow();
-        assertThat(fridge.getName()).isEqualTo(expectedFridgeName);
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+        ArgumentCaptor<Refrigerator> fridgeCaptor = ArgumentCaptor.forClass(Refrigerator.class);
+        then(memberRefrigeratorLinker).should()
+            .linkToOwner(memberCaptor.capture(), fridgeCaptor.capture());
+        assertThat(memberCaptor.getValue().getId()).isEqualTo(memberId);
 
-        then(memberRefrigeratorLinker)
-            .should()
-            .linkToOwner(member, fridge);
+        Refrigerator capturedFridge = fridgeCaptor.getValue();
+        assertThat(capturedFridge).isNotNull();
+        assertThat(capturedFridge.getId()).isNotNull();
+        assertThat(capturedFridge.getName()).isEqualTo("testNickname" + "의 냉장고");
     }
 
     @Test
@@ -65,8 +69,8 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
             .isInstanceOf(RuntimeException.class);
 
         // then
-        assertThat(memberRepository.findByLoginId("testId").isPresent()).isFalse();
-        assertThat(refrigeratorRepository.findByName("testNickname" + "의 냉장고").isPresent()).isFalse();
+        assertThat(memberRepository.count()).isEqualTo(0);
+        assertThat(refrigeratorRepository.count()).isEqualTo(0);
     }
 
 }
