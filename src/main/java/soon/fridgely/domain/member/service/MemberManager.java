@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.member.dto.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -19,8 +18,7 @@ public class MemberManager {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public Long register(MemberInfo memberInfo) {
+    public Member register(MemberInfo memberInfo) {
         Member member = Member.register(memberInfo.loginId(),
             memberInfo.password(),
             memberInfo.nickname(),
@@ -29,7 +27,7 @@ public class MemberManager {
         );
 
         try {
-            return memberRepository.save(member).getId();
+            return memberRepository.save(member);
         } catch (DataIntegrityViolationException e) {
             throw new CoreException(ErrorType.DUPLICATE_LOGIN_ID);
         }

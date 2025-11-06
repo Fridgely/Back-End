@@ -7,10 +7,8 @@ import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.TestSecurityConfig;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.global.security.jwt.dto.response.TokenResponse;
 import soon.fridgely.global.security.jwt.provider.TokenProvider;
@@ -24,7 +22,6 @@ import static soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter.A
 import static soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter.BEARER_PREFIX;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@Import(TestSecurityConfig.class)
 @AutoConfigureMockMvc
 public class JwtAuthenticationFilterIntegrationTest extends IntegrationTestSupport {
 

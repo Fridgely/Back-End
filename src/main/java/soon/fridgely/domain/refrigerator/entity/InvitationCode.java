@@ -10,22 +10,28 @@ import static java.util.Objects.requireNonNull;
 @Embeddable
 public record InvitationCode(
 
-    @Column(name = "invitation_code", length = 8, nullable = false)
+    @Column(name = "invitation_code", length = 8)
     String code,
 
-    @Column(nullable = false)
+    @Column
     LocalDateTime expirationAt
 
 ) {
 
+    public InvitationCode {
+        requireNonNull(code, "초대 코드는 필수입니다.");
+        requireNonNull(expirationAt, "만료 시간은 필수입니다.");
+    }
+
     private static final long DEFAULT_EXPIRATION_DAYS = 1L;
 
     public static InvitationCode generate(String invitationCode, LocalDateTime now) {
-        return new InvitationCode(requireNonNull(invitationCode, "초대 코드는 필수입니다."), now.plusDays(DEFAULT_EXPIRATION_DAYS));
+        requireNonNull(now, "기준 시간은 필수입니다.");
+        return new InvitationCode(invitationCode, now.plusDays(DEFAULT_EXPIRATION_DAYS));
     }
 
     public boolean isExpired(LocalDateTime now) {
-        return now.isAfter(expirationAt);
+        return requireNonNull(now, "현재 시간은 필수입니다.").isAfter(expirationAt);
     }
 
 }
