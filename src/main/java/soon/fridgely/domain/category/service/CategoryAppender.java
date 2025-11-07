@@ -3,6 +3,7 @@ package soon.fridgely.domain.category.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.entity.Category;
@@ -32,12 +33,17 @@ public class CategoryAppender {
 
     public void appendDefaultCategories(long refrigeratorId, long memberId) {
         CategoryContext context = getContext(refrigeratorId, memberId);
+        if (categoryRepository.existsByRefrigeratorAndStatus(context.refrigerator(), EntityStatus.ACTIVE)) {
+            return;
+        }
+
         List<Category> categories = DEFAULT_CATEGORIES.stream()
             .map(categoryName -> register(categoryName, context.refrigerator(), context.member()))
             .toList();
         categoryRepository.saveAll(categories);
     }
 
+    @Transactional
     public void appendCustomCategory(AddCategory addCategory) {
         CategoryContext context = getContext(addCategory.refrigeratorId(), addCategory.memberId());
         if (categoryRepository.existsByNameAndRefrigeratorAndStatus(addCategory.name(), context.refrigerator(), EntityStatus.ACTIVE)) {

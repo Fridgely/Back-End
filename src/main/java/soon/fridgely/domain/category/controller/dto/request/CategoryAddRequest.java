@@ -10,7 +10,7 @@ public record CategoryAddRequest(
 
 ) {
 
-    public AddCategory toAddCategory(long memberId, long refrigeratorId) {
+    public AddCategory toAddCategory(long refrigeratorId, long memberId) {
         return new AddCategory(name, refrigeratorId, memberId);
     }
 

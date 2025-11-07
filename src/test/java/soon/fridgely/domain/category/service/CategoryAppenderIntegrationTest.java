@@ -56,6 +56,25 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    void 기본_카테고리가_이미_존재하는_경우_중복_생성되지_않는다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        categoryAppender.appendDefaultCategories(refrigerator.getId(), member.getId()); // 기본 카테고리 최초 생성
+
+        // when
+        categoryAppender.appendDefaultCategories(refrigerator.getId(), member.getId()); // 기본 카테고리 중복 생성 시도
+
+        // then
+        List<Category> categories = categoryRepository.findAllByRefrigeratorAndStatus(refrigerator, EntityStatus.ACTIVE);
+        assertThat(categories).hasSize(8);
+    }
+
+    @Test
     void 커스텀_카테고리를_추가한다() {
         // given
         Member member = createMember();

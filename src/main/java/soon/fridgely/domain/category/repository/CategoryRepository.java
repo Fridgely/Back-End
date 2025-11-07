@@ -13,4 +13,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     boolean existsByNameAndRefrigeratorAndStatus(String name, Refrigerator refrigerator, EntityStatus status);
 
+    boolean existsByRefrigeratorAndStatus(Refrigerator refrigerator, EntityStatus status);
+
 }
