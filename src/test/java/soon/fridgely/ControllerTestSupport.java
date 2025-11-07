@@ -8,6 +8,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import soon.fridgely.domain.auth.controller.AuthController;
 import soon.fridgely.domain.auth.service.AuthService;
+import soon.fridgely.domain.category.controller.CategoryController;
+import soon.fridgely.domain.category.service.CategoryService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
@@ -15,7 +17,8 @@ import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = {
     MemberController.class,
-    AuthController.class
+    AuthController.class,
+    CategoryController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -33,5 +36,8 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected AuthService authService;
+
+    @MockitoBean
+    protected CategoryService categoryService;
 
 }
