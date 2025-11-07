@@ -46,10 +46,6 @@ public class CategoryAppender {
     @Transactional
     public void appendCustomCategory(AddCategory addCategory) {
         CategoryContext context = getContext(addCategory.refrigeratorId(), addCategory.memberId());
-        if (categoryRepository.existsByNameAndRefrigeratorAndStatus(addCategory.name(), context.refrigerator(), EntityStatus.ACTIVE)) {
-            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
-        }
-
         Category category = register(addCategory.name(), context.refrigerator(), context.member());
         try {
             categoryRepository.save(category);
@@ -61,7 +57,7 @@ public class CategoryAppender {
     private CategoryContext getContext(long refrigeratorId, long memberId) {
         Member member = memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId)
+        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         return new CategoryContext(refrigerator, member);
     }
