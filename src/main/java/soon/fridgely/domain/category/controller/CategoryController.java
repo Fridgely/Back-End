@@ -18,12 +18,12 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping("/{refrigeratorId}/categories")
-    public ResponseEntity<ApiResponse<?>> add(
+    public ResponseEntity<ApiResponse<?>> append(
         @RequestBody @Valid CategoryAddRequest request,
         @LoginMember Long memberId,
         @PathVariable long refrigeratorId
     ) {
-        categoryService.appendCustomCategory(request.toNewCategory(refrigeratorId, memberId));
+        categoryService.appendCustomCategory(request.toAddCategory(refrigeratorId, memberId));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 

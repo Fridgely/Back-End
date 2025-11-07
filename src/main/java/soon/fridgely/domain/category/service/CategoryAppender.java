@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import soon.fridgely.domain.EntityStatus;
-import soon.fridgely.domain.category.dto.NewCategory;
+import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -38,13 +38,13 @@ public class CategoryAppender {
         categoryRepository.saveAll(categories);
     }
 
-    public void appendCustomCategory(NewCategory newCategory) {
-        CategoryContext context = getContext(newCategory.refrigeratorId(), newCategory.memberId());
-        if (categoryRepository.existsByNameAndRefrigeratorAndStatus(newCategory.name(), context.refrigerator(), EntityStatus.ACTIVE)) {
+    public void appendCustomCategory(AddCategory addCategory) {
+        CategoryContext context = getContext(addCategory.refrigeratorId(), addCategory.memberId());
+        if (categoryRepository.existsByNameAndRefrigeratorAndStatus(addCategory.name(), context.refrigerator(), EntityStatus.ACTIVE)) {
             throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
         }
 
-        Category category = register(newCategory.name(), context.refrigerator(), context.member());
+        Category category = register(addCategory.name(), context.refrigerator(), context.member());
         try {
             categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.EntityStatus;
-import soon.fridgely.domain.category.dto.NewCategory;
+import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -64,7 +64,7 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
         refrigeratorRepository.save(refrigerator);
 
-        var newCategory = new NewCategory("newCategory", refrigerator.getId(), member.getId());
+        var newCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
 
         // when
         categoryAppender.appendCustomCategory(newCategory);
@@ -83,10 +83,10 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
         refrigeratorRepository.save(refrigerator);
 
-        var newCategory = new NewCategory("newCategory", refrigerator.getId(), member.getId());
+        var newCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
         categoryAppender.appendCustomCategory(newCategory);
 
-        var duplicatedCategory = new NewCategory("newCategory", refrigerator.getId(), member.getId());
+        var duplicatedCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
 
         // expected
         assertThatThrownBy(() -> categoryAppender.appendCustomCategory(duplicatedCategory))

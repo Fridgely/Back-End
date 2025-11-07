@@ -1,7 +1,7 @@
 package soon.fridgely.domain.category.controller.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import soon.fridgely.domain.category.dto.NewCategory;
+import soon.fridgely.domain.category.dto.AddCategory;
 
 public record CategoryAddRequest(
 
@@ -10,8 +10,8 @@ public record CategoryAddRequest(
 
 ) {
 
-    public NewCategory toNewCategory(long memberId, long refrigeratorId) {
-        return new NewCategory(name, refrigeratorId, memberId);
+    public AddCategory toAddCategory(long memberId, long refrigeratorId) {
+        return new AddCategory(name, refrigeratorId, memberId);
     }
 
 }
