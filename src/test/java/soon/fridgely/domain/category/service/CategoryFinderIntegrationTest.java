@@ -46,10 +46,10 @@ class CategoryFinderIntegrationTest extends IntegrationTestSupport {
         categoryRepository.save(category);
 
         // when
-        Category finedCategory = categoryFinder.findByRefrigerator(category.getId(), refrigerator.getId());
+        Category foundCategory = categoryFinder.findByRefrigerator(category.getId(), refrigerator.getId());
 
         // then
-        assertThat(finedCategory)
+        assertThat(foundCategory)
             .extracting("name", "type", "refrigerator.id", "member.id")
             .containsExactly("커스텀 카테고리", CategoryType.CUSTOM, refrigerator.getId(), member.getId());
     }
