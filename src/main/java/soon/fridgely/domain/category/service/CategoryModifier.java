@@ -18,10 +18,10 @@ public class CategoryModifier {
     public void modify(ModifyCategory modifyCategory) {
         Category category = categoryFinder.findByRefrigerator(modifyCategory.categoryId(), modifyCategory.refrigeratorId());
 
-        categoryValidator.validateNotDefaultType(category);
         if (category.isSameName(modifyCategory.newName())) {
             return;
         }
+        categoryValidator.validateNotDefaultType(category);
         categoryValidator.validateDuplicateName(modifyCategory.newName(), category.getRefrigerator());
 
         category.updateName(modifyCategory.newName());
