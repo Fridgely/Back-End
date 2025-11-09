@@ -6,6 +6,7 @@ import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.entity.Category;
+import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -17,8 +18,7 @@ import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
 
@@ -51,8 +51,17 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
 
         assertThat(categories)
             .hasSize(8)
-            .extracting(Category::getName)
-            .containsExactlyInAnyOrder("야채", "과일", "육류", "해산물", "유제품", "음료", "간식", "기타");
+            .extracting("name", "type")
+            .containsExactlyInAnyOrder(
+                tuple("야채", CategoryType.DEFAULT),
+                tuple("과일", CategoryType.DEFAULT),
+                tuple("육류", CategoryType.DEFAULT),
+                tuple("해산물", CategoryType.DEFAULT),
+                tuple("유제품", CategoryType.DEFAULT),
+                tuple("음료", CategoryType.DEFAULT),
+                tuple("간식", CategoryType.DEFAULT),
+                tuple("기타", CategoryType.DEFAULT)
+            );
     }
 
     @Test

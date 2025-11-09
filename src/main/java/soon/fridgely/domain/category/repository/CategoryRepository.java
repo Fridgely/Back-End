@@ -6,8 +6,11 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
+    Optional<Category> findByIdAndRefrigeratorIdAndStatus(Long id, Long refrigeratorId, EntityStatus status);
 
     List<Category> findAllByRefrigeratorAndStatus(Refrigerator refrigerator, EntityStatus status);
 

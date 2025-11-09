@@ -30,12 +30,33 @@ public class Category extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    public static Category register(String name, Refrigerator refrigerator, Member member) {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private CategoryType type;
+
+    public static Category register(String name, Refrigerator refrigerator, Member member, CategoryType categoryType) {
         return Category.builder()
-            .name(requireNonNull(name, "name는 필수입니다."))
+            .name(requireNonNull(name, "name은 필수입니다."))
             .refrigerator(requireNonNull(refrigerator, "refrigerator는 필수입니다."))
             .member(requireNonNull(member, "member는 필수입니다."))
+            .type(requireNonNull(categoryType, "categoryType은 필수입니다."))
             .build();
+    }
+
+    public boolean isDefaultType() {
+        return this.type == CategoryType.DEFAULT;
+    }
+
+    public boolean isSameName(String name) {
+        return this.name.equals(name);
+    }
+
+    public void updateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name는 비어 있을 수 없습니다.");
+        }
+
+        this.name = name;
     }
 
 }
