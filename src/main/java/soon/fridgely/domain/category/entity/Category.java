@@ -43,4 +43,20 @@ public class Category extends BaseEntity {
             .build();
     }
 
+    public boolean isDefaultType() {
+        return this.type == CategoryType.DEFAULT;
+    }
+
+    public boolean isSameName(String name) {
+        return this.name.equals(name);
+    }
+
+    public void updateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name는 비어 있을 수 없습니다.");
+        }
+
+        this.name = name;
+    }
+
 }
