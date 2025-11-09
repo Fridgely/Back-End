@@ -1,9 +1,9 @@
 package soon.fridgely.domain.category.dto;
 
 public record ModifyCategory(
-    long refrigeratorId,
+    String newName,
     long memberId,
-    long categoryId,
-    String newName
+    long refrigeratorId,
+    long categoryId
 ) {
 }

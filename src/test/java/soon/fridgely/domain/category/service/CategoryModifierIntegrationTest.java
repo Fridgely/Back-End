@@ -46,7 +46,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("기존 카테고리", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        var modifyCategory = new ModifyCategory(refrigerator.getId(), member.getId(), category.getId(), "수정된 카테고리");
+        var modifyCategory = new ModifyCategory("수정된 카테고리", member.getId(), refrigerator.getId(), category.getId());
 
         // when
         categoryModifier.modify(modifyCategory);
@@ -68,9 +68,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("기본 카테고리", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.save(category);
 
-        Category defaultCategory = categoryRepository.findById(category.getId()).orElseThrow();
-
-        var modifyCategory = new ModifyCategory(refrigerator.getId(), member.getId(), defaultCategory.getId(), "수정된 카테고리");
+        var modifyCategory = new ModifyCategory("수정된 카테고리", member.getId(), refrigerator.getId(), category.getId());
 
         // expected
         assertThatThrownBy(() -> categoryModifier.modify(modifyCategory))
@@ -91,7 +89,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("기존 카테고리", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        var modifyCategory = new ModifyCategory(refrigerator.getId(), member.getId(), category.getId(), "기존 카테고리");
+        var modifyCategory = new ModifyCategory("기존 카테고리", member.getId(), refrigerator.getId(), category.getId());
 
         // when
         categoryModifier.modify(modifyCategory);
@@ -114,7 +112,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         Category category2 = Category.register("기존 카테고리2", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.saveAll(List.of(category1, category2));
 
-        var modifyCategory = new ModifyCategory(refrigerator.getId(), member.getId(), category1.getId(), category2.getName());
+        var modifyCategory = new ModifyCategory(category2.getName(), member.getId(), refrigerator.getId(), category1.getId());
 
         // expected
         assertThatThrownBy(() -> categoryModifier.modify(modifyCategory))
@@ -133,7 +131,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         refrigeratorRepository.save(refrigerator);
 
         long nonExistentCategoryId = 999L;
-        var modifyCategory = new ModifyCategory(refrigerator.getId(), member.getId(), nonExistentCategoryId, "수정된 카테고리");
+        var modifyCategory = new ModifyCategory("수정된 카테고리", member.getId(), refrigerator.getId(), nonExistentCategoryId);
 
         // expected
         assertThatThrownBy(() -> categoryModifier.modify(modifyCategory))
@@ -156,7 +154,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("기존 카테고리", refrigerator1, member1, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        var modifyCategory = new ModifyCategory(refrigerator2.getId(), member2.getId(), category.getId(), "수정된 카테고리");
+        var modifyCategory = new ModifyCategory("수정된 카테고리", member2.getId(), refrigerator2.getId(), category.getId());
 
         // expected
         assertThatThrownBy(() -> categoryModifier.modify(modifyCategory))
