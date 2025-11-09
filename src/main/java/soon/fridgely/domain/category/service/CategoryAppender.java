@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.entity.Category;
+import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -38,7 +39,7 @@ public class CategoryAppender {
         }
 
         List<Category> categories = DEFAULT_CATEGORIES.stream()
-            .map(categoryName -> register(categoryName, context.refrigerator(), context.member()))
+            .map(categoryName -> register(categoryName, context.refrigerator(), context.member(), CategoryType.DEFAULT))
             .toList();
         categoryRepository.saveAll(categories);
     }
@@ -46,7 +47,7 @@ public class CategoryAppender {
     @Transactional
     public void appendCustomCategory(AddCategory addCategory) {
         CategoryContext context = getContext(addCategory.refrigeratorId(), addCategory.memberId());
-        Category category = register(addCategory.name(), context.refrigerator(), context.member());
+        Category category = register(addCategory.name(), context.refrigerator(), context.member(), CategoryType.CUSTOM);
         try {
             categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {

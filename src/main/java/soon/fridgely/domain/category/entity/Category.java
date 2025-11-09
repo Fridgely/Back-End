@@ -30,11 +30,16 @@ public class Category extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    public static Category register(String name, Refrigerator refrigerator, Member member) {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private CategoryType type;
+
+    public static Category register(String name, Refrigerator refrigerator, Member member, CategoryType categoryType) {
         return Category.builder()
             .name(requireNonNull(name, "name는 필수입니다."))
             .refrigerator(requireNonNull(refrigerator, "refrigerator는 필수입니다."))
             .member(requireNonNull(member, "member는 필수입니다."))
+            .type(categoryType)
             .build();
     }
 
