@@ -36,10 +36,10 @@ public class Category extends BaseEntity {
 
     public static Category register(String name, Refrigerator refrigerator, Member member, CategoryType categoryType) {
         return Category.builder()
-            .name(requireNonNull(name, "name는 필수입니다."))
+            .name(requireNonNull(name, "name은 필수입니다."))
             .refrigerator(requireNonNull(refrigerator, "refrigerator는 필수입니다."))
             .member(requireNonNull(member, "member는 필수입니다."))
-            .type(categoryType)
+            .type(requireNonNull(categoryType, "categoryType은 필수입니다."))
             .build();
     }
 
