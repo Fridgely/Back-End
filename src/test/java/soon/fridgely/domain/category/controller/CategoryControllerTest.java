@@ -7,8 +7,7 @@ import soon.fridgely.domain.category.controller.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.controller.dto.request.CategoryModifyRequest;
 import soon.fridgely.global.support.annotation.TestLoginMember;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,6 +47,22 @@ class CategoryControllerTest extends ControllerTestSupport {
                 patch(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
                     .content(objectMapper.writeValueAsString(request))
                     .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리를_삭제한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long categoryId = 1L;
+
+        // expected
+        mockMvc.perform(
+                delete(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
             )
             .andDo(print())
             .andExpect(status().isOk())
