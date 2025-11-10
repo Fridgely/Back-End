@@ -5,8 +5,12 @@ import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.category.controller.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.controller.dto.request.CategoryModifyRequest;
+import soon.fridgely.domain.category.service.dto.response.CategoryResponse;
 import soon.fridgely.global.support.annotation.TestLoginMember;
 
+import java.util.List;
+
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,6 +71,32 @@ class CategoryControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리_목록을_조회한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long memberId = 1L;
+
+        var response = List.of(
+            new CategoryResponse(1L, "category1", true),
+            new CategoryResponse(2L, "category2", false)
+        );
+
+        given(categoryService.findAll(refrigeratorId, memberId))
+            .willReturn(response);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/" + refrigeratorId + "/categories")
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data").isArray())
+            .andExpect(jsonPath("$.data.length()").value(2));
     }
 
 }

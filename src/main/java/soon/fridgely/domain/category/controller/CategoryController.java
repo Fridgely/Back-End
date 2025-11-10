@@ -9,8 +9,11 @@ import soon.fridgely.domain.category.controller.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.controller.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.DeleteCategory;
 import soon.fridgely.domain.category.service.CategoryService;
+import soon.fridgely.domain.category.service.dto.response.CategoryResponse;
 import soon.fridgely.global.support.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/refrigerators")
@@ -27,6 +30,15 @@ public class CategoryController {
     ) {
         categoryService.appendCustomCategory(request.toAddCategory(refrigeratorId, memberId));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
+    }
+
+    @GetMapping("/{refrigeratorId}/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> findAll(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        List<CategoryResponse> categories = categoryService.findAll(refrigeratorId, memberId);
+        return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
     @PatchMapping("/{refrigeratorId}/categories/{categoryId}")
