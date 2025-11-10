@@ -9,11 +9,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.dto.DeleteCategory;
 import soon.fridgely.domain.category.dto.ModifyCategory;
+import soon.fridgely.domain.category.entity.Category;
+import soon.fridgely.domain.category.service.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceUnitTest {
@@ -60,13 +64,37 @@ class CategoryServiceUnitTest {
     }
 
     @Test
+    void 냉장고에_속한_특정_카테고리를_조회한다() {
+        // given
+        long categoryId = 1L;
+        long refrigeratorId = 1L;
+        long memberId = 1L;
+
+        Category mockCategory = mock(Category.class);
+        given(categoryFinder.findByRefrigerator(categoryId, refrigeratorId))
+            .willReturn(mockCategory);
+
+        // when
+        CategoryDetailResponse response = categoryService.findCategory(categoryId, refrigeratorId, memberId);
+
+        // then
+        then(refrigeratorAccessValidator)
+            .should()
+            .validateMembership(refrigeratorId, memberId);
+
+        then(categoryFinder)
+            .should()
+            .findByRefrigerator(categoryId, refrigeratorId);
+    }
+
+    @Test
     void 냉장고에_속한_모든_카테고리를_조회한다() {
         // given
         long refrigeratorId = 1L;
         long memberId = 1L;
 
         // when
-        categoryService.findAll(refrigeratorId, memberId);
+        categoryService.findAllCategory(refrigeratorId, memberId);
 
         // then
         then(refrigeratorAccessValidator)

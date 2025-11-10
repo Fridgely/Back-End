@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.category.dto.AddCategory;
 import soon.fridgely.domain.category.dto.DeleteCategory;
 import soon.fridgely.domain.category.dto.ModifyCategory;
+import soon.fridgely.domain.category.service.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.service.dto.response.CategoryResponse;
 import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
@@ -29,7 +30,12 @@ public class CategoryService {
         categoryAppender.appendCustomCategory(addCategory);
     }
 
-    public List<CategoryResponse> findAll(long refrigeratorId, long memberId) {
+    public CategoryDetailResponse findCategory(long categoryId, long refrigeratorId, long memberId) {
+        refrigeratorAccessValidator.validateMembership(refrigeratorId, memberId);
+        return CategoryDetailResponse.from(categoryFinder.findByRefrigerator(categoryId, refrigeratorId));
+    }
+
+    public List<CategoryResponse> findAllCategory(long refrigeratorId, long memberId) {
         refrigeratorAccessValidator.validateMembership(refrigeratorId, memberId);
         return CategoryResponse.from(categoryFinder.findAll(refrigeratorId));
     }
