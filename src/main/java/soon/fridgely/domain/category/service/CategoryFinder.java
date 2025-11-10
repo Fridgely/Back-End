@@ -8,6 +8,8 @@ import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Component
 public class CategoryFinder {
@@ -30,6 +32,14 @@ public class CategoryFinder {
                 EntityStatus.ACTIVE
             )
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    public List<Category> findAll(long refrigeratorId) {
+        return categoryRepository.findAllByRefrigeratorIdAndStatus(
+            refrigeratorId,
+            EntityStatus.ACTIVE
+        );
+
     }
 
 }

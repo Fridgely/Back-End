@@ -1,5 +1,6 @@
 package soon.fridgely.domain.category.service;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
@@ -136,6 +137,28 @@ class CategoryFinderIntegrationTest extends IntegrationTestSupport {
             .containsExactly("카테고리", CategoryType.CUSTOM, refrigerator.getId(), member.getId());
     }
 
+    @Test
+    void 냉장고에_속한_모든_카테고리를_조회한다() {
+        // given
+        Member member = createMember("testId");
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category1 = Category.register("카테고리1", refrigerator, member, CategoryType.CUSTOM);
+        Category category2 = Category.register("카테고리2", refrigerator, member, CategoryType.CUSTOM);
+        Category category3 = Category.register("카테고리3", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.saveAll(List.of(category1, category2, category3));
+
+        // when
+        List<Category> categories = categoryFinder.findAll(refrigerator.getId());
+
+        // then
+        assertThat(categories).hasSize(3)
+            .extracting("name")
+            .containsExactlyInAnyOrder("카테고리1", "카테고리2", "카테고리3");
+    }
 
     private Member createMember(String testId) {
         return Member.builder()
