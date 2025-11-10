@@ -25,6 +25,9 @@ class CategoryServiceUnitTest {
     private CategoryAppender categoryAppender;
 
     @Mock
+    private CategoryFinder categoryFinder;
+
+    @Mock
     private CategoryModifier categoryModifier;
 
     @Mock
@@ -54,6 +57,25 @@ class CategoryServiceUnitTest {
         then(categoryAppender)
             .should(inOrder)
             .appendCustomCategory(addCategoryDto);
+    }
+
+    @Test
+    void 냉장고에_속한_모든_카테고리를_조회한다() {
+        // given
+        long refrigeratorId = 1L;
+        long memberId = 1L;
+
+        // when
+        categoryService.findAll(refrigeratorId, memberId);
+
+        // then
+        then(refrigeratorAccessValidator)
+            .should()
+            .validateMembership(refrigeratorId, memberId);
+
+        then(categoryFinder)
+            .should()
+            .findAll(refrigeratorId);
     }
 
     @Test
