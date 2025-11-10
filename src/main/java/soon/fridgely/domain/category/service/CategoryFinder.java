@@ -23,4 +23,13 @@ public class CategoryFinder {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 
+    public Category findByName(String categoryName, long refrigeratorId) {
+        return categoryRepository.findByNameAndRefrigeratorIdAndStatus(
+                categoryName,
+                refrigeratorId,
+                EntityStatus.ACTIVE
+            )
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
 }

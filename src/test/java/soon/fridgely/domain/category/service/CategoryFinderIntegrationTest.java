@@ -115,6 +115,28 @@ class CategoryFinderIntegrationTest extends IntegrationTestSupport {
             .isEqualTo(ErrorType.NOT_FOUND_DATA);
     }
 
+    @Test
+    void 냉장고ID와_카테고리명으로_카테고리를_조회한다() {
+        // given
+        Member member = createMember("testId");
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("카테고리", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        // when
+        Category foundCategory = categoryFinder.findByName("카테고리", refrigerator.getId());
+
+        // then
+        assertThat(foundCategory)
+            .extracting("name", "type", "refrigerator.id", "member.id")
+            .containsExactly("카테고리", CategoryType.CUSTOM, refrigerator.getId(), member.getId());
+    }
+
+
     private Member createMember(String testId) {
         return Member.builder()
             .loginId(testId)
