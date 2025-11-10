@@ -39,7 +39,6 @@ public class CategoryFinder {
             refrigeratorId,
             EntityStatus.ACTIVE
         );
-
     }
 
 }
