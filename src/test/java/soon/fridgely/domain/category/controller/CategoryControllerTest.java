@@ -61,7 +61,7 @@ class CategoryControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data.id").value(1L))
             .andExpect(jsonPath("$.data.name").value("category"))
-            .andExpect(jsonPath("$.data.custom").value(true));
+            .andExpect(jsonPath("$.data.isDefaultType").value(true));
     }
 
     @TestLoginMember
