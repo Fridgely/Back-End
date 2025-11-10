@@ -7,7 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.category.dto.AddCategory;
+import soon.fridgely.domain.category.dto.DeleteCategory;
 import soon.fridgely.domain.category.dto.ModifyCategory;
+import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 
 import static org.mockito.BDDMockito.then;
@@ -27,6 +29,12 @@ class CategoryServiceUnitTest {
 
     @Mock
     private RefrigeratorAccessValidator refrigeratorAccessValidator;
+
+    @Mock
+    private CategoryRemover categoryRemover;
+
+    @Mock
+    private FoodManager foodManager;
 
     @Test
     void 커스텀_카테고리를_생성한다() {
@@ -66,6 +74,30 @@ class CategoryServiceUnitTest {
         then(categoryModifier)
             .should(inOrder)
             .modify(modifyCategoryDto);
+    }
+
+    @Test
+    void 커스텀_카테고리를_삭제하고_음식을_기본_카테고리로_이동한다() {
+        // given
+        var deleteCategory = new DeleteCategory(1L, 1L, 1L);
+
+        // when
+        categoryService.removeCustomCategory(deleteCategory);
+
+        // then
+        InOrder inOrder = inOrder(refrigeratorAccessValidator, foodManager, categoryRemover);
+
+        then(refrigeratorAccessValidator)
+            .should(inOrder)
+            .validateMembership(deleteCategory.refrigeratorId(), deleteCategory.memberId());
+
+        then(foodManager)
+            .should(inOrder)
+            .moveAllFoodsToFallback(deleteCategory.refrigeratorId(), deleteCategory.categoryId());
+
+        then(categoryRemover)
+            .should(inOrder)
+            .remove(deleteCategory);
     }
 
 }
