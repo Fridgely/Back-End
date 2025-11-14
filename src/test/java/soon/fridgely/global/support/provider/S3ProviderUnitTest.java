@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Utilities;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -150,6 +151,19 @@ class S3ProviderUnitTest {
         // then
         then(s3Client).should()
             .putObject(any(PutObjectRequest.class), any(RequestBody.class));
+    }
+
+    @Test
+    void 파일을_삭제한다() {
+        // given
+        String key = "images/to-delete.jpg";
+
+        // when
+        s3Provider.delete(key);
+
+        // then
+        then(s3Client).should(times(1))
+            .deleteObject(any(DeleteObjectRequest.class));
     }
 
 }

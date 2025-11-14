@@ -3,6 +3,7 @@ package soon.fridgely.global.support.provider;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -56,7 +57,17 @@ public class S3Provider implements StorageProvider {
 
     @Override
     public void delete(String key) {
-        throw new UnsupportedOperationException("Unsupported delete");
+        try {
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+            s3Client.deleteObject(request);
+        } catch (Exception e) {
+            log.error("S3 파일 삭제 실패: key = {}", key, e); // TODO: 로그 중복 제거
+            throw new CoreException(ErrorType.STORAGE_DELETE_FAILED);
+        }
     }
 
     @Override
