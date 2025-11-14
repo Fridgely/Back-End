@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.properties.S3Properties;
@@ -20,12 +22,14 @@ import soon.fridgely.global.support.properties.S3Properties;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
@@ -164,6 +168,43 @@ class S3ProviderUnitTest {
         // then
         then(s3Client).should(times(1))
             .deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    void presigned_URL을_생성한다() throws Exception {
+        // given
+        String key = "images/test.jpg";
+        Duration expiration = Duration.ofMinutes(15);
+        String expectedUrl = "https://test-bucket.s3.amazonaws.com/images/test.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=900";
+
+        PresignedGetObjectRequest presignedRequest = mock(PresignedGetObjectRequest.class);
+        given(presignedRequest.url()).willReturn(new URL(expectedUrl));
+        given(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
+            .willReturn(presignedRequest);
+
+        // when
+        String actualUrl = s3Provider.generatePresignedUrl(key, expiration);
+
+        // then
+        assertThat(actualUrl).isEqualTo(expectedUrl);
+        then(s3Presigner).should(times(1))
+            .presignGetObject(any(GetObjectPresignRequest.class));
+    }
+
+    @Test
+    void presigned_URL_생성에_실패할_경우_예외가_발생한다() {
+        // given
+        String key = "images/test.jpg";
+        Duration expiration = Duration.ofMinutes(15);
+
+        given(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class)))
+            .willThrow(S3Exception.builder().message("Presigner failed").build());
+
+        // expected
+        assertThatThrownBy(() -> s3Provider.generatePresignedUrl(key, expiration))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.STORAGE_PRESIGNED_URL_FAILED);
     }
 
 }

@@ -4,9 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.properties.S3Properties;
@@ -18,7 +21,7 @@ import java.time.Duration;
 public class S3Provider implements StorageProvider {
 
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner; // TODO: 차후 presigned URL 기능 구현 시 사용
+    private final S3Presigner s3Presigner;
     private final String bucketName;
 
     public S3Provider(S3Client s3Client, S3Presigner s3Presigner, S3Properties s3Properties) {
@@ -72,7 +75,22 @@ public class S3Provider implements StorageProvider {
 
     @Override
     public String generatePresignedUrl(String key, Duration expiration) {
-        throw new UnsupportedOperationException("Unsupported generatePresignedUrl");
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(expiration)
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            return presignedRequest.url().toString();
+        } catch (Exception e) {
+            throw new CoreException(ErrorType.STORAGE_PRESIGNED_URL_FAILED, "key: " + key);
+        }
     }
 
     private String inferContentType(String key) {
