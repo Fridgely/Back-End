@@ -18,6 +18,7 @@ public enum ErrorType {
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다.", LogLevel.INFO),
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다.", LogLevel.WARN),
     AUTHORIZATION_FAILED(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
+    STORAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.", LogLevel.ERROR),
 
     // 멤버 오류
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 ID입니다.", LogLevel.WARN),
