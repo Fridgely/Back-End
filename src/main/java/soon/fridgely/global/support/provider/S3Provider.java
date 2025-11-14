@@ -55,11 +55,6 @@ public class S3Provider implements StorageProvider {
     }
 
     @Override
-    public byte[] download(String key) {
-        throw new UnsupportedOperationException("Unsupported download");
-    }
-
-    @Override
     public void delete(String key) {
         throw new UnsupportedOperationException("Unsupported delete");
     }

@@ -1,5 +1,6 @@
 package soon.fridgely.global.support.provider;
 
+import java.io.InputStream;
 import java.time.Duration;
 
 public interface StorageProvider {
@@ -7,12 +8,7 @@ public interface StorageProvider {
     /*
      * 파일을 업로드 하고 접근 가능한 URL을 반환하는 메서드
      */
-    String upload(String key, byte[] data, String contentType);
-
-    /*
-     * 저장된 파일을 다운로드 하는 메서드
-     */
-    byte[] download(String key);
+    String upload(String key, InputStream inputStream, long contentLength, String contentType);
 
     /*
      * 저장된 파일을 삭제하는 메서드
