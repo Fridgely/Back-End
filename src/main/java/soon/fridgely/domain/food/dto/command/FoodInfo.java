@@ -1,4 +1,4 @@
-package soon.fridgely.domain.food.dto;
+package soon.fridgely.domain.food.dto.command;
 
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.Food;
