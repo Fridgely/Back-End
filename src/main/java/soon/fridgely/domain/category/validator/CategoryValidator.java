@@ -23,7 +23,7 @@ public class CategoryValidator {
 
     public void validateDuplicateName(String name, Refrigerator refrigerator) {
         if (categoryRepository.existsByNameAndRefrigeratorAndStatus(name, refrigerator, EntityStatus.ACTIVE)) {
-            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
+            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME, name);
         }
     }
 

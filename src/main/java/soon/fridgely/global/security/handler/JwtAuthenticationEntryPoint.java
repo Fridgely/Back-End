@@ -28,7 +28,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         HttpServletResponse response,
         AuthenticationException authException
     ) throws IOException {
-        log.warn("인증 실패: {}, URI: {}", authException.getMessage(), request.getRequestURI());
+        log.warn("[401_UNAUTHENTICATED] 인증 실패 (EntryPoint). (URI={}, Message={})", request.getRequestURI(), authException.getMessage(), authException);
         handlerHelper.sendErrorResponse(response, ErrorType.AUTHENTICATION_FAILED);
     }
 

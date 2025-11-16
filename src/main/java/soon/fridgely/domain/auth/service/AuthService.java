@@ -32,7 +32,7 @@ public class AuthService {
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
-        log.info("[login success] memberId = {}", member.getId());
+        log.info("[AuthService] 로그인 성공. (MemberId={})", member.getId());
 
         return issueTokensAndUpdateMember(member);
     }
@@ -49,7 +49,7 @@ public class AuthService {
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
-        log.info("[reissue success] memberId = {}", memberId);
+        log.info("[AuthService] 토큰 재발급 성공. (MemberId={})", memberId);
 
         return issueTokensAndUpdateMember(member);
     }

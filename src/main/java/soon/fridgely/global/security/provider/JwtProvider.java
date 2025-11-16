@@ -48,13 +48,13 @@ public class JwtProvider implements TokenProvider {
             getClaimsFromToken(token);
             return true;
         } catch (SignatureException | MalformedJwtException e) {
-            log.warn("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            log.warn("[JWT_VALIDATION] 유효하지 않은 JWT 서명입니다. (Exception={})", e.getClass().getSimpleName(), e);
         } catch (ExpiredJwtException e) {
-            log.warn("Expired JWT, 만료된 JWT 입니다.");
+            log.warn("[JWT_VALIDATION] 만료된 JWT 입니다. (Exception={})", e.getClass().getSimpleName(), e);
         } catch (UnsupportedJwtException e) {
-            log.warn("Unsupported JWT, 지원되지 않는 JWT 입니다.");
+            log.warn("[JWT_VALIDATION] 지원되지 않는 JWT 입니다. (Exception={})", e.getClass().getSimpleName(), e);
         } catch (IllegalArgumentException e) {
-            log.warn("JWT claims is empty, 잘못된 JWT 입니다.");
+            log.warn("[JWT_VALIDATION] 잘못된 JWT 입니다. (Exception={})", e.getClass().getSimpleName(), e);
         }
         return false;
     }

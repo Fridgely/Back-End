@@ -52,7 +52,7 @@ public class CategoryAppender {
         try {
             categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {
-            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME);
+            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME, addCategory.name());
         }
     }
 
