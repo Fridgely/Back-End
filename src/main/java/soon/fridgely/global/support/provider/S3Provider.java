@@ -1,12 +1,10 @@
 package soon.fridgely.global.support.provider;
 
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -53,9 +51,8 @@ public class S3Provider implements StorageProvider {
                     .build()
                 )
                 .toExternalForm();
-        } catch (Exception e) {
-            log.error("S3 파일 업로드 실패: key = {}", key, e);
-            throw new CoreException(ErrorType.STORAGE_UPLOAD_FAILED);
+        } catch (S3Exception | SdkClientException e) {
+            throw new CoreException(ErrorType.STORAGE_UPLOAD_FAILED, "key: " + key);
         }
     }
 
@@ -68,9 +65,8 @@ public class S3Provider implements StorageProvider {
                 .build();
 
             s3Client.deleteObject(request);
-        } catch (Exception e) {
-            log.error("S3 파일 삭제 실패: key = {}", key, e); // TODO: 로그 중복 제거
-            throw new CoreException(ErrorType.STORAGE_DELETE_FAILED);
+        } catch (S3Exception | SdkClientException e) {
+            throw new CoreException(ErrorType.STORAGE_DELETE_FAILED, "key: " + key);
         }
     }
 
@@ -89,7 +85,7 @@ public class S3Provider implements StorageProvider {
                     .build()
             );
             return presignedRequest.url().toString();
-        } catch (Exception e) {
+        } catch (S3Exception | SdkClientException e) {
             throw new CoreException(ErrorType.STORAGE_PRESIGNED_URL_FAILED, "key: " + key);
         }
     }
