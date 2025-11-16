@@ -1,4 +1,4 @@
-package soon.fridgely.domain.category.service.dto.response;
+package soon.fridgely.domain.category.dto.response;
 
 import soon.fridgely.domain.category.entity.Category;
 

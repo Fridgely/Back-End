@@ -1,4 +1,4 @@
-package soon.fridgely.domain.category.service;
+package soon.fridgely.domain.category.event;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import soon.fridgely.domain.category.service.CategoryAppender;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 
 @Slf4j

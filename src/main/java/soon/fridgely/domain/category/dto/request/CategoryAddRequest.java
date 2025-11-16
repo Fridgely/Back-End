@@ -1,7 +1,7 @@
-package soon.fridgely.domain.category.controller.dto.request;
+package soon.fridgely.domain.category.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import soon.fridgely.domain.category.dto.AddCategory;
+import soon.fridgely.domain.category.dto.command.AddCategory;
 
 public record CategoryAddRequest(
 

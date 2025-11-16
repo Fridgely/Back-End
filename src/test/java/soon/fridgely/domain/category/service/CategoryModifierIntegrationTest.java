@@ -3,7 +3,7 @@ package soon.fridgely.domain.category.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.domain.category.dto.ModifyCategory;
+import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;

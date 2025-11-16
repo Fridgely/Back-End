@@ -3,11 +3,11 @@ package soon.fridgely.domain.category.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import soon.fridgely.domain.category.dto.AddCategory;
-import soon.fridgely.domain.category.dto.DeleteCategory;
-import soon.fridgely.domain.category.dto.ModifyCategory;
-import soon.fridgely.domain.category.service.dto.response.CategoryDetailResponse;
-import soon.fridgely.domain.category.service.dto.response.CategoryResponse;
+import soon.fridgely.domain.category.dto.command.AddCategory;
+import soon.fridgely.domain.category.dto.command.DeleteCategory;
+import soon.fridgely.domain.category.dto.command.ModifyCategory;
+import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
+import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 

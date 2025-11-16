@@ -3,7 +3,7 @@ package soon.fridgely.domain.category.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import soon.fridgely.domain.category.dto.ModifyCategory;
+import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.validator.CategoryValidator;
 
