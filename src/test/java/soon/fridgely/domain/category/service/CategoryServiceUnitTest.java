@@ -9,9 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.category.dto.command.AddCategory;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
-import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
+import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.service.FoodManager;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 
 import static org.mockito.BDDMockito.given;
@@ -56,7 +57,7 @@ class CategoryServiceUnitTest {
 
         then(refrigeratorAccessValidator)
             .should(inOrder)
-            .validateMembership(addCategoryDto.refrigeratorId(), addCategoryDto.memberId());
+            .validateMembership(addCategoryDto.toKey());
 
         then(categoryAppender)
             .should(inOrder)
@@ -74,13 +75,15 @@ class CategoryServiceUnitTest {
         given(categoryFinder.findByRefrigerator(categoryId, refrigeratorId))
             .willReturn(mockCategory);
 
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+
         // when
-        CategoryDetailResponse response = categoryService.findCategory(categoryId, refrigeratorId, memberId);
+        CategoryDetailResponse response = categoryService.findCategory(categoryId, key);
 
         // then
         then(refrigeratorAccessValidator)
             .should()
-            .validateMembership(refrigeratorId, memberId);
+            .validateMembership(key);
 
         then(categoryFinder)
             .should()
@@ -92,14 +95,15 @@ class CategoryServiceUnitTest {
         // given
         long refrigeratorId = 1L;
         long memberId = 1L;
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
 
         // when
-        categoryService.findAllCategory(refrigeratorId, memberId);
+        categoryService.findAllCategory(key);
 
         // then
         then(refrigeratorAccessValidator)
             .should()
-            .validateMembership(refrigeratorId, memberId);
+            .validateMembership(key);
 
         then(categoryFinder)
             .should()
@@ -119,7 +123,7 @@ class CategoryServiceUnitTest {
 
         then(refrigeratorAccessValidator)
             .should(inOrder)
-            .validateMembership(modifyCategoryDto.refrigeratorId(), modifyCategoryDto.memberId());
+            .validateMembership(modifyCategoryDto.toKey());
 
         then(categoryModifier)
             .should(inOrder)
@@ -139,7 +143,7 @@ class CategoryServiceUnitTest {
 
         then(refrigeratorAccessValidator)
             .should(inOrder)
-            .validateMembership(deleteCategory.refrigeratorId(), deleteCategory.memberId());
+            .validateMembership(deleteCategory.toKey());
 
         then(foodManager)
             .should(inOrder)

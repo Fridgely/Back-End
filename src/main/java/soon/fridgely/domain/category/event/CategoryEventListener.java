@@ -24,7 +24,7 @@ public class CategoryEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleRefrigeratorCreated(RefrigeratorCreatedEvent event) {
         try {
-            categoryAppender.appendDefaultCategories(event.refrigeratorId(), event.memberId());
+            categoryAppender.appendDefaultCategories(event.toKey());
             log.info("냉장고({}) 기본 카테고리 생성 완료.", event.refrigeratorId());
         } catch (Exception e) {
             log.error("냉장고({}) 기본 카테고리 생성 중 오류 발생", event.refrigeratorId(), e);

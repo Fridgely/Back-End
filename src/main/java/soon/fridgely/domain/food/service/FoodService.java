@@ -20,7 +20,7 @@ public class FoodService {
     private final RefrigeratorAccessValidator refrigeratorAccessValidator;
 
     public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key.refrigeratorId(), key.memberId());
+        refrigeratorAccessValidator.validateMembership(key);
 
         String uploadedUrl = imageManager.upload(file);
         foodManager.createFood(request.toFoodInfo(LocalDate.now(), uploadedUrl), key);

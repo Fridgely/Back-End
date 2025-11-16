@@ -11,6 +11,7 @@ import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.category.service.CategoryService;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
 
@@ -39,7 +40,7 @@ public class CategoryController {
         @PathVariable long refrigeratorId,
         @PathVariable long categoryId
     ) {
-        CategoryDetailResponse response = categoryService.findCategory(categoryId, refrigeratorId, memberId);
+        CategoryDetailResponse response = categoryService.findCategory(categoryId, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -48,7 +49,7 @@ public class CategoryController {
         @LoginMember Long memberId,
         @PathVariable long refrigeratorId
     ) {
-        List<CategoryResponse> categories = categoryService.findAllCategory(refrigeratorId, memberId);
+        List<CategoryResponse> categories = categoryService.findAllCategory(new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 

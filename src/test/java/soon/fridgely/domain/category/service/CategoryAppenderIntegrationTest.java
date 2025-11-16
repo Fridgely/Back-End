@@ -11,6 +11,7 @@ import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
@@ -43,8 +44,10 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
         refrigeratorRepository.save(refrigerator);
 
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+
         // when
-        categoryAppender.appendDefaultCategories(refrigerator.getId(), member.getId());
+        categoryAppender.appendDefaultCategories(key);
 
         // then
         List<Category> categories = categoryRepository.findAllByRefrigeratorAndStatus(refrigerator, EntityStatus.ACTIVE);
@@ -73,10 +76,12 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
         refrigeratorRepository.save(refrigerator);
 
-        categoryAppender.appendDefaultCategories(refrigerator.getId(), member.getId()); // 기본 카테고리 최초 생성
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+
+        categoryAppender.appendDefaultCategories(key); // 기본 카테고리 최초 생성
 
         // when
-        categoryAppender.appendDefaultCategories(refrigerator.getId(), member.getId()); // 기본 카테고리 중복 생성 시도
+        categoryAppender.appendDefaultCategories(key); // 기본 카테고리 중복 생성 시도
 
         // then
         List<Category> categories = categoryRepository.findAllByRefrigeratorAndStatus(refrigerator, EntityStatus.ACTIVE);

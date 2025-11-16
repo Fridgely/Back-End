@@ -7,6 +7,7 @@ import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 
 import java.util.List;
@@ -48,8 +49,8 @@ class CategoryControllerTest extends ControllerTestSupport {
         long categoryId = 1L;
 
         var response = new CategoryDetailResponse(1L, "category", true);
-
-        given(categoryService.findCategory(categoryId, refrigeratorId, memberId))
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+        given(categoryService.findCategory(categoryId, key))
             .willReturn(response);
 
         // expected
@@ -76,7 +77,8 @@ class CategoryControllerTest extends ControllerTestSupport {
             new CategoryResponse(2L, "category2", false)
         );
 
-        given(categoryService.findAllCategory(refrigeratorId, memberId))
+        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+        given(categoryService.findAllCategory(key))
             .willReturn(response);
 
         // expected
