@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import soon.fridgely.global.support.annotation.LoginMemberResolver;
+import soon.fridgely.global.security.annotation.LoginMemberResolver;
 
 import java.util.List;
 

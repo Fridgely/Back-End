@@ -1,5 +1,3 @@
-// soon.fridgely.global.config.S3Config (StorageConfig에서 이름 변경)
-
 package soon.fridgely.global.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -8,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import soon.fridgely.global.support.properties.S3Properties;
-import soon.fridgely.global.support.provider.S3Provider;
-import soon.fridgely.global.support.provider.StorageProvider;
+import soon.fridgely.global.infra.properties.S3Properties;
+import soon.fridgely.global.infra.provider.S3Provider;
+import soon.fridgely.global.infra.provider.StorageProvider;
 
 @Configuration
 @EnableConfigurationProperties(S3Properties.class)
