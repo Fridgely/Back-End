@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import soon.fridgely.E2ETestSupport;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
-import soon.fridgely.domain.member.dto.commmand.MemberInfo;
+import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;

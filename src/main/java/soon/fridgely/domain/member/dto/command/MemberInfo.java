@@ -1,4 +1,4 @@
-package soon.fridgely.domain.member.dto.commmand;
+package soon.fridgely.domain.member.dto.command;
 
 /**
  * 회원 가입 및 정보 수정을 위한 DTO
