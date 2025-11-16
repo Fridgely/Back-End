@@ -6,7 +6,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
-import soon.fridgely.domain.member.controller.dto.request.MemberRegisterRequest;
+import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 

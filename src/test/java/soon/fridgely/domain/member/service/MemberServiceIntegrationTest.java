@@ -5,7 +5,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.domain.member.dto.MemberInfo;
+import soon.fridgely.domain.member.dto.commmand.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;

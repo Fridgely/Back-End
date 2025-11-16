@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import soon.fridgely.domain.member.controller.dto.request.MemberRegisterRequest;
+import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.support.response.ApiResponse;
 

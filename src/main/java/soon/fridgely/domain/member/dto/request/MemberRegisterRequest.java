@@ -1,7 +1,7 @@
-package soon.fridgely.domain.member.controller.dto.request;
+package soon.fridgely.domain.member.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import soon.fridgely.domain.member.dto.MemberInfo;
+import soon.fridgely.domain.member.dto.commmand.MemberInfo;
 
 public record MemberRegisterRequest(
 

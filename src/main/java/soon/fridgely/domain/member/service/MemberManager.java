@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import soon.fridgely.domain.member.dto.MemberInfo;
+import soon.fridgely.domain.member.dto.commmand.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
