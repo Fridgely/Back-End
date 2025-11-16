@@ -11,9 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
-import soon.fridgely.global.security.jwt.handler.JwtAccessDeniedHandler;
-import soon.fridgely.global.security.jwt.handler.JwtAuthenticationEntryPoint;
+import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
+import soon.fridgely.global.security.handler.JwtAccessDeniedHandler;
+import soon.fridgely.global.security.handler.JwtAuthenticationEntryPoint;
 
 @Profile("test")
 @TestConfiguration

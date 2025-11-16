@@ -9,8 +9,8 @@ import org.springframework.util.StringUtils;
 import soon.fridgely.domain.auth.dto.command.LoginInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.global.security.jwt.dto.response.TokenResponse;
-import soon.fridgely.global.security.jwt.provider.TokenProvider;
+import soon.fridgely.global.security.dto.response.TokenResponse;
+import soon.fridgely.global.security.provider.TokenProvider;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 

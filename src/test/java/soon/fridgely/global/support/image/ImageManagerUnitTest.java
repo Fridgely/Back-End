@@ -7,9 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import soon.fridgely.global.infra.provider.StorageProvider;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-import soon.fridgely.global.support.provider.StorageProvider;
 
 import java.io.InputStream;
 

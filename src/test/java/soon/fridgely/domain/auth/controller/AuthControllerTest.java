@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
-import soon.fridgely.global.security.jwt.dto.response.TokenResponse;
+import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 

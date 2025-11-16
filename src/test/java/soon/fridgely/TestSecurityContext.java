@@ -5,7 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
-import soon.fridgely.global.support.annotation.TestLoginMember;
+import soon.fridgely.global.security.annotation.TestLoginMember;
 
 import java.util.Arrays;
 import java.util.List;

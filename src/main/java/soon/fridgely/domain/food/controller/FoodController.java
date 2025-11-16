@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.global.support.annotation.LoginMember;
+import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor

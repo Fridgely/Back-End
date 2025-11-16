@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
 import soon.fridgely.domain.auth.service.AuthService;
-import soon.fridgely.global.security.jwt.dto.response.TokenResponse;
+import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor

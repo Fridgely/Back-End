@@ -7,7 +7,7 @@ import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
-import soon.fridgely.global.support.annotation.TestLoginMember;
+import soon.fridgely.global.security.annotation.TestLoginMember;
 
 import java.util.List;
 

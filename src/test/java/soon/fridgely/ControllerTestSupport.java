@@ -14,7 +14,7 @@ import soon.fridgely.domain.food.controller.FoodController;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
-import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
+import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = {
