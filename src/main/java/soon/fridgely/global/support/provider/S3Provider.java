@@ -32,14 +32,15 @@ public class S3Provider implements StorageProvider {
 
     @Override
     public String upload(String key, InputStream inputStream, long contentLength, String contentType) {
-        if (contentType == null || contentType.isBlank()) {
-            contentType = inferContentType(key);
-        }
+        String resolvedContentType = (contentType == null || contentType.isBlank())
+            ? inferContentType(key)
+            : contentType;
+
         try {
             PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(contentType)
+                .contentType(resolvedContentType)
                 .build();
 
             RequestBody requestBody = RequestBody.fromInputStream(inputStream, contentLength);
@@ -81,12 +82,12 @@ public class S3Provider implements StorageProvider {
                 .key(key)
                 .build();
 
-            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(expiration)
-                .getObjectRequest(getObjectRequest)
-                .build();
-
-            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(
+                GetObjectPresignRequest.builder()
+                    .signatureDuration(expiration)
+                    .getObjectRequest(getObjectRequest)
+                    .build()
+            );
             return presignedRequest.url().toString();
         } catch (Exception e) {
             throw new CoreException(ErrorType.STORAGE_PRESIGNED_URL_FAILED, "key: " + key);
