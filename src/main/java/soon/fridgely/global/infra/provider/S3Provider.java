@@ -50,6 +50,7 @@ public class S3Provider implements StorageProvider {
                 )
                 .toExternalForm();
         } catch (S3Exception | SdkClientException e) {
+            log.error("[S3Provider] S3 파일 업로드 실패. (Key={})", key, e);
             throw new CoreException(ErrorType.STORAGE_UPLOAD_FAILED, "key: " + key);
         }
     }
@@ -64,6 +65,7 @@ public class S3Provider implements StorageProvider {
 
             s3Client.deleteObject(request);
         } catch (S3Exception | SdkClientException e) {
+            log.error("[S3Provider] S3 파일 삭제 실패. (Key={})", key, e);
             throw new CoreException(ErrorType.STORAGE_DELETE_FAILED, "key: " + key);
         }
     }
@@ -84,6 +86,7 @@ public class S3Provider implements StorageProvider {
             );
             return presignedRequest.url().toString();
         } catch (S3Exception | SdkClientException e) {
+            log.error("[S3Provider] S3 Presigned URL (GET) 생성 실패. (Key={})", key, e);
             throw new CoreException(ErrorType.STORAGE_PRESIGNED_URL_FAILED, "key: " + key);
         }
     }
