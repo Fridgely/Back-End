@@ -2,9 +2,7 @@ package soon.fridgely.global.security.jwt.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.global.security.jwt.provider.TokenProvider;
 
 import java.time.Duration;
 
@@ -14,9 +12,6 @@ class JwtPropertiesIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private JwtProperties jwtProperties;
-
-    @MockitoBean
-    private TokenProvider tokenProvider;
 
     @Test
     void 설정파일의_JWT_프로퍼티가_정상적으로_바인딩된다() {
