@@ -9,6 +9,7 @@ import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.food.service.FoodManager;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 
 import java.util.List;
@@ -26,22 +27,22 @@ public class CategoryService {
     private final RefrigeratorAccessValidator refrigeratorAccessValidator;
 
     public void appendCustomCategory(AddCategory addCategory) {
-        refrigeratorAccessValidator.validateMembership(addCategory.refrigeratorId(), addCategory.memberId());
+        refrigeratorAccessValidator.validateMembership(addCategory.toKey());
         categoryAppender.appendCustomCategory(addCategory);
     }
 
-    public CategoryDetailResponse findCategory(long categoryId, long refrigeratorId, long memberId) {
-        refrigeratorAccessValidator.validateMembership(refrigeratorId, memberId);
-        return CategoryDetailResponse.from(categoryFinder.findByRefrigerator(categoryId, refrigeratorId));
+    public CategoryDetailResponse findCategory(long categoryId, MemberRefrigeratorKey key) {
+        refrigeratorAccessValidator.validateMembership(key);
+        return CategoryDetailResponse.from(categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId()));
     }
 
-    public List<CategoryResponse> findAllCategory(long refrigeratorId, long memberId) {
-        refrigeratorAccessValidator.validateMembership(refrigeratorId, memberId);
-        return CategoryResponse.from(categoryFinder.findAll(refrigeratorId));
+    public List<CategoryResponse> findAllCategory(MemberRefrigeratorKey key) {
+        refrigeratorAccessValidator.validateMembership(key);
+        return CategoryResponse.from(categoryFinder.findAll(key.refrigeratorId()));
     }
 
     public void modifyCustomCategory(ModifyCategory modifyCategory) {
-        refrigeratorAccessValidator.validateMembership(modifyCategory.refrigeratorId(), modifyCategory.memberId());
+        refrigeratorAccessValidator.validateMembership(modifyCategory.toKey());
         categoryModifier.modify(modifyCategory);
     }
 
@@ -50,7 +51,7 @@ public class CategoryService {
      */
     @Transactional
     public void removeCustomCategory(DeleteCategory deleteCategory) {
-        refrigeratorAccessValidator.validateMembership(deleteCategory.refrigeratorId(), deleteCategory.memberId());
+        refrigeratorAccessValidator.validateMembership(deleteCategory.toKey());
         foodManager.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), deleteCategory.categoryId());
         categoryRemover.remove(deleteCategory);
     }

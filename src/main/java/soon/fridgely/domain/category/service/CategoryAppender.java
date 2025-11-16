@@ -11,6 +11,7 @@ import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
@@ -32,8 +33,8 @@ public class CategoryAppender {
     private final RefrigeratorRepository refrigeratorRepository;
     private final MemberRepository memberRepository;
 
-    public void appendDefaultCategories(long refrigeratorId, long memberId) {
-        CategoryContext context = getContext(refrigeratorId, memberId);
+    public void appendDefaultCategories(MemberRefrigeratorKey key) {
+        CategoryContext context = getContext(key);
         if (categoryRepository.existsByRefrigeratorAndStatus(context.refrigerator(), EntityStatus.ACTIVE)) {
             return;
         }
@@ -46,7 +47,7 @@ public class CategoryAppender {
 
     @Transactional
     public void appendCustomCategory(AddCategory addCategory) {
-        CategoryContext context = getContext(addCategory.refrigeratorId(), addCategory.memberId());
+        CategoryContext context = getContext(addCategory.toKey());
         Category category = register(addCategory.name(), context.refrigerator(), context.member(), CategoryType.CUSTOM);
         try {
             categoryRepository.save(category);
@@ -55,10 +56,10 @@ public class CategoryAppender {
         }
     }
 
-    private CategoryContext getContext(long refrigeratorId, long memberId) {
-        Member member = memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)
+    private CategoryContext getContext(MemberRefrigeratorKey key) {
+        Member member = memberRepository.findByIdAndStatus(key.memberId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
+        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         return new CategoryContext(refrigerator, member);
     }

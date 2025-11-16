@@ -66,7 +66,7 @@ class FoodServiceUnitTest {
         InOrder inOrder = inOrder(refrigeratorAccessValidator, imageManager, foodManager);
 
         then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key.refrigeratorId(), key.memberId());
+            .validateMembership(key);
 
         then(imageManager).should(inOrder)
             .upload(mockFile);
