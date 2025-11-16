@@ -6,11 +6,13 @@ import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
+import soon.fridgely.domain.food.dto.FoodInfo;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.dto.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 class FoodManagerIntegrationTest extends IntegrationTestSupport {
 
@@ -66,6 +69,39 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
             .allSatisfy(food -> assertThat(food.getCategory().getId())
                 .isEqualTo(fallbackCategory.getId())
             );
+    }
+
+    @Test
+    void 음식을_등록한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        FoodInfo foodInfo = new FoodInfo(
+            "홈런볼",
+            category.getId(),
+            new Quantity(BigDecimal.ONE, Unit.KG),
+            LocalDateTime.now().plusDays(5L),
+            StorageType.ROOM_TEMPERATURE,
+            FoodStatus.GREEN,
+            "초코맛",
+            "http://example.com/image.jpg"
+        );
+
+        // when
+        foodManager.createFood(foodInfo, new MemberRefrigeratorKey(member.getId(), refrigerator.getId()));
+
+        // then
+        List<Food> foods = foodRepository.findAll();
+        assertThat(foods).hasSize(1)
+            .extracting("name", "description")
+            .containsExactly(tuple("홈런볼", "초코맛"));
     }
 
     private Member createMember() {

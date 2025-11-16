@@ -30,9 +30,7 @@ public class S3Provider implements StorageProvider {
 
     @Override
     public String upload(String key, InputStream inputStream, long contentLength, String contentType) {
-        String resolvedContentType = (contentType == null || contentType.isBlank())
-            ? inferContentType(key)
-            : contentType;
+        String resolvedContentType = resolveContentType(key, contentType);
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
@@ -90,7 +88,11 @@ public class S3Provider implements StorageProvider {
         }
     }
 
-    private String inferContentType(String key) {
+    private String resolveContentType(String key, String provided) {
+        if (provided != null && !provided.isBlank()) {
+            return provided;
+        }
+
         int lastIndex = key.lastIndexOf('.');
         if (lastIndex == -1 || lastIndex == key.length() - 1) {
             return "application/octet-stream";
