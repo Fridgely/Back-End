@@ -1,7 +1,7 @@
-package soon.fridgely.domain.auth.controller.dto.request;
+package soon.fridgely.domain.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import soon.fridgely.domain.auth.dto.LoginInfo;
+import soon.fridgely.domain.auth.dto.command.LoginInfo;
 
 public record LoginRequest(
 

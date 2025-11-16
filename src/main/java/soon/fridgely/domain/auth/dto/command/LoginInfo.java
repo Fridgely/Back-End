@@ -1,4 +1,4 @@
-package soon.fridgely.domain.auth.dto;
+package soon.fridgely.domain.auth.dto.command;
 
 /**
  * 로그인을 위한 회원 정보 DTO

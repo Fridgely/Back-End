@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import soon.fridgely.IntegrationTestSupport;
-import soon.fridgely.domain.auth.dto.LoginInfo;
+import soon.fridgely.domain.auth.dto.command.LoginInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;

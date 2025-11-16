@@ -6,7 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import soon.fridgely.domain.auth.dto.LoginInfo;
+import soon.fridgely.domain.auth.dto.command.LoginInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.global.security.jwt.dto.response.TokenResponse;
