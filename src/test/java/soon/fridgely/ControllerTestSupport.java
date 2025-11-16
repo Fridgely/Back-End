@@ -10,6 +10,8 @@ import soon.fridgely.domain.auth.controller.AuthController;
 import soon.fridgely.domain.auth.service.AuthService;
 import soon.fridgely.domain.category.controller.CategoryController;
 import soon.fridgely.domain.category.service.CategoryService;
+import soon.fridgely.domain.food.controller.FoodController;
+import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
@@ -18,7 +20,8 @@ import soon.fridgely.global.security.jwt.filter.JwtAuthenticationFilter;
 @WebMvcTest(controllers = {
     MemberController.class,
     AuthController.class,
-    CategoryController.class
+    CategoryController.class,
+    FoodController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -39,5 +42,8 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected CategoryService categoryService;
+
+    @MockitoBean
+    protected FoodService foodService;
 
 }
