@@ -1,4 +1,4 @@
-package soon.fridgely.domain.refrigerator.dto;
+package soon.fridgely.domain.refrigerator.dto.command;
 
 public record MemberRefrigeratorKey(
 

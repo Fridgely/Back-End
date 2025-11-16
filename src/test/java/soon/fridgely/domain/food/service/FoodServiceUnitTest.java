@@ -12,7 +12,7 @@ import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
-import soon.fridgely.domain.refrigerator.dto.MemberRefrigeratorKey;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 import soon.fridgely.global.support.image.ImageManager;
 

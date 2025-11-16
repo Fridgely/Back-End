@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
-import soon.fridgely.domain.refrigerator.dto.MemberRefrigeratorKey;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 import soon.fridgely.global.support.image.ImageManager;
 
