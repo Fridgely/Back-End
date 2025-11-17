@@ -1,6 +1,8 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -51,6 +53,16 @@ public class FoodManager {
     public Food find(long foodId, long refrigeratorId) {
         return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<Food> findAll(long refrigeratorId, long cursorId, Pageable pageable) {
+        return foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigeratorId,
+            cursorId,
+            EntityStatus.ACTIVE,
+            pageable
+        );
     }
 
 }
