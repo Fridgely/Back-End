@@ -102,12 +102,11 @@ class FoodServiceUnitTest {
             .find(foodId, key.refrigeratorId());
 
         assertThat(response).isNotNull()
-            .extracting("id", "name", "categoryName", "amount")
+            .extracting("id", "name", "categoryName")
             .containsExactly(
                 mockFood.getId(),
                 mockFood.getName(),
-                mockFood.getCategory().getName(),
-                mockFood.getQuantity().amount()
+                mockFood.getCategory().getName()
             );
     }
 

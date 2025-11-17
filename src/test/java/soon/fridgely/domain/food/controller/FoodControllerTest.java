@@ -9,7 +9,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
+import soon.fridgely.domain.food.dto.response.QuantityResponse;
 import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
@@ -111,11 +113,8 @@ class FoodControllerTest extends ControllerTestSupport {
             1L,
             "foodName",
             "categoryName",
-            BigDecimal.ONE,
-            Unit.KG,
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN.getDescription(),
-            FoodStatus.GREEN.name(),
+            new QuantityResponse(BigDecimal.ONE, Unit.KG),
+            new FoodConditionResponse(LocalDateTime.now().plusDays(2L), StorageType.FROZEN, FoodStatus.GREEN),
             "description",
             "http://example.com/image.jpg"
         );
@@ -134,10 +133,10 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.id").value(response.id()))
             .andExpect(jsonPath("$.data.name").value(response.name()))
             .andExpect(jsonPath("$.data.categoryName").value(response.categoryName()))
-            .andExpect(jsonPath("$.data.amount").value(response.amount().toString()))
-            .andExpect(jsonPath("$.data.unit").value(response.unit().name()))
-            .andExpect(jsonPath("$.data.storageType").value(response.storageType()))
-            .andExpect(jsonPath("$.data.foodStatus").value(response.foodStatus()));
+            .andExpect(jsonPath("$.data.quantity.amount").value(response.quantity().amount()))
+            .andExpect(jsonPath("$.data.quantity.unit").value(response.quantity().unit().name()))
+            .andExpect(jsonPath("$.data.condition.storageType").value(response.condition().storageType().name()))
+            .andExpect(jsonPath("$.data.condition.foodStatus").value(response.condition().foodStatus().name()));
     }
 
     private static Stream<Arguments> provideInvalidFoodCreateRequests() {
