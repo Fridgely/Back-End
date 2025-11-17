@@ -23,7 +23,11 @@ public class FoodService {
         refrigeratorAccessValidator.validateMembership(key);
 
         String uploadedUrl = imageManager.upload(file);
-        foodManager.createFood(request.toFoodInfo(LocalDate.now(), uploadedUrl), key);
+        foodManager.createFood(
+            request.toFoodInfo(LocalDate.now(), uploadedUrl),
+            key,
+            request.categoryId()
+        );
     }
 
 }

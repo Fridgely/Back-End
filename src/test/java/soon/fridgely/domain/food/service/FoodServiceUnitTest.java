@@ -8,8 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
+import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -73,7 +73,7 @@ class FoodServiceUnitTest {
 
         ArgumentCaptor<FoodInfo> foodInfoCaptor = ArgumentCaptor.forClass(FoodInfo.class);
         then(foodManager).should(inOrder)
-            .createFood(foodInfoCaptor.capture(), eq(key));
+            .createFood(foodInfoCaptor.capture(), eq(key), eq(request.categoryId()));
 
         FoodInfo foodInfo = foodInfoCaptor.getValue();
         assertThat(foodInfo).isNotNull()

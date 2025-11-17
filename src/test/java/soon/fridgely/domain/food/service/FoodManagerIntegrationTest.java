@@ -6,6 +6,7 @@ import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
+import soon.fridgely.domain.food.dto.command.FoodCondition;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.food.repository.FoodRepository;
@@ -83,19 +84,17 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
+        FoodCondition condition = new FoodCondition(LocalDateTime.now().plusDays(5L), StorageType.ROOM_TEMPERATURE, FoodStatus.GREEN);
         FoodInfo foodInfo = new FoodInfo(
             "홈런볼",
-            category.getId(),
             new Quantity(BigDecimal.ONE, Unit.KG),
-            LocalDateTime.now().plusDays(5L),
-            StorageType.ROOM_TEMPERATURE,
-            FoodStatus.GREEN,
+            condition,
             "초코맛",
             "http://example.com/image.jpg"
         );
 
         // when
-        foodManager.createFood(foodInfo, new MemberRefrigeratorKey(member.getId(), refrigerator.getId()));
+        foodManager.createFood(foodInfo, new MemberRefrigeratorKey(member.getId(), refrigerator.getId()), category.getId());
 
         // then
         List<Food> foods = foodRepository.findAll();

@@ -36,12 +36,12 @@ public class FoodManager {
     }
 
     @Transactional
-    public void createFood(FoodInfo info, MemberRefrigeratorKey key) {
+    public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
         Member member = memberRepository.findByIdAndStatus(key.memberId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = categoryFinder.findByRefrigerator(info.categoryId(), key.refrigeratorId());
+        Category category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
 
         Food food = info.toEntity(member, refrigerator, category);
         foodRepository.save(food);
