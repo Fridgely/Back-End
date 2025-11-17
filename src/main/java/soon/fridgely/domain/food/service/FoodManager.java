@@ -1,6 +1,8 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -36,15 +38,31 @@ public class FoodManager {
     }
 
     @Transactional
-    public void createFood(FoodInfo info, MemberRefrigeratorKey key) {
+    public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
         Member member = memberRepository.findByIdAndStatus(key.memberId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = categoryFinder.findByRefrigerator(info.categoryId(), key.refrigeratorId());
+        Category category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
 
         Food food = info.toEntity(member, refrigerator, category);
         foodRepository.save(food);
+    }
+
+    @Transactional(readOnly = true)
+    public Food find(long foodId, long refrigeratorId) {
+        return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    @Transactional(readOnly = true)
+    public Slice<Food> findAll(long refrigeratorId, long cursorId, Pageable pageable) {
+        return foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigeratorId,
+            cursorId,
+            EntityStatus.ACTIVE,
+            pageable
+        );
     }
 
 }

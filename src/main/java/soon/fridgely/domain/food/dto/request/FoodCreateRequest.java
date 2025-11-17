@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import soon.fridgely.domain.food.dto.command.FoodCondition;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.Quantity;
@@ -43,13 +44,18 @@ public record FoodCreateRequest(
     public FoodInfo toFoodInfo(LocalDate now, String imageURL) {
         return new FoodInfo(
             name,
-            categoryId,
             Quantity.register(amount, unit),
-            expirationDate,
-            storageType,
-            FoodStatus.fromDaysLeft(LocalDate.from(expirationDate), now),
+            toFoodCondition(now),
             description,
             imageURL
+        );
+    }
+
+    public FoodCondition toFoodCondition(LocalDate now) {
+        return new FoodCondition(
+            expirationDate,
+            storageType,
+            FoodStatus.fromDaysLeft(LocalDate.from(expirationDate), now)
         );
     }
 

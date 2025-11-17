@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
@@ -45,6 +49,7 @@ class FoodRepositoryTest {
 
     @Test
     void 대상_카테고리의_모든_음식을_폴백_카테고리로_이동한다() {
+        // given
         Member member = createMember();
         memberRepository.save(member);
 
@@ -60,14 +65,176 @@ class FoodRepositoryTest {
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
 
+        // when
         foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
         em.clear();
 
+        // then
         List<Food> updatedFoods = foodRepository.findAll();
         assertThat(updatedFoods)
             .hasSize(3)
-            .allSatisfy(f -> assertThat(f.getCategory().getName())
-                .isEqualTo("기타"));
+            .allSatisfy(f -> assertThat(f.getCategory().getName()).isEqualTo("기타"));
+    }
+
+    @Test
+    void 특정_냉장고의_ACTIVE_음식만_조회한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator1 = Refrigerator.register(member.getNickname());
+        Refrigerator refrigerator2 = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.saveAll(List.of(refrigerator1, refrigerator2));
+
+        Category category1 = Category.register("채소", refrigerator1, member, CategoryType.DEFAULT);
+        Category category2 = Category.register("육류", refrigerator2, member, CategoryType.DEFAULT);
+        categoryRepository.saveAll(List.of(category1, category2));
+
+        List<Food> activeFoods = Stream.generate(() -> createFood(refrigerator1, member, category1))
+            .limit(3)
+            .collect(Collectors.toList());
+        foodRepository.saveAll(activeFoods);
+
+        Food deletedFood = createFood(refrigerator1, member, category1);
+        deletedFood.delete();
+        foodRepository.save(deletedFood);
+
+        Food otherFridgeFood = createFood(refrigerator2, member, category2);
+        foodRepository.save(otherFridgeFood);
+
+        Pageable pageable = PageRequest.ofSize(10);
+
+        // when
+        Slice<Food> result = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigerator1.getId(),
+            Long.MAX_VALUE,
+            EntityStatus.ACTIVE,
+            pageable
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(3)
+            .allSatisfy(food -> {
+                assertThat(food.getRefrigerator().getId()).isEqualTo(refrigerator1.getId());
+                assertThat(food.getStatus()).isEqualTo(EntityStatus.ACTIVE);
+            });
+    }
+
+    @Test
+    void 음식_목록을_ID_내림차순으로_정렬하여_조회한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+            .limit(5)
+            .collect(Collectors.toList());
+        foodRepository.saveAll(foods);
+
+        Pageable pageable = PageRequest.ofSize(10);
+
+        // when
+        Slice<Food> result = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigerator.getId(),
+            Long.MAX_VALUE,
+            EntityStatus.ACTIVE,
+            pageable
+        );
+
+        // then
+        List<Long> ids = result.getContent().stream()
+            .map(Food::getId)
+            .collect(Collectors.toList());
+
+        List<Long> sortedIdsDesc = ids.stream()
+            .sorted((a, b) -> Long.compare(b, a))
+            .toList();
+
+        assertThat(ids).isEqualTo(sortedIdsDesc);
+    }
+
+    @Test
+    void 커서_기반_페이징으로_첫_페이지를_조회한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+            .limit(5)
+            .collect(Collectors.toList());
+        foodRepository.saveAll(foods);
+
+        Pageable pageable = PageRequest.ofSize(3);
+
+        // when
+        Slice<Food> firstSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigerator.getId(),
+            Long.MAX_VALUE,
+            EntityStatus.ACTIVE,
+            pageable
+        );
+
+        // then
+        assertThat(firstSlice.getNumberOfElements()).isEqualTo(3);
+        assertThat(firstSlice.hasNext()).isTrue();
+    }
+
+    @Test
+    void 커서_기반_페이징으로_다음_페이지를_조회한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+            .limit(5)
+            .collect(Collectors.toList());
+        foodRepository.saveAll(foods);
+
+        Pageable pageable = PageRequest.ofSize(3);
+
+        Slice<Food> firstSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigerator.getId(),
+            Long.MAX_VALUE,
+            EntityStatus.ACTIVE,
+            pageable
+        );
+
+        Long lastIdOfFirstSlice = firstSlice.getContent()
+            .get(firstSlice.getNumberOfElements() - 1)
+            .getId();
+
+        // when
+        Slice<Food> secondSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+            refrigerator.getId(),
+            lastIdOfFirstSlice,
+            EntityStatus.ACTIVE,
+            pageable
+        );
+
+        // then
+        assertThat(secondSlice.getNumberOfElements()).isEqualTo(2);
+        assertThat(secondSlice.hasNext()).isFalse();
+
+        assertThat(secondSlice.getContent())
+            .allSatisfy(food -> assertThat(food.getId()).isLessThan(lastIdOfFirstSlice));
     }
 
     private Member createMember() {
@@ -93,5 +260,4 @@ class FoodRepositoryTest {
             "http://example.com/image.jpg"
         );
     }
-
 }
