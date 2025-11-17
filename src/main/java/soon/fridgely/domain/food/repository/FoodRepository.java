@@ -4,8 +4,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.Food;
+
+import java.util.Optional;
 
 public interface FoodRepository extends JpaRepository<Food, Long> {
 
@@ -19,5 +22,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("target") Category targetCategory,
         @Param("fallback") Category fallbackCategory
     );
+
+    Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 
 }

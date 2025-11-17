@@ -47,4 +47,10 @@ public class FoodManager {
         foodRepository.save(food);
     }
 
+    @Transactional(readOnly = true)
+    public Food find(long foodId, long refrigeratorId) {
+        return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
 }
