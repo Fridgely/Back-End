@@ -9,8 +9,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
+import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ResultType;
@@ -20,6 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -94,6 +101,43 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value(ResultType.ERROR.name()))
             .andExpect(jsonPath("$.error.message").value(ErrorType.INVALID_REQUEST.getMessage()))
             .andExpect(jsonPath("$.error.data.%s", field).value(message));
+    }
+
+    @TestLoginMember
+    @Test
+    void 음식을_조회한다() throws Exception {
+        // given
+        var response = new FoodDetailResponse(
+            1L,
+            "foodName",
+            "categoryName",
+            BigDecimal.ONE,
+            Unit.KG,
+            LocalDateTime.now().plusDays(2L),
+            StorageType.FROZEN.getDescription(),
+            FoodStatus.GREEN.name(),
+            "description",
+            "http://example.com/image.jpg"
+        );
+
+        given(foodService.findFood(anyLong(), any(MemberRefrigeratorKey.class)))
+            .willReturn(response);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/{foodId}", 1L, 1L)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.id").value(response.id()))
+            .andExpect(jsonPath("$.data.name").value(response.name()))
+            .andExpect(jsonPath("$.data.categoryName").value(response.categoryName()))
+            .andExpect(jsonPath("$.data.amount").value(response.amount().toString()))
+            .andExpect(jsonPath("$.data.unit").value(response.unit().name()))
+            .andExpect(jsonPath("$.data.storageType").value(response.storageType()))
+            .andExpect(jsonPath("$.data.foodStatus").value(response.foodStatus()));
     }
 
     private static Stream<Arguments> provideInvalidFoodCreateRequests() {

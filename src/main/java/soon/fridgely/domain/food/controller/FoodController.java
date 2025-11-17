@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -29,6 +30,16 @@ public class FoodController {
     ) {
         foodService.createFood(request, file, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
+    }
+
+    @GetMapping("/{foodId}")
+    public ResponseEntity<ApiResponse<FoodDetailResponse>> findFood(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long foodId
+    ) {
+        FoodDetailResponse response = foodService.findFood(foodId, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 }
