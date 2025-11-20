@@ -68,4 +68,14 @@ public class FoodController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @DeleteMapping("/{foodId}")
+    public ResponseEntity<ApiResponse<?>> deleteFood(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long foodId
+    ) {
+        foodService.deleteFood(foodId, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
 }
