@@ -22,7 +22,6 @@ import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
 
@@ -49,9 +48,6 @@ class FoodServiceUnitTest {
     @Mock
     private ImageManager imageManager;
 
-    @Mock
-    private RefrigeratorAccessValidator refrigeratorAccessValidator;
-
     @Test
     void 음식을_등록한다() {
         // given
@@ -75,11 +71,7 @@ class FoodServiceUnitTest {
         foodService.createFood(request, mockFile, key);
 
         // then
-        InOrder inOrder = inOrder(refrigeratorAccessValidator, imageManager, foodManager);
-
-        then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key);
-
+        InOrder inOrder = inOrder(imageManager, foodManager);
         then(imageManager).should(inOrder)
             .upload(mockFile);
 
@@ -117,9 +109,7 @@ class FoodServiceUnitTest {
         foodService.updateFood(foodId, request, mockFile, key);
 
         // then
-        InOrder inOrder = inOrder(refrigeratorAccessValidator, imageManager, foodManager);
-        then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key);
+        InOrder inOrder = inOrder(imageManager, foodManager);
         then(imageManager).should(inOrder)
             .upload(mockFile);
 
@@ -188,9 +178,7 @@ class FoodServiceUnitTest {
         var response = foodService.findFood(foodId, key);
 
         // then
-        InOrder inOrder = inOrder(refrigeratorAccessValidator, foodManager);
-        then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key);
+        InOrder inOrder = inOrder(foodManager);
         then(foodManager).should(inOrder)
             .find(foodId, key.refrigeratorId());
 
@@ -224,9 +212,7 @@ class FoodServiceUnitTest {
         Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
 
         // then
-        InOrder inOrder = inOrder(refrigeratorAccessValidator, foodManager);
-        then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key);
+        InOrder inOrder = inOrder(foodManager);
         then(foodManager).should(inOrder)
             .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable);
 
@@ -253,9 +239,7 @@ class FoodServiceUnitTest {
         foodService.deleteFood(foodId, key);
 
         // then
-        InOrder inOrder = inOrder(refrigeratorAccessValidator, foodManager);
-        then(refrigeratorAccessValidator).should(inOrder)
-            .validateMembership(key);
+        InOrder inOrder = inOrder(foodManager);
         then(foodManager).should(inOrder)
             .delete(foodId, key.refrigeratorId());
     }

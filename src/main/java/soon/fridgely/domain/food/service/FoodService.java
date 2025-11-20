@@ -11,7 +11,7 @@ import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
+import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
 
@@ -22,11 +22,8 @@ public class FoodService {
     private final FoodManager foodManager;
     private final ImageManager imageManager;
 
-    private final RefrigeratorAccessValidator refrigeratorAccessValidator;
-
+    @ValidateRefrigeratorAccess(key = "#key")
     public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
-
         String uploadedUrl = imageManager.upload(file);
         foodManager.createFood(
             request.toFoodInfo(uploadedUrl),
@@ -35,9 +32,8 @@ public class FoodService {
         );
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     public void updateFood(long foodId, FoodUpdateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
-
         String uploadedUrl = null;
         if (file != null && !file.isEmpty()) {
             uploadedUrl = imageManager.upload(file);
@@ -51,25 +47,22 @@ public class FoodService {
         );
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public FoodDetailResponse findFood(long foodId, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
-
         Food found = foodManager.find(foodId, key.refrigeratorId());
         return FoodDetailResponse.from(found);
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
-        refrigeratorAccessValidator.validateMembership(key);
-
         return foodManager.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
             .map(FoodResponse::from);
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     public void deleteFood(long foodId, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
-
         foodManager.delete(foodId, key.refrigeratorId());
     }
 
