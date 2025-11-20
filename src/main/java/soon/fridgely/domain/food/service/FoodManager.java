@@ -88,6 +88,12 @@ public class FoodManager {
         );
     }
 
+    @Transactional
+    public void delete(long foodId, long refrigeratorId) {
+        Food food = find(foodId, refrigeratorId);
+        food.delete();
+    }
+
     private boolean hasCategoryChanged(Food food, long newCategoryId) {
         return food.getCategory().getId() != newCategoryId;
     }

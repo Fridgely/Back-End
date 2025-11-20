@@ -19,6 +19,8 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
 class FoodManagerIntegrationTest extends IntegrationTestSupport {
@@ -209,6 +212,34 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         // then
         Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(updatedFood.getCategory().getId()).isEqualTo(newCategory.getId());
+    }
+
+    @Test
+    void 음식을_삭제하면_조회되지_않아야_한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Food food = createFood(refrigerator, member, category, LocalDate.now());
+        foodRepository.save(food);
+
+        // when
+        foodManager.delete(food.getId(), refrigerator.getId());
+
+        // then
+        assertThatThrownBy(() -> foodManager.find(food.getId(), refrigerator.getId()))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.NOT_FOUND_DATA);
+
+        Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(deletedFood.isDeleted()).isTrue();
     }
 
     private Member createMember() {
