@@ -27,9 +27,12 @@ public enum ErrorType {
     // 멤버 오류
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 ID입니다.", LogLevel.WARN),
 
+    // 냉장고 오류
+    INVALID_REFRIGERATOR_ACCESS_KEY(HttpStatus.BAD_REQUEST, "유효하지 않은 냉장고 접근 키입니다.", LogLevel.INFO),
+
     // 카테고리 오류
     DUPLICATE_CATEGORY_NAME(HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다.", LogLevel.WARN),
-    CANNOT_MODIFY_DEFAULT_CATEGORY(HttpStatus.BAD_REQUEST, "기본 카테고리는 수정할 수 없습니다.", LogLevel.INFO)
+    CANNOT_MODIFY_DEFAULT_CATEGORY(HttpStatus.BAD_REQUEST, "기본 카테고리는 수정할 수 없습니다.", LogLevel.INFO),
     ;
 
     private final HttpStatus status;
