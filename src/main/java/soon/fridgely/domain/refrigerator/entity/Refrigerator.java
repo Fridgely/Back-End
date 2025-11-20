@@ -25,6 +25,9 @@ public class Refrigerator extends BaseEntity {
     @Embedded
     private InvitationCode invitationCode;
 
+    @Version
+    private Long version;
+
     private static final String DEFAULT_NAME = "무제";
 
     public static Refrigerator register(String nickname) {
@@ -40,16 +43,10 @@ public class Refrigerator extends BaseEntity {
 
     public void validateInvitationCode(String code, LocalDateTime now) {
         if (this.invitationCode == null) {
-            throw new CoreException(ErrorType.INVALID_INVITATION_CODE); // 코드가 발급된 적 없음
+            throw new CoreException(ErrorType.INVALID_INVITATION_CODE);
         }
 
-        if (!this.invitationCode.code().equals(code)) {
-            throw new CoreException(ErrorType.INVALID_INVITATION_CODE); // 코드 불일치
-        }
-
-        if (this.invitationCode.isExpired(now)) {
-            throw new CoreException(ErrorType.EXPIRED_INVITATION_CODE); // 만료됨
-        }
+        this.invitationCode.validate(code, now);
     }
 
 }
