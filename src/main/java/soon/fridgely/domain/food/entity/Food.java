@@ -81,4 +81,30 @@ public class Food extends BaseEntity {
             .build();
     }
 
+    public void update(
+        String name,
+        Category category,
+        Quantity quantity,
+        LocalDateTime expirationDate,
+        StorageType storageType,
+        String description,
+        String imageURL,
+        LocalDate now
+    ) {
+        this.name = requireNonNull(name, "name은 필수입니다.");
+        this.quantity = requireNonNull(quantity, "quantity는 필수입니다.");
+        this.expirationDate = requireNonNull(expirationDate, "expirationDate는 필수입니다.");
+        this.storageType = requireNonNull(storageType, "storageType는 필수입니다.");
+        this.description = description == null ? "" : description;
+        this.foodStatus = FoodStatus.fromDaysLeft(expirationDate.toLocalDate(), now);
+
+        if (category != null) {
+            this.category = category;
+        }
+
+        if (imageURL != null && !imageURL.isBlank()) {
+            this.imageURL = imageURL;
+        }
+    }
+
 }
