@@ -10,4 +10,6 @@ public interface RefrigeratorRepository extends JpaRepository<Refrigerator, Long
 
     Optional<Refrigerator> findByIdAndStatus(long id, EntityStatus status);
 
+    Optional<Refrigerator> findByInvitationCode_code(String code);
+
 }

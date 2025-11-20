@@ -29,6 +29,11 @@ public enum ErrorType {
 
     // 냉장고 오류
     INVALID_REFRIGERATOR_ACCESS_KEY(HttpStatus.BAD_REQUEST, "유효하지 않은 냉장고 접근 키입니다.", LogLevel.INFO),
+    ALREADY_JOINED_REFRIGERATOR(HttpStatus.BAD_REQUEST, "이미 가입된 냉장고입니다.", LogLevel.INFO),
+
+    // 초대 코드 오류
+    INVALID_INVITATION_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 초대 코드입니다.", LogLevel.INFO),
+    EXPIRED_INVITATION_CODE(HttpStatus.BAD_REQUEST, "만료된 초대 코드입니다.", LogLevel.INFO),
 
     // 카테고리 오류
     DUPLICATE_CATEGORY_NAME(HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다.", LogLevel.WARN),

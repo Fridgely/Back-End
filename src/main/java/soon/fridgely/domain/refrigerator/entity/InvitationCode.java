@@ -2,6 +2,8 @@ package soon.fridgely.domain.refrigerator.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalDateTime;
 
@@ -30,7 +32,17 @@ public record InvitationCode(
         return new InvitationCode(invitationCode, now.plusDays(DEFAULT_EXPIRATION_DAYS));
     }
 
-    public boolean isExpired(LocalDateTime now) {
+    public void validate(String inputCode, LocalDateTime now) {
+        if (!this.code.equals(inputCode)) {
+            throw new CoreException(ErrorType.INVALID_INVITATION_CODE);
+        }
+
+        if (isExpired(now)) {
+            throw new CoreException(ErrorType.EXPIRED_INVITATION_CODE);
+        }
+    }
+
+    private boolean isExpired(LocalDateTime now) {
         return requireNonNull(now, "현재 시간은 필수입니다.").isAfter(expirationAt);
     }
 

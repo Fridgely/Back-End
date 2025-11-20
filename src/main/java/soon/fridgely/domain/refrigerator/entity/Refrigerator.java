@@ -3,6 +3,10 @@ package soon.fridgely.domain.refrigerator.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import soon.fridgely.domain.BaseEntity;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
+
+import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -21,6 +25,9 @@ public class Refrigerator extends BaseEntity {
     @Embedded
     private InvitationCode invitationCode;
 
+    @Version
+    private Long version;
+
     private static final String DEFAULT_NAME = "무제";
 
     public static Refrigerator register(String nickname) {
@@ -32,6 +39,14 @@ public class Refrigerator extends BaseEntity {
 
     public void refreshInvitationCode(InvitationCode invitationCode) {
         this.invitationCode = invitationCode;
+    }
+
+    public void validateInvitationCode(String code, LocalDateTime now) {
+        if (this.invitationCode == null) {
+            throw new CoreException(ErrorType.INVALID_INVITATION_CODE);
+        }
+
+        this.invitationCode.validate(code, now);
     }
 
 }
