@@ -14,6 +14,8 @@ import soon.fridgely.domain.food.controller.FoodController;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
+import soon.fridgely.domain.refrigerator.controller.RefrigeratorController;
+import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
 
 @AutoConfigureMockMvc(addFilters = false)
@@ -21,7 +23,8 @@ import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
     MemberController.class,
     AuthController.class,
     CategoryController.class,
-    FoodController.class
+    FoodController.class,
+    RefrigeratorController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -45,5 +48,8 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected FoodService foodService;
+
+    @MockitoBean
+    protected RefrigeratorService refrigeratorService;
 
 }
