@@ -10,7 +10,7 @@ import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
+import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 
 import java.util.List;
 
@@ -24,34 +24,32 @@ public class CategoryService {
     private final CategoryRemover categoryRemover;
     private final FoodManager foodManager;
 
-    private final RefrigeratorAccessValidator refrigeratorAccessValidator;
-
+    @ValidateRefrigeratorAccess(key = "#addCategory.toKey()")
     public void appendCustomCategory(AddCategory addCategory) {
-        refrigeratorAccessValidator.validateMembership(addCategory.toKey());
         categoryAppender.appendCustomCategory(addCategory);
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     public CategoryDetailResponse findCategory(long categoryId, MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
         return CategoryDetailResponse.from(categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId()));
     }
 
+    @ValidateRefrigeratorAccess(key = "#key")
     public List<CategoryResponse> findAllCategory(MemberRefrigeratorKey key) {
-        refrigeratorAccessValidator.validateMembership(key);
         return CategoryResponse.from(categoryFinder.findAll(key.refrigeratorId()));
     }
 
+    @ValidateRefrigeratorAccess(key = "#modifyCategory.toKey()")
     public void modifyCustomCategory(ModifyCategory modifyCategory) {
-        refrigeratorAccessValidator.validateMembership(modifyCategory.toKey());
         categoryModifier.modify(modifyCategory);
     }
 
     /*
      * 삭제 대상 카테고리에 속한 모든 음식을 '기타' 카테고리로 이동한 후 대상 카테고리를 삭제
      */
+    @ValidateRefrigeratorAccess(key = "#deleteCategory.toKey()")
     @Transactional
     public void removeCustomCategory(DeleteCategory deleteCategory) {
-        refrigeratorAccessValidator.validateMembership(deleteCategory.toKey());
         foodManager.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), deleteCategory.categoryId());
         categoryRemover.remove(deleteCategory);
     }

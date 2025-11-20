@@ -20,6 +20,8 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CategoryServiceIntegrationTest extends IntegrationTestSupport {
 
@@ -84,6 +87,27 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
             .allSatisfy(f -> assertThat(f.getCategory().getId())
                 .isEqualTo(category2.getId())
             );
+    }
+
+    @Test
+    void 권한이_없는_냉장고의_카테고리를_삭제하려_하면_예외가_발생한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator otherRefrigerator = Refrigerator.register("남의 냉장고");
+        refrigeratorRepository.save(otherRefrigerator);
+
+        Category category = Category.register("target", otherRefrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        var deleteCommand = new DeleteCategory(member.getId(), otherRefrigerator.getId(), category.getId());
+
+        // expected
+        assertThatThrownBy(() -> categoryService.removeCustomCategory(deleteCommand))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHORIZATION_FAILED);
     }
 
     private Member createMember() {
