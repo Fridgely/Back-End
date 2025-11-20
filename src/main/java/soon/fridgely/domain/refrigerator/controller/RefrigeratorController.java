@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
+import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -17,6 +18,16 @@ import soon.fridgely.global.support.response.ApiResponse;
 public class RefrigeratorController {
 
     private final RefrigeratorService refrigeratorService;
+
+    @PatchMapping("/{refrigeratorId}")
+    public ResponseEntity<ApiResponse<?>> updateRefrigerator(
+        @RequestBody @Valid RefrigeratorUpdateRequest request,
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        refrigeratorService.updateRefrigeratorName(new MemberRefrigeratorKey(memberId, refrigeratorId), request);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
 
     @PostMapping("/{refrigeratorId}/invitation-codes")
     public ResponseEntity<ApiResponse<InvitationCodeResponse>> generateInvitationCode(

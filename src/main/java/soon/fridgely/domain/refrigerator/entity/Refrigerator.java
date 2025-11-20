@@ -37,6 +37,16 @@ public class Refrigerator extends BaseEntity {
             .build();
     }
 
+    public void update(String name) {
+        if (name == null || name.isBlank()) {
+            throw new CoreException(ErrorType.INVALID_REQUEST, "냉장고 이름은 비어 있을 수 없습니다.");
+        }
+
+        if (!this.name.equals(name)) {
+            this.name = name;
+        }
+    }
+
     public void refreshInvitationCode(InvitationCode invitationCode) {
         this.invitationCode = invitationCode;
     }
