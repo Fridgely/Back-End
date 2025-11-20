@@ -25,10 +25,10 @@ public class RefrigeratorManager {
     }
 
     @Transactional
-    public void update(long refrigeratorId, String name) {
+    public void update(long refrigeratorId, String newName) {
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        refrigerator.update(name);
+        refrigerator.update(newName);
     }
 
     @Transactional
