@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
+import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -19,6 +20,11 @@ public class RefrigeratorService {
     private final RefrigeratorManager refrigeratorManager;
     private final MemberRefrigeratorLinker memberRefrigeratorLinker;
     private final InvitationCodeGenerator codeGenerator;
+
+    @ValidateRefrigeratorAccess(key = "#key")
+    public void updateRefrigeratorName(MemberRefrigeratorKey key, RefrigeratorUpdateRequest request) {
+        refrigeratorManager.update(key.refrigeratorId(), request.newName());
+    }
 
     @ValidateRefrigeratorAccess(key = "#key")
     public InvitationCodeResponse generateInvitationCode(MemberRefrigeratorKey key) {
