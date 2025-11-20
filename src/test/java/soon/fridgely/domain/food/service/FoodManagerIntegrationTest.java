@@ -8,7 +8,10 @@ import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodCondition;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StorageType;
+import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -18,6 +21,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
@@ -55,7 +59,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory, LocalDate.now()))
             .limit(3)
             .toList();
         foodRepository.saveAll(foods);
@@ -84,7 +88,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        FoodCondition condition = new FoodCondition(LocalDateTime.now().plusDays(5L), StorageType.ROOM_TEMPERATURE, FoodStatus.GREEN);
+        FoodCondition condition = new FoodCondition(LocalDateTime.now().plusDays(5L), StorageType.ROOM_TEMPERATURE);
         FoodInfo foodInfo = new FoodInfo(
             "홈런볼",
             new Quantity(BigDecimal.ONE, Unit.KG),
@@ -115,7 +119,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        Food food = createFood(refrigerator, member, category);
+        Food food = createFood(refrigerator, member, category, LocalDate.now());
         foodRepository.save(food);
 
         // when
@@ -136,7 +140,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
             .build();
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category) {
+    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
         return Food.register(
             refrigerator,
             member,
@@ -145,9 +149,9 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
             new Quantity(new BigDecimal("1.0"), Unit.KG),
             LocalDateTime.now().plusDays(2L),
             StorageType.FROZEN,
-            FoodStatus.GREEN,
             "testDescription",
-            "http://example.com/image.jpg"
+            "http://example.com/image.jpg",
+            now
         );
     }
 

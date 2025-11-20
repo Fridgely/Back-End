@@ -14,8 +14,6 @@ import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
 
-import java.time.LocalDate;
-
 @RequiredArgsConstructor
 @Service
 public class FoodService {
@@ -30,7 +28,7 @@ public class FoodService {
 
         String uploadedUrl = imageManager.upload(file);
         foodManager.createFood(
-            request.toFoodInfo(LocalDate.now(), uploadedUrl),
+            request.toFoodInfo(uploadedUrl),
             key,
             request.categoryId()
         );

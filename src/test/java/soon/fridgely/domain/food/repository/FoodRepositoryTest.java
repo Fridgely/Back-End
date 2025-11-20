@@ -12,7 +12,10 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StorageType;
+import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -21,6 +24,7 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.config.JpaAuditingConfig;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +64,7 @@ class FoodRepositoryTest {
         Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory, LocalDate.now()))
             .limit(3)
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
@@ -90,16 +94,16 @@ class FoodRepositoryTest {
         Category category2 = Category.register("육류", refrigerator2, member, CategoryType.DEFAULT);
         categoryRepository.saveAll(List.of(category1, category2));
 
-        List<Food> activeFoods = Stream.generate(() -> createFood(refrigerator1, member, category1))
+        List<Food> activeFoods = Stream.generate(() -> createFood(refrigerator1, member, category1, LocalDate.now()))
             .limit(3)
             .collect(Collectors.toList());
         foodRepository.saveAll(activeFoods);
 
-        Food deletedFood = createFood(refrigerator1, member, category1);
+        Food deletedFood = createFood(refrigerator1, member, category1, LocalDate.now());
         deletedFood.delete();
         foodRepository.save(deletedFood);
 
-        Food otherFridgeFood = createFood(refrigerator2, member, category2);
+        Food otherFridgeFood = createFood(refrigerator2, member, category2, LocalDate.now());
         foodRepository.save(otherFridgeFood);
 
         Pageable pageable = PageRequest.ofSize(10);
@@ -132,7 +136,7 @@ class FoodRepositoryTest {
         Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.save(category);
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category, LocalDate.now()))
             .limit(5)
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
@@ -171,7 +175,7 @@ class FoodRepositoryTest {
         Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.save(category);
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category, LocalDate.now()))
             .limit(5)
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
@@ -203,7 +207,7 @@ class FoodRepositoryTest {
         Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.save(category);
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category, LocalDate.now()))
             .limit(5)
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
@@ -246,7 +250,7 @@ class FoodRepositoryTest {
             .build();
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category) {
+    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
         return Food.register(
             refrigerator,
             member,
@@ -255,9 +259,9 @@ class FoodRepositoryTest {
             new Quantity(new BigDecimal("1.0"), Unit.KG),
             LocalDateTime.now().plusDays(2L),
             StorageType.FROZEN,
-            FoodStatus.GREEN,
             "testDescription",
-            "http://example.com/image.jpg"
+            "http://example.com/image.jpg",
+            now
         );
     }
 }

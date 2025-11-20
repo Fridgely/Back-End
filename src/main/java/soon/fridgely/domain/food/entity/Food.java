@@ -7,6 +7,7 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static java.util.Objects.requireNonNull;
@@ -62,9 +63,9 @@ public class Food extends BaseEntity {
         Quantity quantity,
         LocalDateTime expirationDate,
         StorageType storageType,
-        FoodStatus foodStatus,
         String description,
-        String imageURL
+        String imageURL,
+        LocalDate now
     ) {
         return Food.builder()
             .refrigerator(requireNonNull(refrigerator, "refrigerator는 필수입니다."))
@@ -74,7 +75,7 @@ public class Food extends BaseEntity {
             .quantity(requireNonNull(quantity, "quantity는 필수입니다."))
             .expirationDate(requireNonNull(expirationDate, "expirationDate는 필수입니다."))
             .storageType(requireNonNull(storageType, "storageType는 필수입니다."))
-            .foodStatus(requireNonNull(foodStatus, "foodStatus는 필수입니다."))
+            .foodStatus(FoodStatus.fromDaysLeft(expirationDate.toLocalDate(), now))
             .description(description == null ? "" : description)
             .imageURL(imageURL == null ? "" : imageURL)
             .build();

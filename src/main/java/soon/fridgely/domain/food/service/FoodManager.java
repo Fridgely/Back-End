@@ -19,6 +19,8 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @Component
 public class FoodManager {
@@ -45,7 +47,7 @@ public class FoodManager {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         Category category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
 
-        Food food = info.toEntity(member, refrigerator, category);
+        Food food = info.toEntity(member, refrigerator, category, LocalDate.now());
         foodRepository.save(food);
     }
 
