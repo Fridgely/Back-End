@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
@@ -47,11 +48,10 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
         LocalDateTime now = LocalDateTime.of(2025, 1, 1, 12, 0);
 
         // when
-        refrigeratorManager.refreshInvitationCode(refrigerator.getId(), newCode, now);
+        InvitationCode invitationCode = refrigeratorManager.refreshInvitationCode(refrigerator.getId(), newCode, now);
 
         // then
-        Refrigerator updated = refrigeratorRepository.findById(refrigerator.getId()).orElseThrow();
-        assertThat(updated.getInvitationCode()).isNotNull()
+        assertThat(invitationCode).isNotNull()
             .extracting("code", "expirationAt")
             .containsExactly(newCode, now.plusDays(1L));
     }

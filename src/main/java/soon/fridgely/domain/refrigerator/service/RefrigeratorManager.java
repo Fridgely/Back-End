@@ -25,10 +25,13 @@ public class RefrigeratorManager {
     }
 
     @Transactional
-    public void refreshInvitationCode(long refrigeratorId, String newCode, LocalDateTime now) {
+    public InvitationCode refreshInvitationCode(long refrigeratorId, String newCode, LocalDateTime now) {
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        refrigerator.refreshInvitationCode(InvitationCode.generate(newCode, now));
+
+        InvitationCode invitationCode = InvitationCode.generate(newCode, now);
+        refrigerator.refreshInvitationCode(invitationCode);
+        return invitationCode;
     }
 
     // 코드가 틀린 것과 냉장고가 없는 것은 동일하게 처리
