@@ -131,6 +131,86 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
             .containsExactly("testFood", "testDescription");
     }
 
+    @Test
+    void 음식_정보_수정_시_카테고리가_변경되지_않으면_기존_카테고리를_유지한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Food food = createFood(refrigerator, member, category, LocalDate.now());
+        foodRepository.save(food);
+
+        FoodInfo updateInfo = new FoodInfo(
+            "수정된 홈런볼",
+            new Quantity(new BigDecimal("2.0"), Unit.KG),
+            new FoodCondition(
+                LocalDateTime.now().plusDays(30),
+                StorageType.ROOM_TEMPERATURE
+            ),
+            "바나나맛",
+            "http://example.com/new-image.jpg"
+        );
+
+        // when
+        foodManager.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId() // 기존 카테고리 ID 전달
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood)
+            .extracting("name", "description")
+            .containsExactly("수정된 홈런볼", "바나나맛");
+
+        assertThat(updatedFood.getCategory().getId()).isEqualTo(category.getId());
+    }
+
+    @Test
+    void 음식_정보_수정_시_카테고리_ID가_다르면_카테고리를_변경한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category oldCategory = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
+        Category newCategory = Category.register("냉동식품", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.saveAll(List.of(oldCategory, newCategory));
+
+        Food food = createFood(refrigerator, member, oldCategory, LocalDate.now());
+        foodRepository.save(food);
+
+        FoodInfo updateInfo = new FoodInfo(
+            food.getName(),
+            food.getQuantity(),
+            new FoodCondition(food.getExpirationDate(), food.getStorageType()),
+            food.getDescription(),
+            food.getImageURL()
+        );
+
+        // when
+        foodManager.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            newCategory.getId() // 새로운 카테고리 ID 전달
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getCategory().getId()).isEqualTo(newCategory.getId());
+    }
+
     private Member createMember() {
         return Member.builder()
             .loginId("testId")

@@ -51,6 +51,27 @@ public class FoodManager {
         foodRepository.save(food);
     }
 
+    @Transactional
+    public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
+        Food food = find(foodId, key.refrigeratorId());
+        Category category = null;
+        if (hasCategoryChanged(food, categoryId)) {
+            category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
+        }
+
+        LocalDate now = LocalDate.now();
+        food.update(
+            updateInfo.name(),
+            category,
+            updateInfo.quantity(),
+            updateInfo.condition().expirationDate(),
+            updateInfo.condition().storageType(),
+            updateInfo.description(),
+            updateInfo.imageURL(),
+            now
+        );
+    }
+
     @Transactional(readOnly = true)
     public Food find(long foodId, long refrigeratorId) {
         return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
@@ -65,6 +86,10 @@ public class FoodManager {
             EntityStatus.ACTIVE,
             pageable
         );
+    }
+
+    private boolean hasCategoryChanged(Food food, long newCategoryId) {
+        return food.getCategory().getId() != newCategoryId;
     }
 
 }
