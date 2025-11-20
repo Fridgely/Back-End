@@ -37,6 +37,12 @@ public class Refrigerator extends BaseEntity {
             .build();
     }
 
+    public void update(String name) {
+        if (name != null && !name.isBlank()) {
+            this.name = name;
+        }
+    }
+
     public void refreshInvitationCode(InvitationCode invitationCode) {
         this.invitationCode = invitationCode;
     }

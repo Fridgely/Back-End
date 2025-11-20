@@ -39,6 +39,20 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    void 냉장고_이름을_수정한다() {
+        // given
+        Refrigerator refrigerator = Refrigerator.register("예전 냉장고");
+        refrigeratorRepository.save(refrigerator);
+
+        // when
+        refrigeratorManager.update(refrigerator.getId(), "새로운 냉장고");
+
+        // then
+        Refrigerator updated = refrigeratorRepository.findById(refrigerator.getId()).orElseThrow();
+        assertThat(updated.getName()).isEqualTo("새로운 냉장고");
+    }
+
+    @Test
     void 냉장고의_초대_코드를_발급하고_저장한다() {
         // given
         Refrigerator refrigerator = Refrigerator.register("냉장고");

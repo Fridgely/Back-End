@@ -25,6 +25,13 @@ public class RefrigeratorManager {
     }
 
     @Transactional
+    public void update(long refrigeratorId, String name) {
+        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        refrigerator.update(name);
+    }
+
+    @Transactional
     public InvitationCode refreshInvitationCode(long refrigeratorId, String newCode, LocalDateTime now) {
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
