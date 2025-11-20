@@ -67,4 +67,10 @@ public class FoodService {
             .map(FoodResponse::from);
     }
 
+    public void deleteFood(long foodId, MemberRefrigeratorKey key) {
+        refrigeratorAccessValidator.validateMembership(key);
+
+        foodManager.delete(foodId, key.refrigeratorId());
+    }
+
 }

@@ -243,6 +243,23 @@ class FoodServiceUnitTest {
             );
     }
 
+    @Test
+    void 음식을_삭제한다() {
+        // given
+        long foodId = 1L;
+        var key = new MemberRefrigeratorKey(1L, 1L);
+
+        // when
+        foodService.deleteFood(foodId, key);
+
+        // then
+        InOrder inOrder = inOrder(refrigeratorAccessValidator, foodManager);
+        then(refrigeratorAccessValidator).should(inOrder)
+            .validateMembership(key);
+        then(foodManager).should(inOrder)
+            .delete(foodId, key.refrigeratorId());
+    }
+
     private MockMultipartFile createMockFile() {
         byte[] content = new byte[1024];
         return new MockMultipartFile("image", "originalFilename.jpg", "image/jpeg", content);
