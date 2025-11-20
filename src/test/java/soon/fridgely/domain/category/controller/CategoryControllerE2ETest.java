@@ -11,12 +11,15 @@ import soon.fridgely.E2ETestSupport;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
+import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
+import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
-import soon.fridgely.domain.category.dto.response.CategoryResponse;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StorageType;
+import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -31,6 +34,7 @@ import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -239,7 +243,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
 
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory))
+        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory, LocalDate.now()))
             .limit(3)
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
@@ -284,7 +288,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
             .build();
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category) {
+    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
         return Food.register(
             refrigerator,
             member,
@@ -293,9 +297,9 @@ class CategoryControllerE2ETest extends E2ETestSupport {
             new Quantity(new BigDecimal("1.0"), Unit.KG),
             LocalDateTime.now().plusDays(2L),
             StorageType.FROZEN,
-            FoodStatus.GREEN,
             "testDescription",
-            "http://example.com/image.jpg"
+            "http://example.com/image.jpg",
+            now
         );
     }
 

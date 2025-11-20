@@ -13,7 +13,7 @@ import soon.fridgely.domain.food.entity.Unit;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record FoodCreateRequest(
+public record FoodUpdateRequest(
 
     @NotBlank(message = "음식 이름은 필수입니다.")
     String name,

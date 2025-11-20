@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
@@ -110,6 +111,86 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value(ResultType.ERROR.name()))
             .andExpect(jsonPath("$.error.message").value(ErrorType.INVALID_REQUEST.getMessage()))
             .andExpect(jsonPath("$.error.data.%s", field).value(message));
+    }
+
+    @TestLoginMember
+    @Test
+    void 이미지가_포함된_음식을_수정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long foodId = 1L;
+
+        var request = new FoodUpdateRequest(
+            "수정된 이름",
+            2L,
+            BigDecimal.TEN,
+            Unit.KG,
+            LocalDateTime.now().plusDays(10),
+            StorageType.ROOM_TEMPERATURE,
+            "수정된 설명"
+        );
+
+        MockMultipartFile jsonRequest = new MockMultipartFile(
+            "request",
+            "request.json",
+            MediaType.APPLICATION_JSON_VALUE,
+            objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8)
+        );
+
+        MockMultipartFile imageFile = new MockMultipartFile(
+            "image",
+            "new-image.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            "new-image-bytes".getBytes()
+        );
+
+        // expected
+        mockMvc.perform(
+                multipart(HttpMethod.PATCH, BASE_URL + "/{foodId}", refrigeratorId, foodId)
+                    .file(jsonRequest)
+                    .file(imageFile)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 이미지가_포함되지_않은_음식을_수정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long foodId = 1L;
+
+        var request = new FoodUpdateRequest(
+            "수정된 이름",
+            1L,
+            BigDecimal.ONE,
+            Unit.KG,
+            LocalDateTime.now(),
+            StorageType.FROZEN,
+            "설명"
+        );
+
+        MockMultipartFile jsonRequest = new MockMultipartFile(
+            "request",
+            "request.json",
+            MediaType.APPLICATION_JSON_VALUE,
+            objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8)
+        );
+
+        // expected
+        mockMvc.perform(
+                multipart(HttpMethod.PATCH, BASE_URL + "/{foodId}", refrigeratorId, foodId)
+                    .file(jsonRequest)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
     @TestLoginMember

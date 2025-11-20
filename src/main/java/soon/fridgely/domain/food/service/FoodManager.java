@@ -19,6 +19,8 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @Component
 public class FoodManager {
@@ -45,8 +47,29 @@ public class FoodManager {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         Category category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
 
-        Food food = info.toEntity(member, refrigerator, category);
+        Food food = info.toEntity(member, refrigerator, category, LocalDate.now());
         foodRepository.save(food);
+    }
+
+    @Transactional
+    public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
+        Food food = find(foodId, key.refrigeratorId());
+        Category category = null;
+        if (hasCategoryChanged(food, categoryId)) {
+            category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
+        }
+
+        LocalDate now = LocalDate.now();
+        food.update(
+            updateInfo.name(),
+            category,
+            updateInfo.quantity(),
+            updateInfo.condition().expirationDate(),
+            updateInfo.condition().storageType(),
+            updateInfo.description(),
+            updateInfo.imageURL(),
+            now
+        );
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +86,10 @@ public class FoodManager {
             EntityStatus.ACTIVE,
             pageable
         );
+    }
+
+    private boolean hasCategoryChanged(Food food, long newCategoryId) {
+        return food.getCategory().getId() != newCategoryId;
     }
 
 }

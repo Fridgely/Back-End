@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.entity.Food;
@@ -13,8 +14,6 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.validator.RefrigeratorAccessValidator;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
-
-import java.time.LocalDate;
 
 @RequiredArgsConstructor
 @Service
@@ -30,7 +29,23 @@ public class FoodService {
 
         String uploadedUrl = imageManager.upload(file);
         foodManager.createFood(
-            request.toFoodInfo(LocalDate.now(), uploadedUrl),
+            request.toFoodInfo(uploadedUrl),
+            key,
+            request.categoryId()
+        );
+    }
+
+    public void updateFood(long foodId, FoodUpdateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
+        refrigeratorAccessValidator.validateMembership(key);
+
+        String uploadedUrl = null;
+        if (file != null && !file.isEmpty()) {
+            uploadedUrl = imageManager.upload(file);
+        }
+
+        foodManager.update(
+            foodId,
+            request.toFoodInfo(uploadedUrl),
             key,
             request.categoryId()
         );

@@ -11,9 +11,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.Quantity;
@@ -89,6 +91,88 @@ class FoodServiceUnitTest {
         assertThat(foodInfo).isNotNull()
             .extracting("name", "imageURL")
             .containsExactlyInAnyOrder(request.name(), expectedImageUrl);
+    }
+
+    @Test
+    void 이미지가_포함된_음식을_수정한다() {
+        // given
+        long foodId = 1L;
+        var key = new MemberRefrigeratorKey(1L, 1L);
+
+        var request = new FoodUpdateRequest(
+            "수정된 이름",
+            2L,
+            BigDecimal.TEN,
+            Unit.KG,
+            LocalDateTime.now().plusDays(10),
+            StorageType.ROOM_TEMPERATURE,
+            "수정된 설명"
+        );
+
+        MockMultipartFile mockFile = createMockFile();
+        String expectedImageUrl = "http://s3.example.com/new-image.jpg";
+        given(imageManager.upload(mockFile)).willReturn(expectedImageUrl);
+
+        // when
+        foodService.updateFood(foodId, request, mockFile, key);
+
+        // then
+        InOrder inOrder = inOrder(refrigeratorAccessValidator, imageManager, foodManager);
+        then(refrigeratorAccessValidator).should(inOrder)
+            .validateMembership(key);
+        then(imageManager).should(inOrder)
+            .upload(mockFile);
+
+        ArgumentCaptor<FoodInfo> foodInfoCaptor = ArgumentCaptor.forClass(FoodInfo.class);
+        then(foodManager).should(inOrder)
+            .update(
+                eq(foodId),
+                foodInfoCaptor.capture(),
+                eq(key),
+                eq(request.categoryId())
+            );
+
+        FoodInfo capturedInfo = foodInfoCaptor.getValue();
+        assertThat(capturedInfo).isNotNull()
+            .extracting("name", "imageURL")
+            .containsExactly(request.name(), expectedImageUrl);
+    }
+
+    @Test
+    void 이미지가_포함되지_않은_경우_기존_이미지가_유지된다() {
+        // given
+        long foodId = 1L;
+        var key = new MemberRefrigeratorKey(1L, 1L);
+
+        var request = new FoodUpdateRequest(
+            "수정된 이름",
+            1L,
+            BigDecimal.ONE,
+            Unit.KG,
+            LocalDateTime.now().plusDays(5),
+            StorageType.FROZEN,
+            "설명"
+        );
+        MultipartFile emptyFile = null;
+
+        // when
+        foodService.updateFood(foodId, request, emptyFile, key);
+
+        // then
+        then(imageManager).shouldHaveNoInteractions();
+
+        ArgumentCaptor<FoodInfo> foodInfoCaptor = ArgumentCaptor.forClass(FoodInfo.class);
+        then(foodManager).should()
+            .update(
+                eq(foodId),
+                foodInfoCaptor.capture(),
+                eq(key),
+                eq(request.categoryId())
+            );
+
+        FoodInfo capturedInfo = foodInfoCaptor.getValue();
+        assertThat(capturedInfo.imageURL()).isNull();
+        assertThat(capturedInfo.name()).isEqualTo(request.name());
     }
 
     @Test
