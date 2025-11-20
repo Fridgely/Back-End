@@ -5,6 +5,7 @@ import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
+import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,6 +22,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RefrigeratorControllerTest extends ControllerTestSupport {
 
     private static final String BASE_URL = "/api/v1/refrigerators";
+
+    @TestLoginMember
+    @Test
+    void 냉장고_이름을_수정한다() throws Exception {
+        // given
+        var request = new RefrigeratorUpdateRequest("새로운 이름");
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/{refrigeratorId}", 1L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
 
     @TestLoginMember
     @Test
