@@ -36,8 +36,7 @@ import java.util.stream.Stream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -264,6 +263,23 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.content[0].id").value(foodResponse.id()))
             .andExpect(jsonPath("$.data.content[0].name").value(foodResponse.name()))
             .andExpect(jsonPath("$.data.content[0].imageURL").value(foodResponse.imageURL()));
+    }
+
+    @TestLoginMember
+    @Test
+    void 음식을_삭제한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long foodId = 1L;
+
+        // expected
+        mockMvc.perform(
+                delete(BASE_URL + "/{foodId}", refrigeratorId, foodId)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
     private static Stream<Arguments> provideInvalidFoodCreateRequests() {
