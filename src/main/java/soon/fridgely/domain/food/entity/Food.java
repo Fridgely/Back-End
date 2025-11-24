@@ -9,6 +9,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static java.util.Objects.requireNonNull;
 
@@ -105,6 +106,14 @@ public class Food extends BaseEntity {
         if (imageURL != null && !imageURL.isBlank()) {
             this.imageURL = imageURL;
         }
+    }
+
+    /**
+     * 유통기한까지 남은 일수를 계산
+     * 양수: 남음, 음수: 지남, 0: 당일
+     */
+    public long calculateDaysLeft(LocalDate now) {
+        return ChronoUnit.DAYS.between(now, this.expirationDate.toLocalDate());
     }
 
 }
