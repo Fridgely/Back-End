@@ -11,6 +11,7 @@ import soon.fridgely.domain.auth.service.AuthService;
 import soon.fridgely.domain.category.controller.CategoryController;
 import soon.fridgely.domain.category.service.CategoryService;
 import soon.fridgely.domain.food.controller.FoodController;
+import soon.fridgely.domain.food.controller.MyFoodController;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
@@ -24,6 +25,7 @@ import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
     AuthController.class,
     CategoryController.class,
     FoodController.class,
+    MyFoodController.class,
     RefrigeratorController.class
 })
 public abstract class ControllerTestSupport {
