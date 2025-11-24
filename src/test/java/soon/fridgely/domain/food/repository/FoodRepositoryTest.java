@@ -28,7 +28,6 @@ import soon.fridgely.global.config.JpaAuditingConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -278,10 +277,11 @@ class FoodRepositoryTest {
         // then
         assertThat(result).hasSize(2)
             .extracting("id")
-            .containsExactlyInAnyOrder(myFood2.getId(), myFood1.getId());
+            .containsExactly(myFood2.getId(), myFood1.getId());
 
-        assertThat(result.get(0).getCategory().getName())
-            .isEqualTo(myCategory.getName());
+        assertThat(result)
+            .allSatisfy(food -> assertThat(food.getCategory().getName())
+                .isEqualTo(myCategory.getName()));
     }
 
     private Member createMember(String testNickname, String testId) {
@@ -293,18 +293,24 @@ class FoodRepositoryTest {
             .build();
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
+    private Food createFood(
+        Refrigerator refrigerator,
+        Member member,
+        Category category,
+        LocalDate expirationDate
+    ) {
         return Food.register(
             refrigerator,
             member,
             "testFood",
             category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
+            new Quantity(BigDecimal.ONE, Unit.KG),
+            expirationDate.atStartOfDay(),
             StorageType.FROZEN,
             "testDescription",
             "http://example.com/image.jpg",
-            now
+            LocalDate.now()
         );
     }
+
 }
