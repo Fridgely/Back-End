@@ -15,6 +15,8 @@ import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @Service
 public class FoodService {
@@ -51,14 +53,15 @@ public class FoodService {
     @Transactional(readOnly = true)
     public FoodDetailResponse findFood(long foodId, MemberRefrigeratorKey key) {
         Food found = foodManager.find(foodId, key.refrigeratorId());
-        return FoodDetailResponse.from(found);
+        LocalDate now = LocalDate.now();
+        return FoodDetailResponse.of(found, now);
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
         return foodManager.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
-            .map(FoodResponse::from);
+            .map(food -> FoodResponse.of(food, LocalDate.now()));
     }
 
     @ValidateRefrigeratorAccess(key = "#key")

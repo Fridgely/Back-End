@@ -201,7 +201,7 @@ class FoodControllerTest extends ControllerTestSupport {
             "foodName",
             "categoryName",
             new QuantityResponse(BigDecimal.ONE, Unit.KG),
-            new FoodConditionResponse(LocalDateTime.now().plusDays(2L), StorageType.FROZEN, FoodStatus.GREEN),
+            new FoodConditionResponse(LocalDateTime.now().plusDays(2L), StorageType.FROZEN, FoodStatus.GREEN, 1L),
             "description",
             "http://example.com/image.jpg"
         );
@@ -239,7 +239,7 @@ class FoodControllerTest extends ControllerTestSupport {
             "Test Category",
             "http://example.com/image.jpg",
             new QuantityResponse(new BigDecimal("2.5"), Unit.KG),
-            new FoodConditionResponse(LocalDateTime.now(), StorageType.REFRIGERATION, FoodStatus.GREEN)
+            new FoodConditionResponse(LocalDateTime.now(), StorageType.REFRIGERATION, FoodStatus.GREEN, 2L)
         );
 
         List<FoodResponse> content = List.of(foodResponse);
