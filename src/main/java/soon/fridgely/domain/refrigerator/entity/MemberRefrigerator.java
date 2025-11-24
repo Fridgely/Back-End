@@ -36,4 +36,8 @@ public class MemberRefrigerator extends BaseEntity {
             .build();
     }
 
+    public boolean isOwner() {
+        return this.role == RefrigeratorRole.OWNER;
+    }
+
 }
