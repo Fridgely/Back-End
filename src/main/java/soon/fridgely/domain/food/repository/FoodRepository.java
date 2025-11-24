@@ -10,6 +10,7 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.Food;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FoodRepository extends JpaRepository<Food, Long> {
@@ -23,6 +24,24 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     void moveAllFoodsToFallbackCategory(
         @Param("target") Category targetCategory,
         @Param("fallback") Category fallbackCategory
+    );
+
+    /*
+     * 특정 회원이 소유한 모든 Food 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            JOIN f.refrigerator r
+            JOIN MemberRefrigerator mr ON mr.refrigerator = r
+            WHERE mr.member.id = :memberId
+            AND mr.status = :status
+            AND f.status = :status
+            ORDER BY f.expirationDate ASC, f.id DESC
+        """)
+    List<Food> findAllMyFoods(
+        @Param("memberId") Long memberId,
+        @Param("status") EntityStatus status
     );
 
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);

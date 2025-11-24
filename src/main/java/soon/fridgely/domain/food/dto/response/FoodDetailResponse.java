@@ -2,6 +2,8 @@ package soon.fridgely.domain.food.dto.response;
 
 import soon.fridgely.domain.food.entity.Food;
 
+import java.time.LocalDate;
+
 public record FoodDetailResponse(
 
     long id,
@@ -14,13 +16,13 @@ public record FoodDetailResponse(
 
 ) {
 
-    public static FoodDetailResponse from(Food food) {
+    public static FoodDetailResponse of(Food food, LocalDate now) {
         return new FoodDetailResponse(
             food.getId(),
             food.getName(),
             food.getCategory().getName(),
-            new QuantityResponse(food.getQuantity().amount(), food.getQuantity().unit()),
-            new FoodConditionResponse(food.getExpirationDate(), food.getStorageType(), food.getFoodStatus()),
+            QuantityResponse.from(food.getQuantity()),
+            FoodConditionResponse.of(food, now),
             food.getDescription(),
             food.getImageURL()
         );

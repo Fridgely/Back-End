@@ -20,6 +20,7 @@ import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -86,6 +87,11 @@ public class FoodManager {
             EntityStatus.ACTIVE,
             pageable
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<Food> findAllMyFoods(long memberId) {
+        return foodRepository.findAllMyFoods(memberId, EntityStatus.ACTIVE);
     }
 
     @Transactional

@@ -19,13 +19,15 @@ import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
+import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.config.JpaAuditingConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +45,9 @@ class FoodRepositoryTest {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private MemberRefrigeratorRepository memberRefrigeratorRepository;
+
+    @Autowired
     private RefrigeratorRepository refrigeratorRepository;
 
     @Autowired
@@ -54,7 +59,7 @@ class FoodRepositoryTest {
     @Test
     void 대상_카테고리의_모든_음식을_폴백_카테고리로_이동한다() {
         // given
-        Member member = createMember();
+        Member member = createMember("testNickname", "testId");
         memberRepository.save(member);
 
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
@@ -83,7 +88,7 @@ class FoodRepositoryTest {
     @Test
     void 특정_냉장고의_ACTIVE_음식만_조회한다() {
         // given
-        Member member = createMember();
+        Member member = createMember("testNickname", "testId");
         memberRepository.save(member);
 
         Refrigerator refrigerator1 = Refrigerator.register(member.getNickname());
@@ -127,7 +132,7 @@ class FoodRepositoryTest {
     @Test
     void 음식_목록을_ID_내림차순으로_정렬하여_조회한다() {
         // given
-        Member member = createMember();
+        Member member = createMember("testNickname", "testId");
         memberRepository.save(member);
 
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
@@ -166,7 +171,7 @@ class FoodRepositoryTest {
     @Test
     void 커서_기반_페이징으로_첫_페이지를_조회한다() {
         // given
-        Member member = createMember();
+        Member member = createMember("testNickname", "testId");
         memberRepository.save(member);
 
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
@@ -198,7 +203,7 @@ class FoodRepositoryTest {
     @Test
     void 커서_기반_페이징으로_다음_페이지를_조회한다() {
         // given
-        Member member = createMember();
+        Member member = createMember("testNickname", "testId");
         memberRepository.save(member);
 
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
@@ -241,27 +246,71 @@ class FoodRepositoryTest {
             .allSatisfy(food -> assertThat(food.getId()).isLessThan(lastIdOfFirstSlice));
     }
 
-    private Member createMember() {
+    @Test
+    void 내가_참여한_냉장고의_음식들만_유통기한_오름차순으로_조회된다() {
+        // given
+        Member me = createMember("me", "testId1");
+        Member other = createMember("other", "testId2");
+        memberRepository.saveAll(List.of(me, other));
+
+        Refrigerator myFridge = Refrigerator.register(me.getNickname());
+        Refrigerator otherFridge = Refrigerator.register(other.getNickname());
+        refrigeratorRepository.saveAll(List.of(myFridge, otherFridge));
+
+        MemberRefrigerator meLink = MemberRefrigerator.link(me, myFridge, RefrigeratorRole.OWNER);
+        MemberRefrigerator otherLink = MemberRefrigerator.link(other, otherFridge, RefrigeratorRole.OWNER);
+        memberRefrigeratorRepository.saveAll(List.of(meLink, otherLink));
+
+        Category myCategory = Category.register("채소", myFridge, me, CategoryType.DEFAULT);
+        Category otherCategory = Category.register("채소", otherFridge, other, CategoryType.DEFAULT);
+        categoryRepository.saveAll(List.of(myCategory, otherCategory));
+
+        LocalDate now = LocalDate.now();
+        Food myFood1 = createFood(myFridge, me, myCategory, now.plusDays(5));
+        Food myFood2 = createFood(myFridge, me, myCategory, now.plusDays(1));
+        Food otherFood = createFood(otherFridge, other, otherCategory, now.plusDays(1));
+        foodRepository.saveAll(List.of(myFood1, myFood2, otherFood));
+
+        // when
+        List<Food> result = foodRepository.findAllMyFoods(me.getId(), EntityStatus.ACTIVE);
+
+        // then
+        assertThat(result).hasSize(2)
+            .extracting("id")
+            .containsExactly(myFood2.getId(), myFood1.getId());
+
+        assertThat(result)
+            .allSatisfy(food -> assertThat(food.getCategory().getName())
+                .isEqualTo(myCategory.getName()));
+    }
+
+    private Member createMember(String testNickname, String testId) {
         return Member.builder()
-            .loginId("testId")
+            .loginId(testId)
             .password("testPassword")
-            .nickname("testNickname")
+            .nickname(testNickname)
             .role(MemberRole.MEMBER)
             .build();
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
+    private Food createFood(
+        Refrigerator refrigerator,
+        Member member,
+        Category category,
+        LocalDate expirationDate
+    ) {
         return Food.register(
             refrigerator,
             member,
             "testFood",
             category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
+            new Quantity(BigDecimal.ONE, Unit.KG),
+            expirationDate.atStartOfDay(),
             StorageType.FROZEN,
             "testDescription",
             "http://example.com/image.jpg",
-            now
+            LocalDate.now()
         );
     }
+
 }
