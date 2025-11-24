@@ -40,7 +40,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
             ORDER BY f.expirationDate ASC, f.id DESC
         """)
     List<Food> findAllMyFoods(
-        @Param("memberId") Long memberId,
+        @Param("memberId") long memberId,
         @Param("status") EntityStatus status
     );
 
