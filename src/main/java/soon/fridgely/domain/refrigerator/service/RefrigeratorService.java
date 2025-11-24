@@ -6,12 +6,15 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
+import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -19,6 +22,7 @@ public class RefrigeratorService {
 
     private final RefrigeratorManager refrigeratorManager;
     private final MemberRefrigeratorLinker memberRefrigeratorLinker;
+    private final MemberRefrigeratorFinder memberRefrigeratorFinder;
     private final InvitationCodeGenerator codeGenerator;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -44,6 +48,21 @@ public class RefrigeratorService {
             new MemberRefrigeratorKey(memberId, refrigerator.getId()),
             RefrigeratorRole.MEMBER
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<RefrigeratorResponse> findAllMyRefrigerators(Long memberId) {
+        return memberRefrigeratorFinder.findAllByMemberId(memberId)
+            .stream()
+            .map(RefrigeratorResponse::from)
+            .toList();
+    }
+
+    @ValidateRefrigeratorAccess(key = "#key")
+    @Transactional(readOnly = true)
+    public RefrigeratorResponse findRefrigerator(MemberRefrigeratorKey key) {
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId());
+        return RefrigeratorResponse.from(memberRefrigerator);
     }
 
 }
