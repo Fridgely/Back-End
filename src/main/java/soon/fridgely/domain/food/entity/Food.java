@@ -113,6 +113,7 @@ public class Food extends BaseEntity {
      * 양수: 남음, 음수: 지남, 0: 당일
      */
     public long calculateDaysLeft(LocalDate now) {
+        requireNonNull(now, "now는 필수입니다.");
         return ChronoUnit.DAYS.between(now, this.expirationDate.toLocalDate());
     }
 
