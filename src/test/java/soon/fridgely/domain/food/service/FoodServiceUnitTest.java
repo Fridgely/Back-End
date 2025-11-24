@@ -17,10 +17,8 @@ import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
+import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
+import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
@@ -171,7 +169,7 @@ class FoodServiceUnitTest {
         long foodId = 1L;
         var key = new MemberRefrigeratorKey(1L, 1L);
 
-        Food mockFood = createMockFood(foodId);
+        Food mockFood = createMockFood(foodId, FoodStatus.BLACK);
         given(foodManager.find(foodId, key.refrigeratorId())).willReturn(mockFood);
 
         // when
@@ -200,7 +198,7 @@ class FoodServiceUnitTest {
         long expectedCursorId = request.getCursorId(); // Long.MAX_VALUE
         Pageable expectedPageable = request.toPageable();
 
-        Food mockFood = createMockFood(1L);
+        Food mockFood = createMockFood(1L, FoodStatus.BLACK);
         var foodList = List.of(mockFood);
 
         Slice<Food> mockFoodSlice = new SliceImpl<>(foodList, expectedPageable, true);
@@ -244,12 +242,36 @@ class FoodServiceUnitTest {
             .delete(foodId, key.refrigeratorId());
     }
 
+    @Test
+    void 사용자의_모든_음식을_조회하여_상태별로_그룹핑_한다() {
+        // given
+        long memberId = 1L;
+
+        Food redFood = createMockFood(1L, FoodStatus.RED);
+        Food greenFood1 = createMockFood(2L, FoodStatus.GREEN);
+        Food greenFood2 = createMockFood(3L, FoodStatus.GREEN);
+        Food blackFood = createMockFood(4L, FoodStatus.BLACK);
+
+        List<Food> allFoods = List.of(redFood, greenFood1, greenFood2, blackFood);
+        given(foodManager.findAllMyFoods(memberId)).willReturn(allFoods);
+
+        // when
+        FoodStatusResponse response = foodService.findAllMyFoodsGroupedByStatus(memberId);
+
+        // then
+        assertThat(response.red()).hasSize(1);
+        assertThat(response.green()).hasSize(2);
+        assertThat(response.black()).hasSize(1);
+        assertThat(response.yellow()).isNotNull()
+            .isEmpty();
+    }
+
     private MockMultipartFile createMockFile() {
         byte[] content = new byte[1024];
         return new MockMultipartFile("image", "originalFilename.jpg", "image/jpeg", content);
     }
 
-    private Food createMockFood(long foodId) {
+    private Food createMockFood(long foodId, FoodStatus status) {
         Food mockFood = mock(Food.class);
         Category mockCategory = mock(Category.class);
         Quantity mockQuantity = mock(Quantity.class);
@@ -257,6 +279,7 @@ class FoodServiceUnitTest {
         given(mockFood.getId()).willReturn(foodId);
         given(mockFood.getName()).willReturn("TestFood");
         given(mockFood.getImageURL()).willReturn("http://example.com/test.jpg");
+        given(mockFood.getFoodStatus()).willReturn(status);
         given(mockFood.getCategory()).willReturn(mockCategory);
         given(mockCategory.getName()).willReturn("TestCategory");
         given(mockFood.getQuantity()).willReturn(mockQuantity);
