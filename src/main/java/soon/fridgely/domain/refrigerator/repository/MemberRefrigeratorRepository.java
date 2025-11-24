@@ -21,18 +21,27 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.refrigerator r
             WHERE mr.member.id = :memberId
+            AND mr.status = :status
+            AND r.status = :status
             ORDER BY mr.createdAt ASC
         """)
-    List<MemberRefrigerator> findAllMyRefrigerators(@Param("memberId") long memberId);
+    List<MemberRefrigerator> findAllMyRefrigerators(
+        @Param("memberId") long memberId,
+        @Param("status") EntityStatus status
+    );
 
     @Query("""
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.refrigerator r
-            WHERE mr.member.id = :memberId AND mr.refrigerator.id = :refrigeratorId
+            WHERE mr.member.id = :memberId 
+            AND mr.refrigerator.id = :refrigeratorId
+            AND mr.status = :status
+            AND r.status = :status
         """)
     Optional<MemberRefrigerator> findByMemberIdAndRefrigeratorId(
         @Param("memberId") long memberId,
-        @Param("refrigeratorId") long refrigeratorId
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("status") EntityStatus status
     );
 
 }

@@ -19,12 +19,12 @@ public class MemberRefrigeratorFinder {
 
     @Transactional(readOnly = true)
     public List<MemberRefrigerator> findAllByMemberId(long memberId) {
-        return memberRefrigeratorRepository.findAllMyRefrigerators(memberId);
+        return memberRefrigeratorRepository.findAllMyRefrigerators(memberId, EntityStatus.ACTIVE);
     }
 
     @Transactional(readOnly = true)
     public MemberRefrigerator findByMemberIdAndRefrigeratorId(long memberId, long refrigeratorId) {
-        return memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(memberId, refrigeratorId)
+        return memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(memberId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 

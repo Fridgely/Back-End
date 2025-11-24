@@ -3,6 +3,7 @@ package soon.fridgely.domain.refrigerator.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -43,7 +44,7 @@ class MemberRefrigeratorRepositoryTest extends IntegrationTestSupport {
         memberRefrigeratorRepository.save(MemberRefrigerator.link(other, otherFridge, RefrigeratorRole.OWNER));
 
         // when
-        List<MemberRefrigerator> result = memberRefrigeratorRepository.findAllMyRefrigerators(me.getId());
+        List<MemberRefrigerator> result = memberRefrigeratorRepository.findAllMyRefrigerators(me.getId(), EntityStatus.ACTIVE);
 
         // then
         assertThat(result).hasSize(2)
@@ -67,7 +68,7 @@ class MemberRefrigeratorRepositoryTest extends IntegrationTestSupport {
 
         // when
         MemberRefrigerator result = memberRefrigeratorRepository
-            .findByMemberIdAndRefrigeratorId(member.getId(), fridge.getId())
+            .findByMemberIdAndRefrigeratorId(member.getId(), fridge.getId(), EntityStatus.ACTIVE)
             .orElseThrow();
 
         // then
