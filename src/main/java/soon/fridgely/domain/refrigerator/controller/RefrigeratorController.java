@@ -8,9 +8,12 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/refrigerators")
@@ -18,6 +21,23 @@ import soon.fridgely.global.support.response.ApiResponse;
 public class RefrigeratorController {
 
     private final RefrigeratorService refrigeratorService;
+
+    @GetMapping("/{refrigeratorId}")
+    public ResponseEntity<ApiResponse<RefrigeratorResponse>> findRefrigerator(
+        @LoginMember Long memberId,
+        @PathVariable Long refrigeratorId
+    ) {
+        RefrigeratorResponse response = refrigeratorService.findRefrigerator(new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<RefrigeratorResponse>>> findAllMyRefrigerators(
+        @LoginMember Long memberId
+    ) {
+        List<RefrigeratorResponse> responses = refrigeratorService.findAllMyRefrigerators(memberId);
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
 
     @PatchMapping("/{refrigeratorId}")
     public ResponseEntity<ApiResponse<?>> updateRefrigerator(

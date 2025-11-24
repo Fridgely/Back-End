@@ -7,14 +7,17 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
+import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,6 +25,53 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RefrigeratorControllerTest extends ControllerTestSupport {
 
     private static final String BASE_URL = "/api/v1/refrigerators";
+
+    @TestLoginMember
+    @Test
+    void 내_냉장고_목록을_조회한다() throws Exception {
+        // given
+        var responses = List.of(
+            new RefrigeratorResponse(1L, "Fridge1", RefrigeratorRole.OWNER, true),
+            new RefrigeratorResponse(2L, "Fridge2", RefrigeratorRole.MEMBER, false)
+        );
+
+        given(refrigeratorService.findAllMyRefrigerators(anyLong()))
+            .willReturn(responses);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data").isArray())
+            .andExpect(jsonPath("$.data[0].name").value("Fridge1"))
+            .andExpect(jsonPath("$.data[1].role").value("MEMBER"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 냉장고의_상세_정보를_조회한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+
+        var response = new RefrigeratorResponse(refrigeratorId, "MyFridge", RefrigeratorRole.OWNER, true);
+        given(refrigeratorService.findRefrigerator(any(MemberRefrigeratorKey.class)))
+            .willReturn(response);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/{refrigeratorId}", refrigeratorId)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.id").value(refrigeratorId))
+            .andExpect(jsonPath("$.data.name").value("MyFridge"));
+    }
 
     @TestLoginMember
     @Test
