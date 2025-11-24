@@ -1,6 +1,8 @@
 package soon.fridgely.domain.food.entity;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.member.entity.Member;
@@ -175,6 +177,46 @@ class FoodUnitTest {
         ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("name은 필수입니다.");
+    }
+
+    @ParameterizedTest(name = "기준일: {0}, 만료일: {1} -> 남은 일수: {2}")
+    @CsvSource({
+        "2025-01-01, 2025-01-04, 3", // 미래: 3일 남음
+        "2025-01-01, 2025-01-02, 1", // 미래: 1일 남음
+        "2025-01-01, 2025-01-01, 0", // 당일: 0일
+        "2025-01-02, 2025-01-01, -1", // 과거: 1일 지남
+        "2025-01-05, 2025-01-01, -4" // 과거: 4일 지남
+    })
+    void 기준_날짜와_소비기한의_차이를_일_단위로_계산한다(LocalDate now, LocalDate expirationDate, long expectedDays) {
+        // given
+        Member member = createMember();
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        Category category = Category.register("테스트", refrigerator, member, CategoryType.CUSTOM);
+        Food food = createFood(refrigerator, member, category, expirationDate.atStartOfDay(), now);
+
+        // when
+        long daysLeft = food.calculateDaysLeft(now);
+
+        // then
+        assertThat(daysLeft).isEqualTo(expectedDays);
+    }
+
+    @Test
+    void 소비기한의_시간이_다르더라도_날짜가_같으면_0일을_반환한다() {
+        // given
+        Member member = createMember();
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        Category category = Category.register("테스트", refrigerator, member, CategoryType.CUSTOM);
+
+        LocalDate now = LocalDate.of(2025, 1, 1);
+        LocalDateTime expirationAtEndOfDay = LocalDateTime.of(2025, 1, 1, 23, 59, 59);
+        Food food = createFood(refrigerator, member, category, expirationAtEndOfDay, now);
+
+        // when
+        long daysLeft = food.calculateDaysLeft(now);
+
+        // then
+        assertThat(daysLeft).isEqualTo(0);
     }
 
     private Member createMember() {
