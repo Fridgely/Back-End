@@ -27,7 +27,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     );
 
     /*
-        * 특정 회원이 소유한 모든 Food 조회
+     * 특정 회원이 소유한 모든 Food 조회
      */
     @Query("""
             SELECT f FROM Food f
@@ -43,6 +43,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("memberId") Long memberId,
         @Param("status") EntityStatus status
     );
+
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 
     Slice<Food> findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
