@@ -5,20 +5,34 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.entity.Category;
+import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.category.validator.CategoryValidator;
+import soon.fridgely.domain.food.service.FoodManager;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 @RequiredArgsConstructor
 @Component
 public class CategoryRemover {
 
     private final CategoryValidator categoryValidator;
-    private final CategoryFinder categoryFinder;
+    private final FoodManager foodManager;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public void remove(DeleteCategory deleteCategory) {
-        Category category = categoryFinder.findByRefrigerator(deleteCategory.categoryId(), deleteCategory.refrigeratorId());
+        Category category = categoryRepository.findByIdAndRefrigeratorId(deleteCategory.categoryId(), deleteCategory.refrigeratorId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        if (category.isDeleted()) {
+            return;
+        }
+
         categoryValidator.validateNotDefaultType(category);
+
+        foodManager.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), category.getId());
+
         category.delete();
+        categoryRepository.save(category); // foodManager에서 영속성 컨텍스트가 초기화되므로 다시 저장 필요
     }
 
 }

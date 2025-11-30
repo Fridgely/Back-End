@@ -242,6 +242,30 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(deletedFood.isDeleted()).isTrue();
     }
 
+    @Test
+    void 음식을_중복_삭제해도_예외가_발생하지_않는다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Food food = createFood(refrigerator, member, category, LocalDate.now());
+        foodRepository.save(food);
+
+        // when
+        foodManager.delete(food.getId(), refrigerator.getId());
+        foodManager.delete(food.getId(), refrigerator.getId());
+
+        // then
+        Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(deletedFood.isDeleted()).isTrue();
+    }
+
     private Member createMember() {
         return Member.builder()
             .loginId("testId")
