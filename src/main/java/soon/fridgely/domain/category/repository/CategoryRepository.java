@@ -10,11 +10,11 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    Optional<Category> findByIdAndRefrigeratorIdAndStatus(Long id, Long refrigeratorId, EntityStatus status);
+    Optional<Category> findByIdAndRefrigeratorIdAndStatus(long id, long refrigeratorId, EntityStatus status);
 
     Optional<Category> findByIdAndRefrigeratorId(long categoryId, long refrigeratorId);
 
-    Optional<Category> findByNameAndRefrigeratorIdAndStatus(String name, Long refrigeratorId, EntityStatus status);
+    Optional<Category> findByNameAndRefrigeratorIdAndStatus(String name, long refrigeratorId, EntityStatus status);
 
     List<Category> findAllByRefrigeratorAndStatus(Refrigerator refrigerator, EntityStatus status);
 
