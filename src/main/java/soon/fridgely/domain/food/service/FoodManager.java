@@ -96,7 +96,13 @@ public class FoodManager {
 
     @Transactional
     public void delete(long foodId, long refrigeratorId) {
-        Food food = find(foodId, refrigeratorId);
+        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+
+        if (food.isDeleted()) {
+            return;
+        }
+
         food.delete();
     }
 

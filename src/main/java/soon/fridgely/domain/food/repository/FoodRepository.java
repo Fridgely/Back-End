@@ -46,6 +46,8 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 
+    Optional<Food> findByIdAndRefrigeratorId(long foodId, long refrigeratorId);
+
     Slice<Food> findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
         long refrigeratorId,
         long id, // 마지막으로 조회된 Food의 ID
