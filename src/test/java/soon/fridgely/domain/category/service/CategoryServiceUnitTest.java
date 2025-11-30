@@ -11,7 +11,6 @@ import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 
 import static org.mockito.BDDMockito.given;
@@ -36,9 +35,6 @@ class CategoryServiceUnitTest {
 
     @Mock
     private CategoryRemover categoryRemover;
-
-    @Mock
-    private FoodManager foodManager;
 
     @Test
     void 커스텀_카테고리를_생성한다() {
@@ -109,7 +105,7 @@ class CategoryServiceUnitTest {
     }
 
     @Test
-    void 커스텀_카테고리를_삭제하고_음식을_기본_카테고리로_이동한다() {
+    void 커스텀_카테고리를_삭제한다() {
         // given
         var deleteCategory = new DeleteCategory(1L, 1L, 1L);
 
@@ -117,13 +113,8 @@ class CategoryServiceUnitTest {
         categoryService.removeCustomCategory(deleteCategory);
 
         // then
-        InOrder inOrder = inOrder(foodManager, categoryRemover);
-        then(foodManager)
-            .should(inOrder)
-            .moveAllFoodsToFallback(deleteCategory.refrigeratorId(), deleteCategory.categoryId());
-
         then(categoryRemover)
-            .should(inOrder)
+            .should()
             .remove(deleteCategory);
     }
 

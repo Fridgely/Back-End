@@ -2,13 +2,11 @@ package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.category.dto.command.AddCategory;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
-import soon.fridgely.domain.food.service.FoodManager;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 
@@ -22,7 +20,6 @@ public class CategoryService {
     private final CategoryFinder categoryFinder;
     private final CategoryModifier categoryModifier;
     private final CategoryRemover categoryRemover;
-    private final FoodManager foodManager;
 
     @ValidateRefrigeratorAccess(key = "#addCategory.toKey()")
     public void appendCustomCategory(AddCategory addCategory) {
@@ -48,9 +45,7 @@ public class CategoryService {
      * 삭제 대상 카테고리에 속한 모든 음식을 '기타' 카테고리로 이동한 후 대상 카테고리를 삭제
      */
     @ValidateRefrigeratorAccess(key = "#deleteCategory.toKey()")
-    @Transactional
     public void removeCustomCategory(DeleteCategory deleteCategory) {
-        foodManager.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), deleteCategory.categoryId());
         categoryRemover.remove(deleteCategory);
     }
 
