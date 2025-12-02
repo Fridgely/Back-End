@@ -8,13 +8,14 @@ import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
+import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.stream.Stream;
 
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -128,6 +129,51 @@ class AuthControllerTest extends ControllerTestSupport {
                 post(BASE_URL + "/reissue")
                     .content(objectMapper.writeValueAsString(request))
                     .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.message").value("인증에 실패했습니다."));
+    }
+
+    @TestLoginMember
+    @Test
+    void 로그아웃에_성공한다() throws Exception {
+        // given
+        long memberId = 1L;
+        willDoNothing().given(authService)
+            .logout(memberId);
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/logout")
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @Test
+    void 인증되지_않은_사용자는_로그아웃을_할_수_없다() throws Exception {
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/logout")
+            )
+            .andDo(print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    @TestLoginMember
+    @Test
+    void 존재하지_않는_사용자로_로그아웃_시도_시_예외가_발생한다() throws Exception {
+        // given
+        long memberId = 1L;
+        willThrow(new CoreException(ErrorType.AUTHENTICATION_FAILED))
+            .given(authService).logout(memberId);
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/logout")
             )
             .andDo(print())
             .andExpect(status().isUnauthorized())
