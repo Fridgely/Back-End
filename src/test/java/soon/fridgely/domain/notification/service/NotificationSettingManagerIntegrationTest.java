@@ -1,11 +1,14 @@
 package soon.fridgely.domain.notification.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 
@@ -14,10 +17,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class NotificationManagerIntegrationTest extends IntegrationTestSupport {
+class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private NotificationManager notificationManager;
+    private NotificationSettingManager notificationSettingManager;
 
     @Autowired
     private NotificationSettingRepository notificationSettingRepository;
@@ -32,12 +35,12 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         // when
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
 
         // then
         NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
         assertThat(setting)
-            .extracting("notificationTime", "daysBeforeExpiration", "enabled", "member.id")
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled", "member.id")
             .containsExactly(LocalTime.of(9, 0), 3, true, member.getId());
     }
 
@@ -48,10 +51,10 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         // when
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
         long countBefore = notificationSettingRepository.count();
 
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
         long countAfter = notificationSettingRepository.count();
 
         // then
@@ -66,8 +69,8 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.saveAll(List.of(member1, member2));
 
         // when
-        notificationManager.createDefaultSetting(member1);
-        notificationManager.createDefaultSetting(member2);
+        notificationSettingManager.createDefaultSetting(member1);
+        notificationSettingManager.createDefaultSetting(member2);
 
         // then
         NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member1.getId()).orElseThrow();
@@ -78,6 +81,33 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
 
         long savedCount = notificationSettingRepository.count();
         assertThat(savedCount).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "0, 0, 1, true",
+        "9, 0, 5, false",
+        "14, 30, 15, true",
+        "23, 59, 30, false"
+    })
+    void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
+        // given
+        Member member = createMember("testId");
+        memberRepository.save(member);
+
+        NotificationSetting defaultSetting = NotificationSetting.createDefaultSetting(member);
+        notificationSettingRepository.save(defaultSetting);
+
+        AlertSchedule newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+
+        // when
+        notificationSettingManager.update(member.getId(), newSchedule, enabled);
+
+        // then
+        NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
+        assertThat(setting).isNotNull()
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled")
+            .containsExactly(LocalTime.of(hour, minute), days, enabled);
     }
 
     private Member createMember(String loginId) {

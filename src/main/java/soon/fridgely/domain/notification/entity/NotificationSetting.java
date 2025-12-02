@@ -4,10 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.global.support.exception.CoreException;
-import soon.fridgely.global.support.exception.ErrorType;
 
-import java.time.LocalTime;
+import static java.util.Objects.requireNonNull;
 
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,18 +24,11 @@ public class NotificationSetting extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
-    private LocalTime notificationTime;
-
-    @Column(nullable = false)
-    private int daysBeforeExpiration;
+    @Embedded
+    private AlertSchedule alertSchedule;
 
     @Column(nullable = false)
     private boolean enabled;
-
-    private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(9, 0);
-    private static final int DEFAULT_DAYS_BEFORE_EXPIRATION = 3;
-    private static final int MAX_DAYS = 30;
 
     /**
      * 회원가입 시 기본 설정 생성
@@ -48,34 +39,14 @@ public class NotificationSetting extends BaseEntity {
     public static NotificationSetting createDefaultSetting(Member member) {
         return NotificationSetting.builder()
             .member(member)
-            .notificationTime(DEFAULT_NOTIFICATION_TIME)
-            .daysBeforeExpiration(DEFAULT_DAYS_BEFORE_EXPIRATION)
+            .alertSchedule(AlertSchedule.createDefault())
             .enabled(true)
             .build();
     }
 
-    public void updateSettings(LocalTime notificationTime, int daysBeforeExpiration, boolean enabled) {
-        validateNotificationTime(notificationTime);
-        validateDaysBeforeExpiration(daysBeforeExpiration);
-
-        this.notificationTime = notificationTime;
-        this.daysBeforeExpiration = daysBeforeExpiration;
+    public void updateSettings(boolean enabled, AlertSchedule alertSchedule) {
+        this.alertSchedule = requireNonNull(alertSchedule, "스케줄은 필수입니다.");
         this.enabled = enabled;
-    }
-
-    private void validateNotificationTime(LocalTime notificationTime) {
-        if (notificationTime == null) {
-            throw new CoreException(ErrorType.INVALID_REQUEST, "알림 시간은 null일 수 없습니다.");
-        }
-    }
-
-    private void validateDaysBeforeExpiration(int daysBeforeExpiration) {
-        if (daysBeforeExpiration <= 0) {
-            throw new CoreException(ErrorType.INVALID_REQUEST, "만료일 날짜는 0보다 커야 합니다.");
-        }
-        if (daysBeforeExpiration > MAX_DAYS) {
-            throw new CoreException(ErrorType.INVALID_REQUEST, "알림 기준일은 최대 " + MAX_DAYS + "일까지 설정 가능합니다.");
-        }
     }
 
 }

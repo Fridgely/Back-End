@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 @RequiredArgsConstructor
 @Component
-public class NotificationManager {
+public class NotificationSettingManager {
 
     private final NotificationSettingRepository notificationSettingRepository;
 
@@ -21,6 +24,18 @@ public class NotificationManager {
 
         NotificationSetting setting = NotificationSetting.createDefaultSetting(member);
         notificationSettingRepository.save(setting);
+    }
+
+    @Transactional(readOnly = true)
+    public NotificationSetting findNotificationSetting(long memberId) {
+        return notificationSettingRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    @Transactional
+    public void update(long memberId, AlertSchedule newSchedule, boolean enabled) {
+        NotificationSetting setting = findNotificationSetting(memberId);
+        setting.updateSettings(enabled, newSchedule);
     }
 
 }

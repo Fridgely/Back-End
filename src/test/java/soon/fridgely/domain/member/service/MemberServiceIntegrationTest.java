@@ -64,7 +64,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
 
         NotificationSetting notificationSetting = notificationSettingRepository.findByMemberId(memberId).orElseThrow();
         assertThat(notificationSetting)
-            .extracting("notificationTime", "daysBeforeExpiration", "enabled", "member.id")
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled", "member.id")
             .containsExactly(LocalTime.of(9, 0), 3, true, memberId);
     }
 
