@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 @RequiredArgsConstructor
 @Component
@@ -21,6 +23,12 @@ public class NotificationSettingManager {
 
         NotificationSetting setting = NotificationSetting.createDefaultSetting(member);
         notificationSettingRepository.save(setting);
+    }
+
+    @Transactional(readOnly = true)
+    public NotificationSetting findNotificationSetting(long memberId) {
+        return notificationSettingRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 
 }
