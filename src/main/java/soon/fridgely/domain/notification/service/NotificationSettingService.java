@@ -2,6 +2,7 @@ package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRequest;
 import soon.fridgely.domain.notification.dto.response.NotificationSettingDetailResponse;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 
@@ -14,6 +15,10 @@ public class NotificationSettingService {
     public NotificationSettingDetailResponse findNotificationSetting(long memberId) {
         NotificationSetting setting = notificationSettingManager.findNotificationSetting(memberId);
         return NotificationSettingDetailResponse.from(setting);
+    }
+
+    public void updateNotificationSetting(long memberId, NotificationSettingUpdateRequest request) {
+        notificationSettingManager.update(memberId, request.toAlertSchedule(), request.enabled());
     }
 
 }
