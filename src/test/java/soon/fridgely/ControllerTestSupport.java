@@ -15,6 +15,8 @@ import soon.fridgely.domain.food.controller.MyFoodController;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
+import soon.fridgely.domain.notification.controller.NotificationSettingController;
+import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.domain.refrigerator.controller.RefrigeratorController;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
@@ -26,7 +28,8 @@ import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
     CategoryController.class,
     FoodController.class,
     MyFoodController.class,
-    RefrigeratorController.class
+    RefrigeratorController.class,
+    NotificationSettingController.class
 })
 public abstract class ControllerTestSupport {
 
@@ -53,5 +56,8 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected RefrigeratorService refrigeratorService;
+
+    @MockitoBean
+    protected NotificationSettingService notificationSettingService;
 
 }
