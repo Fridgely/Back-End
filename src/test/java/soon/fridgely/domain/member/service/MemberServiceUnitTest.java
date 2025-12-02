@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.notification.service.NotificationManager;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 import soon.fridgely.domain.refrigerator.service.MemberRefrigeratorLinker;
@@ -37,11 +38,13 @@ class MemberServiceUnitTest {
     private MemberRefrigeratorLinker memberRefrigeratorLinker;
 
     @Mock
+    private NotificationManager notificationManager;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Test
     void 회원을_등록하고_기본_냉장고를_생성한_뒤_연결하고_이벤트를_발행한다() {
-        // given
         MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
         Member mockMember = mock(Member.class);
         Refrigerator mockRefrigerator = mock(Refrigerator.class);
@@ -54,12 +57,19 @@ class MemberServiceUnitTest {
         Long memberId = memberService.register(memberInfo);
 
         // then
-        InOrder inOrder = inOrder(memberManager, refrigeratorManager, memberRefrigeratorLinker, eventPublisher);
+        InOrder inOrder = inOrder(memberManager, notificationManager, refrigeratorManager, memberRefrigeratorLinker, eventPublisher);
 
-        then(memberManager).should(inOrder).register(memberInfo);
-        then(refrigeratorManager).should(inOrder).register(mockMember);
-        then(memberRefrigeratorLinker).should(inOrder).linkToOwner(mockMember, mockRefrigerator);
-        then(eventPublisher).should(inOrder).publishEvent(any(RefrigeratorCreatedEvent.class));
+        then(memberManager).should(inOrder)
+            .register(memberInfo);
+        then(notificationManager).should(inOrder)
+            .createDefaultSetting(mockMember);
+        then(refrigeratorManager).should(inOrder)
+            .register(mockMember);
+        then(memberRefrigeratorLinker).should(inOrder)
+            .linkToOwner(mockMember, mockRefrigerator);
+        then(eventPublisher).should(inOrder)
+            .publishEvent(any(RefrigeratorCreatedEvent.class));
+
         assertThat(memberId).isEqualTo(1L);
     }
 

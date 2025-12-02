@@ -7,6 +7,7 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,8 @@ import java.util.Optional;
 public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrigerator, Long> {
 
     Optional<MemberRefrigerator> findByMemberAndRefrigerator(Member member, Refrigerator refrigerator);
+
+    List<MemberRefrigerator> findByMemberAndRoleAndStatus(Member member, RefrigeratorRole role, EntityStatus status);
 
     boolean existsByRefrigeratorIdAndMemberIdAndStatus(long refrigeratorId, long memberId, EntityStatus status);
 
