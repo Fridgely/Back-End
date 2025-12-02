@@ -30,13 +30,15 @@ public class S3Provider implements StorageProvider {
 
     @Override
     public String upload(String key, InputStream inputStream, long contentLength, String contentType) {
-        String resolvedContentType = resolveContentType(key, contentType);
+        String finalContentType = (contentType != null && !contentType.isBlank())
+            ? contentType
+            : "application/octet-stream";
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
-                .contentType(resolvedContentType)
+                .contentType(finalContentType)
                 .build();
 
             RequestBody requestBody = RequestBody.fromInputStream(inputStream, contentLength);
@@ -89,24 +91,6 @@ public class S3Provider implements StorageProvider {
             log.error("[S3Provider] S3 Presigned URL (GET) 생성 실패. (Key={})", key, e);
             throw new CoreException(ErrorType.STORAGE_PRESIGNED_URL_FAILED, "key: " + key);
         }
-    }
-
-    private String resolveContentType(String key, String provided) {
-        if (provided != null && !provided.isBlank()) {
-            return provided;
-        }
-
-        int lastIndex = key.lastIndexOf('.');
-        if (lastIndex == -1 || lastIndex == key.length() - 1) {
-            return "application/octet-stream";
-        }
-
-        String extension = key.substring(lastIndex + 1).toLowerCase();
-        return switch (extension) {
-            case "jpg", "jpeg" -> "image/jpeg";
-            case "png" -> "image/png";
-            default -> "application/octet-stream";
-        };
     }
 
 }
