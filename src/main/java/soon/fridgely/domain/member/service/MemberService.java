@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.service.NotificationManager;
+import soon.fridgely.domain.notification.service.NotificationSettingManager;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 import soon.fridgely.domain.refrigerator.service.MemberRefrigeratorLinker;
@@ -19,7 +19,7 @@ public class MemberService {
     private final MemberManager memberManager;
     private final RefrigeratorManager refrigeratorManager;
     private final MemberRefrigeratorLinker memberRefrigeratorLinker;
-    private final NotificationManager notificationManager;
+    private final NotificationSettingManager notificationSettingManager;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -31,7 +31,7 @@ public class MemberService {
     @Transactional
     public Long register(MemberInfo memberInfo) {
         Member member = memberManager.register(memberInfo);
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
 
         Refrigerator refrigerator = refrigeratorManager.register(member);
         memberRefrigeratorLinker.linkToOwner(member, refrigerator);

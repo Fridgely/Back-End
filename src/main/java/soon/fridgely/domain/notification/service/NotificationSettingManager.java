@@ -9,7 +9,7 @@ import soon.fridgely.domain.notification.repository.NotificationSettingRepositor
 
 @RequiredArgsConstructor
 @Component
-public class NotificationManager {
+public class NotificationSettingManager {
 
     private final NotificationSettingRepository notificationSettingRepository;
 

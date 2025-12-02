@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.service.NotificationManager;
+import soon.fridgely.domain.notification.service.NotificationSettingManager;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 import soon.fridgely.domain.refrigerator.service.MemberRefrigeratorLinker;
@@ -38,7 +38,7 @@ class MemberServiceUnitTest {
     private MemberRefrigeratorLinker memberRefrigeratorLinker;
 
     @Mock
-    private NotificationManager notificationManager;
+    private NotificationSettingManager notificationSettingManager;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -57,11 +57,11 @@ class MemberServiceUnitTest {
         Long memberId = memberService.register(memberInfo);
 
         // then
-        InOrder inOrder = inOrder(memberManager, notificationManager, refrigeratorManager, memberRefrigeratorLinker, eventPublisher);
+        InOrder inOrder = inOrder(memberManager, notificationSettingManager, refrigeratorManager, memberRefrigeratorLinker, eventPublisher);
 
         then(memberManager).should(inOrder)
             .register(memberInfo);
-        then(notificationManager).should(inOrder)
+        then(notificationSettingManager).should(inOrder)
             .createDefaultSetting(mockMember);
         then(refrigeratorManager).should(inOrder)
             .register(mockMember);

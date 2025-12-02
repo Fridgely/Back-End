@@ -14,10 +14,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class NotificationManagerIntegrationTest extends IntegrationTestSupport {
+class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private NotificationManager notificationManager;
+    private NotificationSettingManager notificationSettingManager;
 
     @Autowired
     private NotificationSettingRepository notificationSettingRepository;
@@ -32,7 +32,7 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         // when
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
 
         // then
         NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
@@ -48,10 +48,10 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         // when
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
         long countBefore = notificationSettingRepository.count();
 
-        notificationManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member);
         long countAfter = notificationSettingRepository.count();
 
         // then
@@ -66,8 +66,8 @@ class NotificationManagerIntegrationTest extends IntegrationTestSupport {
         memberRepository.saveAll(List.of(member1, member2));
 
         // when
-        notificationManager.createDefaultSetting(member1);
-        notificationManager.createDefaultSetting(member2);
+        notificationSettingManager.createDefaultSetting(member1);
+        notificationSettingManager.createDefaultSetting(member2);
 
         // then
         NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member1.getId()).orElseThrow();
