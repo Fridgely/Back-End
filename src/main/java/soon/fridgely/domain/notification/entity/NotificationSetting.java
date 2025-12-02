@@ -5,6 +5,8 @@ import lombok.*;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.domain.member.entity.Member;
 
+import static java.util.Objects.requireNonNull;
+
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,7 +25,6 @@ public class NotificationSetting extends BaseEntity {
     private Member member;
 
     @Embedded
-    @Column(nullable = false)
     private AlertSchedule alertSchedule;
 
     @Column(nullable = false)
@@ -44,7 +45,7 @@ public class NotificationSetting extends BaseEntity {
     }
 
     public void updateSettings(boolean enabled, AlertSchedule alertSchedule) {
-        this.alertSchedule = alertSchedule;
+        this.alertSchedule = requireNonNull(alertSchedule, "스케줄은 필수입니다.");
         this.enabled = enabled;
     }
 
