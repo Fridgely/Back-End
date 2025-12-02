@@ -28,12 +28,7 @@ class NotificationSettingServiceUnitTest {
     void 회원의_알림_설정을_조회한다() {
         // given
         long memberId = 1L;
-        NotificationSetting setting = NotificationSetting.builder()
-            .member(mock(Member.class))
-            .notificationTime(LocalTime.of(9, 0))
-            .daysBeforeExpiration(3)
-            .enabled(true)
-            .build();
+        NotificationSetting setting = NotificationSetting.createDefaultSetting(mock(Member.class));
 
         given(notificationManager.findNotificationSetting(memberId)).willReturn(setting);
 

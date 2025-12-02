@@ -37,7 +37,7 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
         // then
         NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
         assertThat(setting)
-            .extracting("notificationTime", "daysBeforeExpiration", "enabled", "member.id")
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled", "member.id")
             .containsExactly(LocalTime.of(9, 0), 3, true, member.getId());
     }
 

@@ -11,7 +11,11 @@ public record NotificationSettingDetailResponse(
 ) {
 
     public static NotificationSettingDetailResponse from(NotificationSetting setting) {
-        return new NotificationSettingDetailResponse(setting.getNotificationTime(), setting.getDaysBeforeExpiration(), setting.isEnabled());
+        return new NotificationSettingDetailResponse(
+            setting.getAlertSchedule().notificationTime(),
+            setting.getAlertSchedule().daysBeforeExpiration(),
+            setting.isEnabled()
+        );
     }
 
 }
