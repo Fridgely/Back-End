@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
 import soon.fridgely.domain.auth.service.AuthService;
+import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.response.ApiResponse;
 
@@ -34,6 +35,14 @@ public class AuthController {
     ) {
         TokenResponse response = authService.reissue(request.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(
+        @LoginMember Long memberId
+    ) {
+        authService.logout(memberId);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
 }

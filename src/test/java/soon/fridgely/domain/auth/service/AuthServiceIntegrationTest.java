@@ -138,6 +138,50 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
             .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
     }
 
+    @Test
+    void 로그아웃에_성공한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+        authService.login(new LoginInfo("testId", "testPassword"));
+
+        // when
+        authService.logout(member.getId());
+
+        // then
+        Member loggedOutMember = memberRepository.findById(member.getId()).orElse(null);
+        assertThat(loggedOutMember).isNotNull();
+        assertThat(loggedOutMember.getRefreshToken()).isNull();
+    }
+
+    @Test
+    void 로그아웃_후_기존_Refresh_Token으로_재발급을_시도하면_예외가_발생한다() {
+        // given
+        Member member = createMember();
+        Member savedMember = memberRepository.save(member);
+
+        var tokens = authService.login(new LoginInfo("testId", "testPassword"));
+        authService.logout(savedMember.getId());
+
+        // expected
+        assertThatThrownBy(() -> authService.reissue(tokens.refreshToken()))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
+    @Test
+    void 존재하지_않는_사용자로_로그아웃_시도_시_예외가_발생한다() {
+        // given
+        long nonExistentMemberId = 999L;
+
+        // expected
+        assertThatThrownBy(() -> authService.logout(nonExistentMemberId))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
     private Member createMember() {
         return Member.register(
             "testId",
