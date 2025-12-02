@@ -46,12 +46,23 @@ public class AuthService {
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
 
         if (!refreshToken.equals(member.getRefreshToken())) {
+            log.warn("[AuthService] Refresh Token 불일치 감지. 기존 토큰 무효화. (MemberId={})", memberId);
+            member.updateRefreshToken(null);
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
         log.info("[AuthService] 토큰 재발급 성공. (MemberId={})", memberId);
 
         return issueTokensAndUpdateMember(member);
+    }
+
+    @Transactional
+    public void logout(long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
+        member.updateRefreshToken(null);
+
+        log.info("[AuthService] 로그아웃 성공. (MemberId={})", memberId);
     }
 
     private TokenResponse issueTokensAndUpdateMember(Member member) {
