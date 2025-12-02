@@ -1,11 +1,14 @@
 package soon.fridgely.domain.notification.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 
@@ -78,6 +81,33 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
 
         long savedCount = notificationSettingRepository.count();
         assertThat(savedCount).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "0, 0, 1, true",
+        "9, 0, 5, false",
+        "14, 30, 15, true",
+        "23, 59, 30, false"
+    })
+    void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
+        // given
+        Member member = createMember("testId");
+        memberRepository.save(member);
+
+        NotificationSetting defaultSetting = NotificationSetting.createDefaultSetting(member);
+        notificationSettingRepository.save(defaultSetting);
+
+        AlertSchedule newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+
+        // when
+        notificationSettingManager.update(member.getId(), newSchedule, enabled);
+
+        // then
+        NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
+        assertThat(setting).isNotNull()
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled")
+            .containsExactly(LocalTime.of(hour, minute), days, enabled);
     }
 
     private Member createMember(String loginId) {
