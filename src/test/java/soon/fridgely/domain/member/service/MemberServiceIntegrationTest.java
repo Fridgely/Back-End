@@ -49,13 +49,17 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
             .extracting("loginId", "nickname")
             .containsExactly("testId", "testNickname");
 
-        Refrigerator refrigerator = refrigeratorRepository.findByName("testNickname의 냉장고").orElseThrow();
-        assertThat(refrigerator.getName()).isEqualTo("testNickname의 냉장고");
-
-        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberAndRefrigerator(member, refrigerator).orElseThrow();
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberAndRole(member, RefrigeratorRole.OWNER)
+            .stream()
+            .findFirst()
+            .orElseThrow();
         assertThat(memberRefrigerator)
-            .extracting("member.id", "refrigerator.id", "role")
-            .containsExactly(memberId, refrigerator.getId(), RefrigeratorRole.OWNER);
+            .extracting("member.id", "role")
+            .containsExactly(memberId, RefrigeratorRole.OWNER);
+
+        long refrigeratorId = memberRefrigerator.getRefrigerator().getId();
+        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId).orElseThrow();
+        assertThat(refrigerator.getName()).isEqualTo("testNickname의 냉장고");
 
         NotificationSetting notificationSetting = notificationSettingRepository.findByMemberId(memberId).orElseThrow();
         assertThat(notificationSetting)
