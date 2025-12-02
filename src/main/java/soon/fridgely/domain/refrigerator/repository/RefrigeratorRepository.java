@@ -12,4 +12,6 @@ public interface RefrigeratorRepository extends JpaRepository<Refrigerator, Long
 
     Optional<Refrigerator> findByInvitationCode_code(String code);
 
+    Optional<Refrigerator> findByName(String name);
+
 }

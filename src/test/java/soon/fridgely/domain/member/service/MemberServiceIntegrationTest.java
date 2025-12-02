@@ -49,7 +49,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
             .extracting("loginId", "nickname")
             .containsExactly("testId", "testNickname");
 
-        Refrigerator refrigerator = refrigeratorRepository.findAll().get(0);
+        Refrigerator refrigerator = refrigeratorRepository.findByName("testNickname의 냉장고").orElseThrow();
         assertThat(refrigerator.getName()).isEqualTo("testNickname의 냉장고");
 
         MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberAndRefrigerator(member, refrigerator).orElseThrow();
@@ -59,8 +59,8 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
 
         NotificationSetting notificationSetting = notificationSettingRepository.findByMemberId(memberId).orElseThrow();
         assertThat(notificationSetting)
-            .extracting("notificationTime", "daysBeforeExpiration", "enabled")
-            .containsExactly(LocalTime.of(9, 0), 3, true);
+            .extracting("notificationTime", "daysBeforeExpiration", "enabled", "member.id")
+            .containsExactly(LocalTime.of(9, 0), 3, true, memberId);
     }
 
 }
