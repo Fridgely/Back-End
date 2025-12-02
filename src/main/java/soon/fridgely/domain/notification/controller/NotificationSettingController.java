@@ -1,10 +1,10 @@
 package soon.fridgely.domain.notification.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRequest;
 import soon.fridgely.domain.notification.dto.response.NotificationSettingDetailResponse;
 import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -23,6 +23,15 @@ public class NotificationSettingController {
     ) {
         NotificationSettingDetailResponse response = notificationSettingService.findNotificationSetting(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PatchMapping
+    public ResponseEntity<ApiResponse<?>> updateNotificationSetting(
+        @RequestBody @Valid NotificationSettingUpdateRequest request,
+        @LoginMember Long memberId
+    ) {
+        notificationSettingService.updateNotificationSetting(memberId, request);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
 }
