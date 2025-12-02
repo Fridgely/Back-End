@@ -15,6 +15,10 @@ public class NotificationManager {
 
     @Transactional
     public void createDefaultSetting(Member member) {
+        if (notificationSettingRepository.existsByMemberId(member.getId())) {
+            return;
+        }
+
         NotificationSetting setting = NotificationSetting.createDefaultSetting(member);
         notificationSettingRepository.save(setting);
     }
