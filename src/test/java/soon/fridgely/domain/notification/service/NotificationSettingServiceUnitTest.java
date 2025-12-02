@@ -27,7 +27,7 @@ class NotificationSettingServiceUnitTest {
     private NotificationSettingService notificationSettingService;
 
     @Mock
-    private NotificationSettingManager notificationManager;
+    private NotificationSettingManager notificationSettingManager;
 
     @Test
     void 회원의_알림_설정을_조회한다() {
@@ -35,7 +35,7 @@ class NotificationSettingServiceUnitTest {
         long memberId = 1L;
         NotificationSetting setting = NotificationSetting.createDefaultSetting(mock(Member.class));
 
-        given(notificationManager.findNotificationSetting(memberId)).willReturn(setting);
+        given(notificationSettingManager.findNotificationSetting(memberId)).willReturn(setting);
 
         // when
         NotificationSettingDetailResponse response = notificationSettingService.findNotificationSetting(memberId);
@@ -55,7 +55,7 @@ class NotificationSettingServiceUnitTest {
         notificationSettingService.updateNotificationSetting(memberId, new NotificationSettingUpdateRequest(LocalTime.of(10, 30), 5, false));
 
         // then
-        then(notificationManager).should()
+        then(notificationSettingManager).should()
             .update(eq(memberId), refEq(AlertSchedule.of(LocalTime.of(10, 30), 5)), eq(false));
     }
 
