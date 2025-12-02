@@ -3,6 +3,7 @@ package soon.fridgely.global.infra.provider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -20,7 +21,6 @@ import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 
@@ -59,102 +59,55 @@ class S3ProviderUnitTest {
     @Test
     void contentType이_명시된_경우_파일을_업로드_한다() throws Exception {
         // given
-        String key = "images/test.jpg";
         String contentType = "image/jpeg";
-        long contentLength = 1024L;
-        InputStream inputStream = new ByteArrayInputStream(new byte[1024]);
         String expectedUrl = "https://test-bucket.s3.amazonaws.com/images/test.jpg";
 
         given(s3Client.utilities()).willReturn(s3Utilities);
-        given(s3Utilities.getUrl(any(GetUrlRequest.class)))
-            .willReturn(new URL(expectedUrl));
+        given(s3Utilities.getUrl(any(GetUrlRequest.class))).willReturn(new URL(expectedUrl));
 
         // when
-        String actualUrl = s3Provider.upload(key, inputStream, contentLength, contentType);
+        String actualUrl = s3Provider.upload("images/test.jpg", new ByteArrayInputStream(new byte[1024]), 1024L, contentType);
 
         // then
         assertThat(actualUrl).isEqualTo(expectedUrl);
-        then(s3Client).should(times(1))
-            .putObject(any(PutObjectRequest.class), any(RequestBody.class));
-    }
 
-    @Test
-    void contentType이_null인_경우_추론하여_파일을_업로드_한다() throws Exception {
-        // given
-        String key = "images/test.png";
-        long contentLength = 2048L;
-        InputStream inputStream = new ByteArrayInputStream(new byte[2048]);
-        String expectedUrl = "https://test-bucket.s3.amazonaws.com/images/test.png";
-
-        given(s3Client.utilities()).willReturn(s3Utilities);
-        given(s3Utilities.getUrl(any(GetUrlRequest.class)))
-            .willReturn(new URL(expectedUrl));
-
-        // when
-        String actualUrl = s3Provider.upload(key, inputStream, contentLength, null);
-
-        // then
-        assertThat(actualUrl).isEqualTo(expectedUrl);
-        then(s3Client).should(times(1))
-            .putObject(any(PutObjectRequest.class), any(RequestBody.class));
-    }
-
-    @Test
-    void 파일_업로드에_실패_할_경우_예외가_발생한다() {
-        // given
-        String key = "images/test.jpg";
-        String contentType = "image/jpeg";
-        long contentLength = 1024L;
-        InputStream inputStream = new ByteArrayInputStream(new byte[1024]);
-
-        given(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-            .willThrow(S3Exception.builder().message("S3 upload failed").build());
-
-        // expected
-        assertThatThrownBy(() -> s3Provider.upload(key, inputStream, contentLength, contentType))
-            .isInstanceOf(CoreException.class)
-            .extracting("errorType")
-            .isEqualTo(ErrorType.STORAGE_UPLOAD_FAILED);
-    }
-
-    @Test
-    void 파일_확장자를_추론한다() throws Exception {
-        // given
-        String key = "images/photo.jpg";
-        long contentLength = 100L;
-        InputStream inputStream = new ByteArrayInputStream(new byte[100]);
-        String expectedUrl = "https://test-bucket.s3.amazonaws.com/images/photo.jpg";
-
-        given(s3Client.utilities()).willReturn(s3Utilities);
-        given(s3Utilities.getUrl(any(GetUrlRequest.class)))
-            .willReturn(new URL(expectedUrl));
-
-        // when
-        s3Provider.upload(key, inputStream, contentLength, "");
-
-        // then
+        ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         then(s3Client).should()
-            .putObject(any(PutObjectRequest.class), any(RequestBody.class));
+            .putObject(requestCaptor.capture(), any(RequestBody.class));
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo(contentType);
     }
 
     @Test
     void 알_수_없는_확장자는_application_octet_stream으로_추론한다() throws Exception {
         // given
-        String key = "files/document.xyz";
-        long contentLength = 100L;
-        InputStream inputStream = new ByteArrayInputStream(new byte[100]);
-        String expectedUrl = "https://test-bucket.s3.amazonaws.com/files/document.xyz";
+        String expectedUrl = "https://test-bucket.s3.amazonaws.com/files/unknown";
 
         given(s3Client.utilities()).willReturn(s3Utilities);
-        given(s3Utilities.getUrl(any(GetUrlRequest.class)))
-            .willReturn(new URL(expectedUrl));
+        given(s3Utilities.getUrl(any(GetUrlRequest.class))).willReturn(new URL(expectedUrl));
 
         // when
-        s3Provider.upload(key, inputStream, contentLength, null);
+        s3Provider.upload("files/unknown", new ByteArrayInputStream(new byte[100]), 100L, null);
 
         // then
+        ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
         then(s3Client).should()
-            .putObject(any(PutObjectRequest.class), any(RequestBody.class));
+            .putObject(requestCaptor.capture(), any(RequestBody.class));
+
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo("application/octet-stream");
+    }
+
+    @Test
+    void 파일_업로드에_실패_할_경우_예외가_발생한다() {
+        // given
+        given(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+            .willThrow(S3Exception.builder().message("S3 upload failed").build());
+
+        // expected
+        assertThatThrownBy(() -> s3Provider.upload("images/test.jpg", new ByteArrayInputStream(new byte[1024]), 1024L, "image/jpeg"))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.STORAGE_UPLOAD_FAILED);
     }
 
     @Test

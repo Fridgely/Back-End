@@ -29,19 +29,23 @@ class ImageManagerUnitTest {
     @Mock
     private StorageProvider storageProvider;
 
+    // JPEG 매직 넘버
+    private static final byte[] REAL_JPEG_HEADER = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00, 0x00};
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     @Test
-    void 이미지_업로드에_성공하면_S3_URL이_반환된다() {
+    void 파일_헤더가_유효한_실제_이미지는_업로드_한다() {
         // given
-        MockMultipartFile mockFile = createMockFile("image", "test-image.png", "image/png", MAX_FILE_SIZE - 1);
-        String expectedUrl = "https://s3.example.com/images/uuid-test-image.png";
+        MockMultipartFile validFile = new MockMultipartFile(
+            "image", "test.jpg", "image/jpeg", REAL_JPEG_HEADER
+        );
 
+        String expectedUrl = "https://s3.example.com/images/uuid-test.jpg";
         given(storageProvider.upload(anyString(), any(InputStream.class), anyLong(), anyString()))
             .willReturn(expectedUrl);
 
         // when
-        String actualUrl = imageManager.upload(mockFile);
+        String actualUrl = imageManager.upload(validFile);
 
         // then
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -51,72 +55,73 @@ class ImageManagerUnitTest {
             .upload(
                 captor.capture(),
                 any(InputStream.class),
-                eq(mockFile.getSize()),
-                eq(mockFile.getContentType())
+                eq(validFile.getSize()),
+                eq("image/jpeg")
             );
 
         assertThat(captor.getValue())
             .startsWith("images/")
-            .endsWith("-test-image.png");
+            .endsWith("-test.jpg");
     }
 
     @Test
-    void 파일이_null이라면_null이_반환된다() {
+    void 내용이_위변조된_파일은_예외가_발생한다() {
         // given
-        MockMultipartFile mockFile = null;
-
-        // when
-        String actualUrl = imageManager.upload(mockFile);
-
-        // then
-        assertThat(actualUrl).isNull();
-        then(storageProvider).should(never())
-            .upload(any(), any(), anyLong(), any());
-    }
-
-    @Test
-    void 파일이_비어있다면_null이_반환된다() {
-        // given
-        MockMultipartFile mockFile = createMockFile("image", "", "image/png", 0L);
-
-        // when
-        String actualUrl = imageManager.upload(mockFile);
-
-        // then
-        assertThat(mockFile.isEmpty()).isTrue();
-        assertThat(actualUrl).isNull();
-
-        then(storageProvider).should(never())
-            .upload(any(), any(), anyLong(), any());
-    }
-
-    @Test
-    void 지원하지_않는_파일_타입은_예외가_발생한다() {
-        // given
-        MockMultipartFile mockFile = createMockFile("file", "document.pdf", "application/pdf", 1024L);
+        byte[] fakeContent = "This is a virus script".getBytes();
+        MockMultipartFile fakeFile = new MockMultipartFile(
+            "image", "hack.jpg", "image/jpeg", fakeContent
+        );
 
         // expected
-        assertThatThrownBy(() -> imageManager.upload(mockFile))
+        assertThatThrownBy(() -> imageManager.upload(fakeFile))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
-            .isEqualTo(ErrorType.INVALID_REQUEST);
+            .isEqualTo(ErrorType.INVALID_FILE_TYPE);
+
+        then(storageProvider).shouldHaveNoInteractions();
     }
 
     @Test
-    void 최대_파일_크기를_초과하면_예외가_발생한다() {
+    void 지원하지_않는_확장자나_content_type은_예외가_발생한다() {
         // given
-        MockMultipartFile mockFile = createMockFile("image", "large.png", "image/png", MAX_FILE_SIZE + 1);
+        MockMultipartFile pdfFile = new MockMultipartFile(
+            "file", "document.pdf", "application/pdf", new byte[]{1, 2, 3}
+        );
 
         // expected
-        assertThatThrownBy(() -> imageManager.upload(mockFile))
+        assertThatThrownBy(() -> imageManager.upload(pdfFile))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
-            .isEqualTo(ErrorType.INVALID_REQUEST);
+            .isEqualTo(ErrorType.INVALID_FILE_TYPE);
     }
 
-    private MockMultipartFile createMockFile(String name, String originalFilename, String contentType, long size) {
-        byte[] content = new byte[(int) size];
-        return new MockMultipartFile(name, originalFilename, contentType, content);
+    @Test
+    void 파일_크기가_10MB를_초과하면_예외가_발생한다() {
+        // given
+        byte[] largeContent = new byte[(int) MAX_FILE_SIZE + 1];
+        MockMultipartFile largeFile = new MockMultipartFile(
+            "image", "large.jpg", "image/jpeg", largeContent
+        );
+
+        // expected
+        assertThatThrownBy(() -> imageManager.upload(largeFile))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.FILE_SIZE_EXCEEDED);
+    }
+
+    @Test
+    void 파일이_null이거나_비어있으면_null을_반환한다() {
+        // given
+        MockMultipartFile emptyFile = new MockMultipartFile("image", "", "image/jpeg", new byte[0]);
+
+        // when
+        assertThat(imageManager.upload(null)).isNull();
+        assertThat(imageManager.upload(emptyFile)).isNull();
+
+        // then
+        then(storageProvider).should(never())
+            .upload(any(), any(), anyLong(), any());
     }
 
 }
