@@ -3,6 +3,7 @@ package soon.fridgely.domain.member.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -49,7 +50,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
             .extracting("loginId", "nickname")
             .containsExactly("testId", "testNickname");
 
-        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberAndRole(member, RefrigeratorRole.OWNER)
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberAndRoleAndStatus(member, RefrigeratorRole.OWNER, EntityStatus.ACTIVE)
             .stream()
             .findFirst()
             .orElseThrow();

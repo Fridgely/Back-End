@@ -16,7 +16,7 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
 
     Optional<MemberRefrigerator> findByMemberAndRefrigerator(Member member, Refrigerator refrigerator);
 
-    Optional<MemberRefrigerator> findByMemberAndRole(Member member, RefrigeratorRole role);
+    List<MemberRefrigerator> findByMemberAndRoleAndStatus(Member member, RefrigeratorRole role, EntityStatus status);
 
     boolean existsByRefrigeratorIdAndMemberIdAndStatus(long refrigeratorId, long memberId, EntityStatus status);
 
