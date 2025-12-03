@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.notification.dto.command.NotificationMessage;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.List;
 
@@ -14,6 +16,10 @@ public class NotificationMessageGenerator {
     private static final String NOTIFICATION_TITLE = "유통기한 임박 알림 ⏰";
 
     public NotificationMessage generate(List<Food> foods, int days) {
+        if (foods == null || foods.isEmpty()) {
+            throw new CoreException(ErrorType.EMPTY_NOTIFICATION_TARGET);
+        }
+
         int count = foods.size();
         String foodName = foods.get(0).getName();
         String body = (count == 1)
