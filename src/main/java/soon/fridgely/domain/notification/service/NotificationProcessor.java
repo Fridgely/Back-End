@@ -2,7 +2,9 @@ package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.service.FoodFinder;
@@ -22,10 +24,12 @@ public class NotificationProcessor {
     private final NotificationMessageGenerator messageGenerator;
     private final NotificationSender notificationSender;
 
-    @Transactional(readOnly = true)
+    @Async("applicationTaskExecutor")
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void process(NotificationSetting setting) {
+        final long memberId = setting.getMember().getId();
+
         try {
-            long memberId = setting.getMember().getId();
             int daysBefore = setting.getAlertSchedule().daysBeforeExpiration();
             LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
 
@@ -37,8 +41,8 @@ public class NotificationProcessor {
             NotificationMessage message = messageGenerator.generate(expiringFoods, daysBefore);
             notificationSender.send(memberId, message.title(), message.body());
         } catch (Exception e) {
-            log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", setting.getMember().getId(), e);
+            log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
         }
-    }
+    }// 비동기 처리를 지원하고 오류 처리를 개선하기 위한 NotificationProcessor
 
 }
