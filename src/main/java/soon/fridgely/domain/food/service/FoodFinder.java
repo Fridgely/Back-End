@@ -10,8 +10,9 @@ import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.utils.TimeRangeUtils;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -42,8 +43,12 @@ public class FoodFinder {
     }
 
     @Transactional(readOnly = true)
-    public List<Food> findMyFoodsExpiringBetween(Long memberId, LocalDateTime start, LocalDateTime end) {
-        return foodRepository.findMyFoodsExpiringBetween(memberId, start, end);
+    public List<Food> findMyFoodsExpiringOnDate(long memberId, LocalDate targetDate) {
+        return foodRepository.findMyFoodsExpiringBetween(
+            memberId,
+            TimeRangeUtils.startOfDay(targetDate),
+            TimeRangeUtils.endOfDay(targetDate)
+        );
     }
 
 }
