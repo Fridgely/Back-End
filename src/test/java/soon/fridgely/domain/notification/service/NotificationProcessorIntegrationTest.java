@@ -33,8 +33,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
@@ -89,11 +88,12 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationProcessor.process(setting);
 
         // then
-        verify(notificationSender).send(eq(member.getId()), anyString(), anyString());
+        verify(notificationSender, timeout(2000))
+            .send(eq(member.getId()), anyString(), anyString());
     }
 
     @Test
-    void 만료_예정_음식이_없으면_알림을_발송하지_않는다() {
+    void 만료_예정_음식이_없으면_알림을_발송하지_않는다() throws InterruptedException {
         // given
         Member member = createMember("user1");
         memberRepository.save(member);
@@ -106,7 +106,9 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationProcessor.process(setting);
 
         // then
-        verify(notificationSender, never()).send(anyLong(), anyString(), anyString());
+        Thread.sleep(500);
+        verify(notificationSender, never())
+            .send(anyLong(), anyString(), anyString());
     }
 
     @Test
@@ -137,7 +139,8 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(notificationSender).send(eq(member.getId()), anyString(), messageCaptor.capture());
+        verify(notificationSender, timeout(2000))
+            .send(eq(member.getId()), anyString(), messageCaptor.capture());
         assertThat(messageCaptor.getValue()).contains("사과");
     }
 
@@ -170,7 +173,8 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationProcessor.process(setting);
 
         // then
-        verify(notificationSender).send(eq(member.getId()), anyString(), contains("외 2개"));
+        verify(notificationSender, timeout(2000))
+            .send(eq(member.getId()), anyString(), contains("외 2개"));
     }
 
     @Test
@@ -205,8 +209,10 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationProcessor.process(setting);
 
         // then
-        verify(notificationSender).send(eq(member1.getId()), anyString(), anyString());
-        verify(notificationSender, never()).send(eq(member2.getId()), anyString(), anyString());
+        verify(notificationSender, timeout(2000))
+            .send(eq(member1.getId()), anyString(), anyString());
+        verify(notificationSender, never())
+            .send(eq(member2.getId()), anyString(), anyString());
     }
 
     @Test
@@ -238,7 +244,8 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(notificationSender).send(eq(member.getId()), anyString(), messageCaptor.capture());
+        verify(notificationSender, timeout(2000))
+            .send(eq(member.getId()), anyString(), messageCaptor.capture());
 
         String sentMessage = messageCaptor.getValue();
         assertThat(sentMessage).contains("우유");
