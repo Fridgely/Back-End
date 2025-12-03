@@ -306,12 +306,12 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         foodRepository.saveAll(List.of(targetFood1, targetFood2, yesterdayFood, tomorrowFood));
 
         // when
-        List<Food> results = foodRepository.findMyFoodsExpiringBetween(member.getId(), targetDate.atStartOfDay(), targetDate.atTime(23, 59, 59));
+        List<Food> results = foodRepository.findMyFoodsExpiringBetween(member.getId(), targetDate.atStartOfDay(), targetDate.atTime(23, 59, 59), EntityStatus.ACTIVE);
 
         // then
         assertThat(results).hasSize(2)
             .extracting("id")
-            .containsExactlyInAnyOrder(targetFood1.getId(), targetFood2.getId());
+            .containsExactly(targetFood1.getId(), targetFood2.getId());
     }
 
     private Member createMember(String testNickname, String testId) {

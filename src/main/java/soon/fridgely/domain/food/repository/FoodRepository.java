@@ -53,14 +53,16 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
             JOIN f.refrigerator r
             JOIN MemberRefrigerator mr ON mr.refrigerator = r
             WHERE mr.member.id = :memberId
-            AND f.status = 'ACTIVE'
+            AND mr.status = :status
+            AND f.status = :status
             AND f.expirationDate BETWEEN :startDateTime AND :endDateTime
             ORDER BY f.expirationDate ASC
         """)
     List<Food> findMyFoodsExpiringBetween(
         @Param("memberId") long memberId,
         @Param("startDateTime") LocalDateTime startDateTime,
-        @Param("endDateTime") LocalDateTime endDateTime
+        @Param("endDateTime") LocalDateTime endDateTime,
+        @Param("status") EntityStatus status
     );
 
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);

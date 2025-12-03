@@ -47,7 +47,8 @@ public class FoodFinder {
         return foodRepository.findMyFoodsExpiringBetween(
             memberId,
             TimeRangeUtils.startOfDay(targetDate),
-            TimeRangeUtils.endOfDay(targetDate)
+            TimeRangeUtils.endOfDay(targetDate),
+            EntityStatus.ACTIVE
         );
     }
 
