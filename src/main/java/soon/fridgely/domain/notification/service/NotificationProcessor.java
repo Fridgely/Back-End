@@ -43,6 +43,6 @@ public class NotificationProcessor {
         } catch (Exception e) {
             log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
         }
-    }// 비동기 처리를 지원하고 오류 처리를 개선하기 위한 NotificationProcessor
+    }
 
 }
