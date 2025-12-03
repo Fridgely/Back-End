@@ -1,6 +1,8 @@
 package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
@@ -9,7 +11,6 @@ import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalTime;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -24,8 +25,8 @@ public class NotificationSettingFinder {
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationSetting> findAllActiveByTime(LocalTime start, LocalTime end) {
-        return notificationSettingRepository.findAllActiveByTime(start, end);
+    public Slice<NotificationSetting> findAllActiveByTime(LocalTime start, LocalTime end, long cursorId, Pageable pageable) {
+        return notificationSettingRepository.findAllActiveByTimeWithCursor(start, end, cursorId, pageable);
     }
 
 }

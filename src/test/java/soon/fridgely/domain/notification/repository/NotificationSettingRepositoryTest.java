@@ -5,6 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -41,10 +43,15 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
         notificationSettingRepository.saveAll(List.of(setting1, setting2, setting3));
 
         // when
-        List<NotificationSetting> settings = notificationSettingRepository.findAllActiveByTime(startTime, endTime);
+        Slice<NotificationSetting> slice = notificationSettingRepository.findAllActiveByTimeWithCursor(
+            startTime,
+            endTime,
+            Long.MAX_VALUE,
+            PageRequest.of(0, 10)
+        );
 
         // then
-        assertThat(settings).hasSize(expectedCount);
+        assertThat(slice.getContent()).hasSize(expectedCount);
     }
 
     @Test
@@ -59,33 +66,81 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
         notificationSettingRepository.saveAll(List.of(activeSetting, inactiveSetting));
 
         // when
-        List<NotificationSetting> settings = notificationSettingRepository.findAllActiveByTime(
+        Slice<NotificationSetting> slice = notificationSettingRepository.findAllActiveByTimeWithCursor(
             LocalTime.of(9, 0),
-            LocalTime.of(9, 59)
+            LocalTime.of(9, 59),
+            Long.MAX_VALUE,
+            PageRequest.of(0, 10)
         );
 
         // then
-        assertThat(settings).hasSize(1);
-        assertThat(settings.get(0).getMember().getId()).isEqualTo(member1.getId());
+        List<NotificationSetting> result = slice.getContent();
+        assertThat(result).hasSize(1)
+            .extracting("member.id")
+            .containsExactly(member1.getId());
     }
 
     @Test
-    void 시간_범위에_해당하는_알림_설정이_없으면_빈_리스트를_반환한다() {
+    void cursor_기반_페이징이_ID_내림차순으로_조회된다() {
+        // given
+        Member member1 = createMember("user1");
+        Member member2 = createMember("user2");
+        Member member3 = createMember("user3");
+        memberRepository.saveAll(List.of(member1, member2, member3));
+
+        NotificationSetting setting1 = createNotificationSetting(member1, LocalTime.of(9, 0), true);
+        NotificationSetting setting2 = createNotificationSetting(member2, LocalTime.of(9, 0), true);
+        NotificationSetting setting3 = createNotificationSetting(member3, LocalTime.of(9, 0), true);
+        notificationSettingRepository.saveAll(List.of(setting1, setting2, setting3));
+
+        // when
+        Slice<NotificationSetting> firstPage = notificationSettingRepository.findAllActiveByTimeWithCursor(
+            LocalTime.of(9, 0),
+            LocalTime.of(9, 59),
+            Long.MAX_VALUE,
+            PageRequest.of(0, 2)
+        );
+
+        Long lastId = firstPage.getContent().get(1).getId();
+        Slice<NotificationSetting> secondPage = notificationSettingRepository.findAllActiveByTimeWithCursor(
+            LocalTime.of(9, 0),
+            LocalTime.of(9, 59),
+            lastId,
+            PageRequest.of(0, 2)
+        );
+
+        // then
+        assertThat(firstPage.getContent()).hasSize(2)
+            .extracting("id")
+            .containsExactly(setting3.getId(), setting2.getId());
+        assertThat(firstPage.hasNext()).isTrue();
+
+        assertThat(secondPage.getContent()).hasSize(1)
+            .extracting("id")
+            .containsExactly(setting1.getId());
+        assertThat(secondPage.hasNext()).isFalse();
+    }
+
+    @Test
+    void 시간_범위에_해당하는_알림_설정이_없으면_빈_Slice를_반환한다() {
         // given
         Member member = createMember("user1");
         memberRepository.save(member);
 
-        NotificationSetting setting = createNotificationSetting(member, LocalTime.of(9, 0), true);
+        NotificationSetting setting = createNotificationSetting(member, LocalTime.of(10, 0), true);
         notificationSettingRepository.save(setting);
 
         // when
-        List<NotificationSetting> settings = notificationSettingRepository.findAllActiveByTime(
-            LocalTime.of(10, 0),
-            LocalTime.of(10, 59)
+        Slice<NotificationSetting> slice = notificationSettingRepository.findAllActiveByTimeWithCursor(
+            LocalTime.of(9, 0),
+            LocalTime.of(9, 59),
+            Long.MAX_VALUE,
+            PageRequest.of(0, 10)
         );
 
         // then
-        assertThat(settings).isEmpty();
+        assertThat(slice.getContent()).isEmpty();
+        assertThat(slice.hasNext()).isFalse();
     }
 
     private Member createMember(String loginId) {
