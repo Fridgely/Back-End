@@ -66,8 +66,9 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
+        LocalDate now = LocalDate.now();
         return foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
-            .map(food -> FoodResponse.of(food, LocalDate.now()));
+            .map(food -> FoodResponse.of(food, now));
     }
 
     @Transactional(readOnly = true)
