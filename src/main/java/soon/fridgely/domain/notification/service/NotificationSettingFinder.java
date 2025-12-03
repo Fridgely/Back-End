@@ -25,8 +25,8 @@ public class NotificationSettingFinder {
     }
 
     @Transactional(readOnly = true)
-    public Slice<NotificationSetting> findAllActiveByTime(LocalTime start, LocalTime end, long cursorId, Pageable pageable) {
-        return notificationSettingRepository.findAllActiveByTimeWithCursor(start, end, cursorId, pageable);
+    public Slice<NotificationSetting> findAllActiveByTime(LocalTime startTime, LocalTime endTime, long cursorId, Pageable pageable) {
+        return notificationSettingRepository.findAllActiveByTimeWithCursor(startTime, endTime, cursorId, pageable);
     }
 
 }
