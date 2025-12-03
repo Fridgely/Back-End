@@ -9,7 +9,6 @@ import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.utils.TimeRangeUtils;
 
 import java.time.LocalTime;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,33 +31,26 @@ public class NotificationService {
         log.info("[Notification Batch] {}시 알림 발송 시작", now.getHour());
 
         Long cursorId = null;
-        int totalProcessed = 0;
+        int totalRequest = 0;
 
         while (true) {
             CursorPageRequest cursorRequest = new CursorPageRequest(cursorId, BATCH_SIZE);
             Slice<NotificationSetting> slice = notificationSettingFinder.findAllActiveByTime(start, end, cursorRequest.getCursorId(), cursorRequest.toPageable());
-
-            List<NotificationSetting> settings = slice.getContent();
-            for (NotificationSetting setting : settings) {
-                try {
-                    notificationProcessor.process(setting);
-                    totalProcessed++;
-                } catch (Exception e) {
-                    log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", setting.getMember().getId(), e);
-                }
-            }
-
-            if (settings.isEmpty()) {
+            if (slice.isEmpty()) {
                 break;
             }
+
+            slice.forEach(notificationProcessor::process);
+            totalRequest += slice.getNumberOfElements();
 
             if (!slice.hasNext()) {
                 break;
             }
 
-            cursorId = settings.get(settings.size() - 1).getId();
+            cursorId = slice.getContent().get(slice.getNumberOfElements() - 1).getId();
         }
-        log.info("[Notification Batch] {}시 알림 발송 종료 (총 {}건)", now.getHour(), totalProcessed);
+
+        log.info("[Notification Batch] {}시 알림 발송 종료 (총 {}건)", now.getHour(), totalRequest);
     }
 
 }

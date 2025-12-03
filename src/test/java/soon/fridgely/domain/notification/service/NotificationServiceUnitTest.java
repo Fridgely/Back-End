@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 
 import java.time.LocalTime;
@@ -60,33 +59,6 @@ class NotificationServiceTest {
         // then
         then(notificationProcessor).should(never())
             .process(any());
-    }
-
-    @Test
-    void 알림_처리_중_예외가_발생해도_다음_알림을_계속_처리한다() {
-        // given
-        NotificationSetting errorSetting = mock(NotificationSetting.class);
-        NotificationSetting successSetting = mock(NotificationSetting.class);
-
-        Member member = mock(Member.class);
-        given(errorSetting.getMember()).willReturn(member);
-        given(member.getId()).willReturn(1L);
-
-        Slice<NotificationSetting> slice = new SliceImpl<>(List.of(errorSetting, successSetting), Pageable.unpaged(), false);
-        given(notificationSettingFinder.findAllActiveByTime(any(LocalTime.class), any(LocalTime.class), anyLong(), any(Pageable.class)))
-            .willReturn(slice);
-
-        doThrow(new RuntimeException("알림 발송 실패"))
-            .when(notificationProcessor).process(errorSetting);
-
-        // when
-        notificationService.sendScheduledAlerts();
-
-        // then
-        then(notificationProcessor).should()
-            .process(errorSetting);
-        then(notificationProcessor).should()
-            .process(successSetting);
     }
 
     @Test
