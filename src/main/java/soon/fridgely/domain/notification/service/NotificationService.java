@@ -48,6 +48,10 @@ public class NotificationService {
                 }
             }
 
+            if (settings.isEmpty()) {
+                break;
+            }
+
             if (!slice.hasNext()) {
                 break;
             }
