@@ -29,13 +29,16 @@ class NotificationSettingServiceUnitTest {
     @Mock
     private NotificationSettingManager notificationSettingManager;
 
+    @Mock
+    private NotificationSettingFinder notificationSettingFinder;
+
     @Test
     void 회원의_알림_설정을_조회한다() {
         // given
         long memberId = 1L;
         NotificationSetting setting = NotificationSetting.createDefaultSetting(mock(Member.class));
 
-        given(notificationSettingManager.findNotificationSetting(memberId)).willReturn(setting);
+        given(notificationSettingFinder.findNotificationSetting(memberId)).willReturn(setting);
 
         // when
         NotificationSettingDetailResponse response = notificationSettingService.findNotificationSetting(memberId);

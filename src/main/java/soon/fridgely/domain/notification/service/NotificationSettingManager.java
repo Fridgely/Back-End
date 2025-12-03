@@ -26,15 +26,10 @@ public class NotificationSettingManager {
         notificationSettingRepository.save(setting);
     }
 
-    @Transactional(readOnly = true)
-    public NotificationSetting findNotificationSetting(long memberId) {
-        return notificationSettingRepository.findByMemberId(memberId)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-    }
-
     @Transactional
     public void update(long memberId, AlertSchedule newSchedule, boolean enabled) {
-        NotificationSetting setting = findNotificationSetting(memberId);
+        NotificationSetting setting = notificationSettingRepository.findByMemberId(memberId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         setting.updateSettings(enabled, newSchedule);
     }
 
