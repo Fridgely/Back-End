@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class FoodService {
 
+    private final FoodFinder foodFinder;
     private final FoodManager foodManager;
     private final ImageManager imageManager;
 
@@ -57,7 +58,7 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public FoodDetailResponse findFood(long foodId, MemberRefrigeratorKey key) {
-        Food found = foodManager.find(foodId, key.refrigeratorId());
+        Food found = foodFinder.find(foodId, key.refrigeratorId());
         LocalDate now = LocalDate.now();
         return FoodDetailResponse.of(found, now);
     }
@@ -65,13 +66,13 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
-        return foodManager.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
+        return foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
             .map(food -> FoodResponse.of(food, LocalDate.now()));
     }
 
     @Transactional(readOnly = true)
     public FoodStatusResponse findAllMyFoodsGroupedByStatus(long memberId) {
-        List<Food> allFoods = foodManager.findAllMyFoods(memberId);
+        List<Food> allFoods = foodFinder.findAllMyFoods(memberId);
         LocalDate now = LocalDate.now();
 
         Map<FoodStatus, List<FoodResponse>> groupedMap = allFoods.stream()

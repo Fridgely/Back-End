@@ -41,6 +41,9 @@ class FoodServiceUnitTest {
     private FoodService foodService;
 
     @Mock
+    private FoodFinder foodFinder;
+
+    @Mock
     private FoodManager foodManager;
 
     @Mock
@@ -170,14 +173,14 @@ class FoodServiceUnitTest {
         var key = new MemberRefrigeratorKey(1L, 1L);
 
         Food mockFood = createMockFood(foodId, FoodStatus.BLACK);
-        given(foodManager.find(foodId, key.refrigeratorId())).willReturn(mockFood);
+        given(foodFinder.find(foodId, key.refrigeratorId())).willReturn(mockFood);
 
         // when
         var response = foodService.findFood(foodId, key);
 
         // then
-        InOrder inOrder = inOrder(foodManager);
-        then(foodManager).should(inOrder)
+        InOrder inOrder = inOrder(foodFinder);
+        then(foodFinder).should(inOrder)
             .find(foodId, key.refrigeratorId());
 
         assertThat(response).isNotNull()
@@ -203,15 +206,15 @@ class FoodServiceUnitTest {
 
         Slice<Food> mockFoodSlice = new SliceImpl<>(foodList, expectedPageable, true);
 
-        given(foodManager.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable))
+        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable))
             .willReturn(mockFoodSlice);
 
         // when
         Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
 
         // then
-        InOrder inOrder = inOrder(foodManager);
-        then(foodManager).should(inOrder)
+        InOrder inOrder = inOrder(foodFinder);
+        then(foodFinder).should(inOrder)
             .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable);
 
         assertThat(responseSlice).isNotNull();
@@ -253,7 +256,7 @@ class FoodServiceUnitTest {
         Food blackFood = createMockFood(4L, FoodStatus.BLACK);
 
         List<Food> allFoods = List.of(redFood, greenFood1, greenFood2, blackFood);
-        given(foodManager.findAllMyFoods(memberId)).willReturn(allFoods);
+        given(foodFinder.findAllMyFoods(memberId)).willReturn(allFoods);
 
         // when
         FoodStatusResponse response = foodService.findAllMyFoodsGroupedByStatus(memberId);

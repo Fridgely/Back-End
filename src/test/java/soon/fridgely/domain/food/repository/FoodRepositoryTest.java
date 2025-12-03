@@ -3,11 +3,11 @@ package soon.fridgely.domain.food.repository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.transaction.annotation.Transactional;
+import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
@@ -24,19 +24,17 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.config.JpaAuditingConfig;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(JpaAuditingConfig.class)
-@DataJpaTest
-class FoodRepositoryTest {
+class FoodRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
     private FoodRepository foodRepository;
@@ -56,6 +54,7 @@ class FoodRepositoryTest {
     @Autowired
     private EntityManager em;
 
+    @Transactional // 해당 메서드는 @Modifying 쿼리를 테스트하므로 트랜잭션이 필요
     @Test
     void 대상_카테고리의_모든_음식을_폴백_카테고리로_이동한다() {
         // given
@@ -284,6 +283,37 @@ class FoodRepositoryTest {
                 .isEqualTo(myCategory.getName()));
     }
 
+    @Test
+    void 특정_회원의_음식_중_지정된_날짜_범위에_만료되는_음식을_조회한다() {
+        // given
+        Member member = createMember("testNickname", "testId");
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
+        memberRefrigeratorRepository.save(memberRefrigerator);
+
+        Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        LocalDate targetDate = LocalDate.of(2025, 12, 25);
+        Food targetFood1 = createFood(refrigerator, member, category, targetDate.atTime(10, 0), LocalDate.now());
+        Food targetFood2 = createFood(refrigerator, member, category, targetDate.atTime(23, 59), LocalDate.now());
+        Food yesterdayFood = createFood(refrigerator, member, category, targetDate.minusDays(1).atStartOfDay(), LocalDate.now());
+        Food tomorrowFood = createFood(refrigerator, member, category, targetDate.plusDays(1).atStartOfDay(), LocalDate.now());
+        foodRepository.saveAll(List.of(targetFood1, targetFood2, yesterdayFood, tomorrowFood));
+
+        // when
+        List<Food> results = foodRepository.findMyFoodsExpiringBetween(member.getId(), targetDate.atStartOfDay(), targetDate.atTime(23, 59, 59));
+
+        // then
+        assertThat(results).hasSize(2)
+            .extracting("id")
+            .containsExactlyInAnyOrder(targetFood1.getId(), targetFood2.getId());
+    }
+
     private Member createMember(String testNickname, String testId) {
         return Member.builder()
             .loginId(testId)
@@ -310,6 +340,27 @@ class FoodRepositoryTest {
             "testDescription",
             "http://example.com/image.jpg",
             LocalDate.now()
+        );
+    }
+
+    private Food createFood(
+        Refrigerator refrigerator,
+        Member member,
+        Category category,
+        LocalDateTime expirationDateTime,
+        LocalDate now
+    ) {
+        return Food.register(
+            refrigerator,
+            member,
+            "testFood",
+            category,
+            new Quantity(BigDecimal.ONE, Unit.KG),
+            expirationDateTime,
+            StorageType.FROZEN,
+            "testDescription",
+            "http://example.com/image.jpg",
+            now
         );
     }
 
