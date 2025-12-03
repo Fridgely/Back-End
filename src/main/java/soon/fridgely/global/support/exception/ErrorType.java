@@ -41,6 +41,9 @@ public enum ErrorType {
     // 카테고리 오류
     DUPLICATE_CATEGORY_NAME(HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다.", LogLevel.WARN),
     CANNOT_MODIFY_DEFAULT_CATEGORY(HttpStatus.BAD_REQUEST, "기본 카테고리는 수정할 수 없습니다.", LogLevel.INFO),
+
+    // 알림 오류
+    EMPTY_NOTIFICATION_TARGET(HttpStatus.INTERNAL_SERVER_ERROR, "알림 메시지를 생성할 대상 데이터가 없습니다.", LogLevel.ERROR),
     ;
 
     private final HttpStatus status;

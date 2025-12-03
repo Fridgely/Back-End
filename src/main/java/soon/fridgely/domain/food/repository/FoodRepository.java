@@ -10,6 +10,7 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.Food;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,26 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         """)
     List<Food> findAllMyFoods(
         @Param("memberId") long memberId,
+        @Param("status") EntityStatus status
+    );
+
+    /*
+     * 회원이 소유한 Food 중 유통기한이 특정 기간 내에 속하는 Food 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN f.refrigerator r
+            JOIN MemberRefrigerator mr ON mr.refrigerator = r
+            WHERE mr.member.id = :memberId
+            AND mr.status = :status
+            AND f.status = :status
+            AND f.expirationDate BETWEEN :startDateTime AND :endDateTime
+            ORDER BY f.expirationDate ASC
+        """)
+    List<Food> findMyFoodsExpiringBetween(
+        @Param("memberId") long memberId,
+        @Param("startDateTime") LocalDateTime startDateTime,
+        @Param("endDateTime") LocalDateTime endDateTime,
         @Param("status") EntityStatus status
     );
 

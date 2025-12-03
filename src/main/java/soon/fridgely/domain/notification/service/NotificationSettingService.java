@@ -11,9 +11,10 @@ import soon.fridgely.domain.notification.entity.NotificationSetting;
 public class NotificationSettingService {
 
     private final NotificationSettingManager notificationSettingManager;
+    private final NotificationSettingFinder notificationSettingFinder;
 
     public NotificationSettingDetailResponse findNotificationSetting(long memberId) {
-        NotificationSetting setting = notificationSettingManager.findNotificationSetting(memberId);
+        NotificationSetting setting = notificationSettingFinder.findNotificationSetting(memberId);
         return NotificationSettingDetailResponse.from(setting);
     }
 

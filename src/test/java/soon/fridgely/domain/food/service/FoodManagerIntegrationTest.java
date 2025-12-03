@@ -38,6 +38,9 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
     private FoodManager foodManager;
 
     @Autowired
+    private FoodFinder foodFinder;
+
+    @Autowired
     private FoodRepository foodRepository;
 
     @Autowired
@@ -108,30 +111,6 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(foods).hasSize(1)
             .extracting("name", "description")
             .containsExactly(tuple("홈런볼", "초코맛"));
-    }
-
-    @Test
-    void 음식을_조회한다() {
-        // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.save(food);
-
-        // when
-        Food found = foodManager.find(food.getId(), refrigerator.getId());
-
-        // then
-        assertThat(found).isNotNull()
-            .extracting("name", "description")
-            .containsExactly("testFood", "testDescription");
     }
 
     @Test
@@ -233,7 +212,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         foodManager.delete(food.getId(), refrigerator.getId());
 
         // then
-        assertThatThrownBy(() -> foodManager.find(food.getId(), refrigerator.getId()))
+        assertThatThrownBy(() -> foodFinder.find(food.getId(), refrigerator.getId()))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.NOT_FOUND_DATA);
