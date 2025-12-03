@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class NotificationProcessorTest extends IntegrationTestSupport {
+class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private NotificationProcessor notificationProcessor;
