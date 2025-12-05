@@ -1,4 +1,4 @@
-package soon.fridgely.global.security.provider;
+package soon.fridgely.domain.auth.provider;
 
 import org.springframework.security.core.Authentication;
 import soon.fridgely.global.security.dto.response.TokenResponse;

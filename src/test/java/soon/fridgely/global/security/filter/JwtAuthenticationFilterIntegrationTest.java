@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.global.security.dto.response.TokenResponse;
-import soon.fridgely.global.security.provider.TokenProvider;
 
 import java.security.Key;
 import java.util.Date;

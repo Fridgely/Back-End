@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import soon.fridgely.global.security.provider.TokenProvider;
+import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.SecurityHandlerHelper;
