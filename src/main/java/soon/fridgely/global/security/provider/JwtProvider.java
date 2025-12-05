@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.security.properties.JwtProperties;
