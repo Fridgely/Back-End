@@ -3,12 +3,9 @@ package soon.fridgely.domain.food.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import soon.fridgely.E2ETestSupport;
-import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
@@ -56,9 +53,6 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
-    @Autowired
-    private TokenProvider tokenProvider;
-
     @Test
     void 내_모든_음식을_상태별로_그룹핑하여_조회한다() {
         // given
@@ -80,11 +74,7 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
         Food greenFood = createFood(refrigerator, member, category, now.plusDays(30).atStartOfDay(), now);
         foodRepository.saveAll(List.of(blackFood, redFood, greenFood));
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(headers);
+        var httpEntity = createAuthEntity(member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<FoodStatusResponse>>() {
