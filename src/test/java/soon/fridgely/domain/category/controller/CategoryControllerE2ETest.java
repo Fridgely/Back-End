@@ -3,13 +3,10 @@ package soon.fridgely.domain.category.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import soon.fridgely.E2ETestSupport;
 import soon.fridgely.domain.EntityStatus;
-import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
@@ -61,8 +58,6 @@ class CategoryControllerE2ETest extends E2ETestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
-    @Autowired
-    private TokenProvider tokenProvider;
 
     @Test
     void 카테고리를_추가한다() {
@@ -76,12 +71,8 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
         memberRefrigeratorRepository.save(memberRefrigerator);
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
         var request = new CategoryAddRequest("국수");
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(request, headers);
+        var httpEntity = createAuthEntity(request, member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
@@ -119,11 +110,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(headers);
+        var httpEntity = createAuthEntity(member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<CategoryDetailResponse>>() {
@@ -157,11 +144,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         Category category2 = Category.register("채소", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.saveAll(List.of(category1, category2));
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(headers);
+        var httpEntity = createAuthEntity(member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<List<CategoryResponse>>>() {
@@ -201,12 +184,8 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
         categoryRepository.save(category);
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
         var request = new CategoryModifyRequest("채소");
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(request, headers);
+        var httpEntity = createAuthEntity(request, member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
@@ -248,11 +227,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
             .collect(Collectors.toList());
         foodRepository.saveAll(foods);
 
-        String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
-
-        var headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        var httpEntity = new HttpEntity<>(headers);
+        var httpEntity = createAuthEntity(member);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
