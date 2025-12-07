@@ -2,6 +2,7 @@ package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.notification.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
@@ -17,6 +18,7 @@ public class NotificationService {
     private final NotificationBatchExecutor notificationBatchExecutor;
     private final NotificationProcessor notificationProcessor;
 
+    @Scheduled(cron = "0 0 * * * *") // 매 정각마다 실행
     public void sendScheduledAlerts() {
         LocalTime now = LocalTime.now();
         LocalTime start = TimeRangeUtils.startOfHour(now);
