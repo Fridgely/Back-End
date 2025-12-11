@@ -3,10 +3,11 @@ package soon.fridgely.domain.member.service;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 
 import java.time.LocalDateTime;
@@ -35,7 +36,7 @@ class MemberDeviceManagerIntegrationTest extends IntegrationTestSupport {
         memberDeviceManager.syncToken(member.getId(), token, LocalDateTime.now());
 
         // then
-        MemberDevice memberDevice = memberDeviceRepository.findByMemberIdAndToken(member.getId(), token).orElseThrow();
+        MemberDevice memberDevice = memberDeviceRepository.findByMemberIdAndTokenAndStatus(member.getId(), token, EntityStatus.ACTIVE).orElseThrow();
         assertThat(memberDevice).isNotNull()
             .extracting(MemberDevice::getToken)
             .isEqualTo(token);
@@ -57,7 +58,7 @@ class MemberDeviceManagerIntegrationTest extends IntegrationTestSupport {
         memberDeviceManager.syncToken(member.getId(), token, LocalDateTime.now());
 
         // then
-        MemberDevice updatedDevice = memberDeviceRepository.findByMemberIdAndToken(member.getId(), token).orElseThrow();
+        MemberDevice updatedDevice = memberDeviceRepository.findByMemberIdAndTokenAndStatus(member.getId(), token, EntityStatus.ACTIVE).orElseThrow();
         assertThat(updatedDevice.getLastUsedAt()).isAfter(originalLastUsedAt);
     }
 
