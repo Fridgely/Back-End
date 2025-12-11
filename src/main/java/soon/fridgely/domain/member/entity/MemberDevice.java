@@ -1,9 +1,8 @@
-package soon.fridgely.domain.notification.entity;
+package soon.fridgely.domain.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import soon.fridgely.domain.BaseEntity;
-import soon.fridgely.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
 

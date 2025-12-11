@@ -1,7 +1,7 @@
 package soon.fridgely.domain.notification.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import soon.fridgely.domain.notification.entity.MemberDevice;
+import soon.fridgely.domain.member.entity.MemberDevice;
 
 import java.util.List;
 
