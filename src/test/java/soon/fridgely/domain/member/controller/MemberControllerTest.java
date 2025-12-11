@@ -6,14 +6,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
 import soon.fridgely.ControllerTestSupport;
+import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
+import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.stream.Stream;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,6 +79,44 @@ class MemberControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 디바이스_토큰을_동기화한다() throws Exception {
+        // given
+        var request = new DeviceTokenSyncRequest("fcm-token-12345");
+
+        // expected
+        mockMvc.perform(
+                put(BASE_URL + "/me/devices")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        verify(memberService).syncToken(1L, request.token());
+    }
+
+    @TestLoginMember
+    @Test
+    void 디바이스_토큰이_없으면_예외가_발생한다() throws Exception {
+        // given
+        var request = new DeviceTokenSyncRequest("");
+
+        // expected
+        mockMvc.perform(
+                put(BASE_URL + "/me/devices")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.message").value("요청이 올바르지 않습니다."))
+            .andExpect(jsonPath("$.error.data.token").value("토큰은 필수입니다."));
     }
 
     private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
