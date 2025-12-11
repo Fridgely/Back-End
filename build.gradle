@@ -58,6 +58,9 @@ dependencies {
 
     // Resilience4j
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+
+    // Firebase Admin SDK
+    implementation 'com.google.firebase:firebase-admin:9.7.0'
 }
 
 tasks.named('test') {
