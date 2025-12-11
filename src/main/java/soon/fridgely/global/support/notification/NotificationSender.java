@@ -7,8 +7,8 @@ public interface NotificationSender {
      *
      * @param memberId 수신자 ID
      * @param title    알림 제목
-     * @param message  알림 내용
+     * @param body  알림 내용
      */
-    void send(long memberId, String title, String message);
+    void send(long memberId, String title, String body);
 
 }
