@@ -44,6 +44,7 @@ public enum ErrorType {
 
     // 알림 오류
     EMPTY_NOTIFICATION_TARGET(HttpStatus.INTERNAL_SERVER_ERROR, "알림 메시지를 생성할 대상 데이터가 없습니다.", LogLevel.ERROR),
+    FIREBASE_INITIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Firebase 초기화에 실패했습니다.", LogLevel.ERROR),
     ;
 
     private final HttpStatus status;
