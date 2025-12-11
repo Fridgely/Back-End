@@ -46,3 +46,6 @@ gradle-app.setting
 !application.yml
 !ci.yml
 !cd.yml
+
+### firebase ###
+secretJson.json
