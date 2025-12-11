@@ -1,11 +1,12 @@
 package soon.fridgely.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.member.entity.MemberDevice;
+import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
@@ -20,21 +21,27 @@ public class MemberDeviceManager {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void syncToken(long memberId, String token) {
-        LocalDateTime now = LocalDateTime.now();
-
+    public void syncToken(long memberId, String token, LocalDateTime now) {
         memberDeviceRepository.findByMemberIdAndToken(memberId, token)
             .ifPresentOrElse(
                 device -> device.refreshLastUsedAt(now),
-                () -> registerNewDevice(memberId, token, now)
+                () -> registerNewDeviceWithFallback(memberId, token, now)
             );
+    }
+
+    private void registerNewDeviceWithFallback(long memberId, String token, LocalDateTime now) {
+        try {
+            registerNewDevice(memberId, token, now);
+        } catch (DataIntegrityViolationException e) {
+            memberDeviceRepository.findByMemberIdAndToken(memberId, token)
+                .ifPresent(device -> device.refreshLastUsedAt(now));
+        }
     }
 
     private void registerNewDevice(long memberId, String token, LocalDateTime now) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-
-        memberDeviceRepository.save(MemberDevice.register(member, token, now));
+        memberDeviceRepository.saveAndFlush(MemberDevice.register(member, token, now));
     }
 
 }

@@ -12,6 +12,8 @@ import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 import soon.fridgely.domain.refrigerator.service.MemberRefrigeratorLinker;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorManager;
 
+import java.time.LocalDateTime;
+
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -44,7 +46,8 @@ public class MemberService {
     }
 
     public void syncToken(long memberId, String token) {
-        memberDeviceManager.syncToken(memberId, token);
+        LocalDateTime now = LocalDateTime.now();
+        memberDeviceManager.syncToken(memberId, token, now);
     }
 
 }

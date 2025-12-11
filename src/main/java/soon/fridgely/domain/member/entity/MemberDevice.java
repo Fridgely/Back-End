@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
 @Getter
 @Table(
     name = "member_devices",
-    uniqueConstraints = @UniqueConstraint(name = "uk_member_device_token", columnNames = "token")
+    uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "token"})
 )
 @Entity
 public class MemberDevice extends BaseEntity {
@@ -31,19 +31,19 @@ public class MemberDevice extends BaseEntity {
 
     public static MemberDevice register(Member member, String token, LocalDateTime now) {
         return MemberDevice.builder()
-            .member(member)
+            .member(requireNonNull(member, "member는 필수입니다."))
             .token(requireNonNull(token, "token은 필수입니다."))
             .lastUsedAt(requireNonNull(now, "now는 필수입니다."))
             .build();
     }
 
     public void updateToken(String newToken, LocalDateTime now) {
-        this.token = newToken;
+        this.token = requireNonNull(newToken, "newToken은 필수입니다.");
         refreshLastUsedAt(now);
     }
 
     public void refreshLastUsedAt(LocalDateTime now) {
-        this.lastUsedAt = now;
+        this.lastUsedAt = requireNonNull(now, "now는 필수입니다.");
     }
 
 }

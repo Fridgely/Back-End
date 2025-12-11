@@ -32,7 +32,7 @@ class MemberDeviceManagerIntegrationTest extends IntegrationTestSupport {
         String token = "newDeviceToken";
 
         // when
-        memberDeviceManager.syncToken(member.getId(), token);
+        memberDeviceManager.syncToken(member.getId(), token, LocalDateTime.now());
 
         // then
         MemberDevice memberDevice = memberDeviceRepository.findByMemberIdAndToken(member.getId(), token).orElseThrow();
@@ -54,7 +54,7 @@ class MemberDeviceManagerIntegrationTest extends IntegrationTestSupport {
         LocalDateTime originalLastUsedAt = memberDevice.getLastUsedAt();
 
         // when
-        memberDeviceManager.syncToken(member.getId(), token);
+        memberDeviceManager.syncToken(member.getId(), token, LocalDateTime.now());
 
         // then
         MemberDevice updatedDevice = memberDeviceRepository.findByMemberIdAndToken(member.getId(), token).orElseThrow();
