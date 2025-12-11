@@ -7,6 +7,8 @@ import soon.fridgely.domain.member.entity.Member;
 
 import java.time.LocalDateTime;
 
+import static java.util.Objects.requireNonNull;
+
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,27 +24,27 @@ public class MemberDevice extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 512)
     private String token;
 
     @Column(nullable = false)
     private LocalDateTime lastUsedAt;
 
-    public static MemberDevice register(Member member, String token) {
+    public static MemberDevice register(Member member, String token, LocalDateTime now) {
         return MemberDevice.builder()
             .member(member)
-            .token(token)
-            .lastUsedAt(LocalDateTime.now())
+            .token(requireNonNull(token, "token은 필수입니다."))
+            .lastUsedAt(requireNonNull(now, "now는 필수입니다."))
             .build();
     }
 
-    public void updateToken(String newToken) {
+    public void updateToken(String newToken, LocalDateTime now) {
         this.token = newToken;
-        this.lastUsedAt = LocalDateTime.now();
+        refreshLastUsedAt(now);
     }
 
-    public void refreshLastUsedAt() {
-        this.lastUsedAt = LocalDateTime.now();
+    public void refreshLastUsedAt(LocalDateTime now) {
+        this.lastUsedAt = now;
     }
 
 }
