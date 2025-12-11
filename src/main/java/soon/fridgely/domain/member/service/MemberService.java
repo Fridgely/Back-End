@@ -20,6 +20,7 @@ public class MemberService {
     private final RefrigeratorManager refrigeratorManager;
     private final MemberRefrigeratorLinker memberRefrigeratorLinker;
     private final NotificationSettingManager notificationSettingManager;
+    private final MemberDeviceManager memberDeviceManager;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -40,6 +41,10 @@ public class MemberService {
         eventPublisher.publishEvent(new RefrigeratorCreatedEvent(refrigerator.getId(), member.getId()));
 
         return member.getId();
+    }
+
+    public void syncToken(long memberId, String token) {
+        memberDeviceManager.syncToken(memberId, token);
     }
 
 }
