@@ -29,6 +29,11 @@ public class FcmNotificationSender implements NotificationSender {
     @Override
     public void send(long memberId, String title, String body) {
         List<MemberDevice> devices = memberDeviceRepository.findAllByMemberId(memberId);
+        if (devices.isEmpty()) {
+            log.debug("[FcmSender] 등록된 디바이스가 없어 알림을 전송하지 않음. (MemberId={})", memberId);
+            return;
+        }
+
         devices.forEach(device -> sendToDevice(device, title, body));
     }
 
@@ -47,7 +52,7 @@ public class FcmNotificationSender implements NotificationSender {
 
             firebaseMessaging.send(message);
         } catch (FirebaseMessagingException e) {
-            log.error("[FcmSender] 알림 전송 실패 (MemberId={})", device.getMember().getId(), e);
+            log.error("[FcmSender] 알림 전송 실패 (MemberId={}, Token={})", device.getMember().getId(), device.getToken(), e);
         }
     }
 
