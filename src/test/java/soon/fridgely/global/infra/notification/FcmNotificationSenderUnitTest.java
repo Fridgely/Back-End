@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.entity.MemberDevice;
+import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 
 import java.util.Collections;

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import soon.fridgely.domain.notification.entity.MemberDevice;
+import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.notification.NotificationSender;
 

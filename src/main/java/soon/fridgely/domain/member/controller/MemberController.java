@@ -4,12 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.domain.member.service.MemberService;
+import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -27,6 +26,15 @@ public class MemberController {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(memberId));
+    }
+
+    @PutMapping("/me/devices")
+    public ResponseEntity<ApiResponse<?>> syncToken(
+        @RequestBody @Valid DeviceTokenSyncRequest request,
+        @LoginMember Long memberId
+    ) {
+        memberService.syncToken(memberId, request.token());
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
 }
