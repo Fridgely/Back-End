@@ -41,7 +41,8 @@ public class FcmConfig {
                 .setCredentials(GoogleCredentials.fromStream(new ByteArrayInputStream(decodedKey)))
                 .build();
             return FirebaseApp.initializeApp(options);
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
+            log.error("[FcmConfig] Firebase 초기화 실패.", e);
             throw new CoreException(ErrorType.FIREBASE_INITIALIZATION_FAILED);
         }
     }
