@@ -22,7 +22,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FcmNotificationSenderTest {
+class FcmNotificationSenderUnitTest {
 
     private final String TITLE = "유통기한 임박 알림 ⏰";
     private final String BODY = "'우유'의 소비기한이 3일 남았습니다.";
