@@ -15,7 +15,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
-class NotificationServiceTest {
+class NotificationServiceUnitTest {
 
     @InjectMocks
     private NotificationService notificationService;
