@@ -62,12 +62,11 @@ public class FoodModifier {
      * 음식 수량 추가
      */
     @Transactional
-    public Food add(long foodId, long refrigeratorId, Quantity amount) {
+    public void add(long foodId, long refrigeratorId, Quantity amount) {
         Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
 
         food.add(amount);
-        return food;
     }
 
     /*
