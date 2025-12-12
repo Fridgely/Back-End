@@ -52,6 +52,9 @@ class FoodServiceUnitTest {
     @Mock
     private ImageManager imageManager;
 
+    @Mock
+    private FoodStockHandler foodStockHandler;
+
     @Test
     void 음식을_등록한다() {
         // given
@@ -270,6 +273,43 @@ class FoodServiceUnitTest {
         assertThat(response.black()).hasSize(1);
         assertThat(response.yellow()).isNotNull()
             .isEmpty();
+    }
+
+    @Test
+    void 음식의_재고를_추가한다() {
+        // given
+        long foodId = 1L;
+        var key = new MemberRefrigeratorKey(1L, 1L);
+        var amount = new Quantity(BigDecimal.ONE, Unit.KG);
+
+        // when
+        foodService.addFood(foodId, amount, key);
+
+        // then
+        then(foodModifier).should()
+            .add(foodId, key.refrigeratorId(), amount);
+    }
+
+    @Test
+    void 음식을_소비하고_재고가_소진되면_알림_핸들러를_호출한다() {
+        // given
+        long foodId = 1L;
+        var key = new MemberRefrigeratorKey(1L, 1L);
+        var amount = new Quantity(BigDecimal.ONE, Unit.PIECE);
+
+        Food mockFood = mock(Food.class);
+        given(foodModifier.consume(foodId, key.refrigeratorId(), amount)).willReturn(mockFood);
+        given(mockFood.isOutOfStock()).willReturn(true);
+
+        // when
+        foodService.consumeFood(foodId, amount, key);
+
+        // then
+        InOrder inOrder = inOrder(foodModifier, foodStockHandler);
+        then(foodModifier).should(inOrder)
+            .consume(foodId, key.refrigeratorId(), amount);
+        then(foodStockHandler).should(inOrder)
+            .onStockExhausted(mockFood);
     }
 
     private MockMultipartFile createMockFile() {
