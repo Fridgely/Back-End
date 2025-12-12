@@ -32,7 +32,7 @@ public class NotificationMessageGenerator {
     }
 
     public NotificationMessage generateForExhaustion(String foodName) {
-        return new NotificationMessage(EXHAUSTION_NOTIFICATION_TITLE, "%s 재료가 모두 소진되었습니다. 장바구니에 담으시겠어요?".formatted(foodName));
+        return new NotificationMessage(EXHAUSTION_NOTIFICATION_TITLE, "%s 재고가 모두 소진되었습니다. 장바구니에 담으시겠어요?".formatted(foodName));
     }
 
 }
