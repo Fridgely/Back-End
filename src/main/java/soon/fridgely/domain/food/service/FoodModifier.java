@@ -63,7 +63,7 @@ public class FoodModifier {
      */
     @Transactional
     public void add(long foodId, long refrigeratorId, Quantity amount) {
-        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
+        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
 
         food.add(amount);
@@ -74,7 +74,7 @@ public class FoodModifier {
      */
     @Transactional
     public Food consume(long foodId, long refrigeratorId, Quantity amount) {
-        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
+        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
 
         food.consume(amount);
