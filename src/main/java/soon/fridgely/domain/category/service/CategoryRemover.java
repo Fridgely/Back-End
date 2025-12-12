@@ -32,7 +32,7 @@ public class CategoryRemover {
         foodModifier.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), category.getId());
 
         category.delete();
-        categoryRepository.save(category); // foodManager에서 영속성 컨텍스트가 초기화되므로 다시 저장 필요
+        categoryRepository.save(category); // foodModifier에서 영속성 컨텍스트가 초기화되므로 다시 저장 필요
     }
 
 }
