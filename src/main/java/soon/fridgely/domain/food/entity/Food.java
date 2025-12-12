@@ -117,4 +117,18 @@ public class Food extends BaseEntity {
         return ChronoUnit.DAYS.between(now, this.expirationDate.toLocalDate());
     }
 
+    public void add(Quantity amount) {
+        requireNonNull(amount, "추가할 양은 필수입니다.");
+        this.quantity = this.quantity.plus(amount);
+    }
+
+    public void consume(Quantity amount) {
+        requireNonNull(amount, "소비할 양은 필수입니다.");
+        this.quantity = this.quantity.minus(amount);
+    }
+
+    public boolean isOutOfStock() {
+        return this.quantity.isZero();
+    }
+
 }
