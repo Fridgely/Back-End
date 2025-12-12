@@ -23,7 +23,7 @@ class NotificationMessageGeneratorUnitTest {
         int days = 3;
 
         // when
-        var message = generator.generate(foods, days);
+        var message = generator.generateForExpiredFoods(foods, days);
 
         // then
         assertThat(message.title()).isEqualTo("유통기한 임박 알림 ⏰");
@@ -42,7 +42,7 @@ class NotificationMessageGeneratorUnitTest {
         int days = 1;
 
         // when
-        var message = generator.generate(foods, days);
+        var message = generator.generateForExpiredFoods(foods, days);
 
         // then
         assertThat(message.title()).isEqualTo("유통기한 임박 알림 ⏰");

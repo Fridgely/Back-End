@@ -38,7 +38,7 @@ public class NotificationProcessor {
                 return;
             }
 
-            NotificationMessage message = messageGenerator.generate(expiringFoods, daysBefore);
+            NotificationMessage message = messageGenerator.generateForExpiredFoods(expiringFoods, daysBefore);
             notificationSender.send(memberId, message.title(), message.body());
         } catch (Exception e) {
             log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
