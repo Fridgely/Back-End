@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
@@ -45,6 +46,17 @@ public class FoodController {
         @PathVariable long foodId
     ) {
         foodService.updateFood(foodId, request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @PatchMapping("/{foodId}/stock")
+    public ResponseEntity<ApiResponse<?>> updateFoodStock(
+        @RequestBody @Valid FoodStockUpdateRequest request,
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long foodId
+    ) {
+        foodService.updateFoodStock(foodId, request, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success());
     }
 
