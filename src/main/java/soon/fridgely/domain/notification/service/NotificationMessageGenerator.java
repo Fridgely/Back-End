@@ -15,6 +15,7 @@ import java.util.List;
 public class NotificationMessageGenerator {
 
     private static final String EXPIRED_NOTIFICATION_TITLE = "유통기한 임박 알림 ⏰";
+    private static final String EXHAUSTION_NOTIFICATION_TITLE = "재고 소진 알림 ⏰";
 
     public NotificationMessage generateForExpiredFoods(List<Food> foods, int days) {
         if (CollectionUtils.isEmpty(foods)) {
@@ -28,6 +29,10 @@ public class NotificationMessageGenerator {
             : "'%s' 외 %d개 품목의 소비기한이 %d일 남았습니다.".formatted(foodName, count - 1, days);
 
         return new NotificationMessage(EXPIRED_NOTIFICATION_TITLE, body);
+    }
+
+    public NotificationMessage generateForExhaustion(String foodName) {
+        return new NotificationMessage(EXHAUSTION_NOTIFICATION_TITLE, "%s 재료가 모두 소진되었습니다. 장바구니에 담으시겠어요?".formatted(foodName));
     }
 
 }
