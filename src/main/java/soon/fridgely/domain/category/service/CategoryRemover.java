@@ -7,7 +7,7 @@ import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.category.validator.CategoryValidator;
-import soon.fridgely.domain.food.service.FoodManager;
+import soon.fridgely.domain.food.service.FoodModifier;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
@@ -16,7 +16,7 @@ import soon.fridgely.global.support.exception.ErrorType;
 public class CategoryRemover {
 
     private final CategoryValidator categoryValidator;
-    private final FoodManager foodManager;
+    private final FoodModifier foodModifier;
     private final CategoryRepository categoryRepository;
 
     @Transactional
@@ -29,7 +29,7 @@ public class CategoryRemover {
 
         categoryValidator.validateNotDefaultType(category);
 
-        foodManager.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), category.getId());
+        foodModifier.moveAllFoodsToFallback(deleteCategory.refrigeratorId(), category.getId());
 
         category.delete();
         categoryRepository.save(category); // foodManager에서 영속성 컨텍스트가 초기화되므로 다시 저장 필요

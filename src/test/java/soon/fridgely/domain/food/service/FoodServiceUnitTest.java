@@ -44,6 +44,9 @@ class FoodServiceUnitTest {
     private FoodFinder foodFinder;
 
     @Mock
+    private FoodModifier foodModifier;
+
+    @Mock
     private FoodManager foodManager;
 
     @Mock
@@ -110,12 +113,12 @@ class FoodServiceUnitTest {
         foodService.updateFood(foodId, request, mockFile, key);
 
         // then
-        InOrder inOrder = inOrder(imageManager, foodManager);
+        InOrder inOrder = inOrder(imageManager, foodModifier);
         then(imageManager).should(inOrder)
             .upload(mockFile);
 
         ArgumentCaptor<FoodInfo> foodInfoCaptor = ArgumentCaptor.forClass(FoodInfo.class);
-        then(foodManager).should(inOrder)
+        then(foodModifier).should(inOrder)
             .update(
                 eq(foodId),
                 foodInfoCaptor.capture(),
@@ -153,7 +156,7 @@ class FoodServiceUnitTest {
         then(imageManager).shouldHaveNoInteractions();
 
         ArgumentCaptor<FoodInfo> foodInfoCaptor = ArgumentCaptor.forClass(FoodInfo.class);
-        then(foodManager).should()
+        then(foodModifier).should()
             .update(
                 eq(foodId),
                 foodInfoCaptor.capture(),

@@ -28,6 +28,7 @@ public class FoodService {
 
     private final FoodFinder foodFinder;
     private final FoodManager foodManager;
+    private final FoodModifier foodModifier;
     private final ImageManager imageManager;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -47,7 +48,7 @@ public class FoodService {
             uploadedUrl = imageManager.upload(file);
         }
 
-        foodManager.update(
+        foodModifier.update(
             foodId,
             request.toFoodInfo(uploadedUrl),
             key,

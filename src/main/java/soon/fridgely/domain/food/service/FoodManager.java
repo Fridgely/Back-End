@@ -23,19 +23,10 @@ import java.time.LocalDate;
 @Component
 public class FoodManager {
 
-    private static final String FALLBACK_CATEGORY_NAME = "기타";
-
     private final FoodRepository foodRepository;
     private final MemberRepository memberRepository;
     private final RefrigeratorRepository refrigeratorRepository;
     private final CategoryFinder categoryFinder;
-
-    @Transactional
-    public void moveAllFoodsToFallback(long refrigeratorId, long categoryId) {
-        Category fallbackCategory = categoryFinder.findByName(FALLBACK_CATEGORY_NAME, refrigeratorId);
-        Category targetCategory = categoryFinder.findByRefrigerator(categoryId, refrigeratorId);
-        foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
-    }
 
     @Transactional
     public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
@@ -50,28 +41,6 @@ public class FoodManager {
     }
 
     @Transactional
-    public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
-        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, key.refrigeratorId(), EntityStatus.ACTIVE)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = null;
-        if (hasCategoryChanged(food, categoryId)) {
-            category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
-        }
-
-        LocalDate now = LocalDate.now();
-        food.update(
-            updateInfo.name(),
-            category,
-            updateInfo.quantity(),
-            updateInfo.condition().expirationDate(),
-            updateInfo.condition().storageType(),
-            updateInfo.description(),
-            updateInfo.imageURL(),
-            now
-        );
-    }
-
-    @Transactional
     public void delete(long foodId, long refrigeratorId) {
         Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
@@ -81,10 +50,6 @@ public class FoodManager {
         }
 
         food.delete();
-    }
-
-    private boolean hasCategoryChanged(Food food, long newCategoryId) {
-        return food.getCategory().getId() != newCategoryId;
     }
 
 }
