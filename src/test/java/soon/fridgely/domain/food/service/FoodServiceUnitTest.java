@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
@@ -279,30 +280,31 @@ class FoodServiceUnitTest {
     void 음식의_재고를_추가한다() {
         // given
         long foodId = 1L;
+        var request = new FoodStockUpdateRequest(BigDecimal.ONE, Unit.KG, StockActionType.ADD);
         var key = new MemberRefrigeratorKey(1L, 1L);
-        var amount = new Quantity(BigDecimal.ONE, Unit.KG);
 
         // when
-        foodService.addFood(foodId, amount, key);
+        foodService.updateFoodStock(foodId, request, key);
 
         // then
         then(foodModifier).should()
-            .add(foodId, key.refrigeratorId(), amount);
+            .add(foodId, key.refrigeratorId(), request.toQuantity());
     }
 
     @Test
     void 음식을_소비하고_재고가_소진되면_알림_핸들러를_호출한다() {
         // given
         long foodId = 1L;
+        var request = new FoodStockUpdateRequest(BigDecimal.ONE, Unit.KG, StockActionType.CONSUME);
         var key = new MemberRefrigeratorKey(1L, 1L);
-        var amount = new Quantity(BigDecimal.ONE, Unit.PIECE);
+        Quantity amount = request.toQuantity();
 
         Food mockFood = mock(Food.class);
         given(foodModifier.consume(foodId, key.refrigeratorId(), amount)).willReturn(mockFood);
         given(mockFood.isOutOfStock()).willReturn(true);
 
         // when
-        foodService.consumeFood(foodId, amount, key);
+        foodService.updateFoodStock(foodId, request, key);
 
         // then
         InOrder inOrder = inOrder(foodModifier, foodStockHandler);
