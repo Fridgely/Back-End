@@ -29,4 +29,34 @@ public record Quantity(
         );
     }
 
+    public Quantity plus(Quantity other) {
+        requireNonNull(other, "더할 수량은 필수입니다.");
+
+        if (this.unit != other.unit) {
+            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
+        }
+
+        BigDecimal result = this.amount.add(other.amount);
+        return new Quantity(result, this.unit);
+    }
+
+    public Quantity minus(Quantity other) {
+        requireNonNull(other, "차감할 수량은 필수입니다.");
+
+        if (this.unit != other.unit) {
+            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
+        }
+
+        BigDecimal result = this.amount.subtract(other.amount);
+        if (result.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("재고보다 많은 양을 소비할 수 없습니다.");
+        }
+
+        return new Quantity(result, this.unit);
+    }
+
+    public boolean isZero() {
+        return this.amount.compareTo(BigDecimal.ZERO) == 0;
+    }
+
 }
