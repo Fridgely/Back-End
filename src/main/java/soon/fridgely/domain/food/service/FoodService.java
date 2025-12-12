@@ -12,6 +12,7 @@ import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.FoodStatus;
+import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.CursorPageRequest;
@@ -28,6 +29,8 @@ public class FoodService {
 
     private final FoodFinder foodFinder;
     private final FoodManager foodManager;
+    private final FoodModifier foodModifier;
+    private final FoodStockHandler foodStockHandler;
     private final ImageManager imageManager;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -47,7 +50,7 @@ public class FoodService {
             uploadedUrl = imageManager.upload(file);
         }
 
-        foodManager.update(
+        foodModifier.update(
             foodId,
             request.toFoodInfo(uploadedUrl),
             key,
@@ -88,6 +91,19 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     public void deleteFood(long foodId, MemberRefrigeratorKey key) {
         foodManager.delete(foodId, key.refrigeratorId());
+    }
+
+    @ValidateRefrigeratorAccess(key = "#key")
+    public void addFood(long foodId, Quantity amount, MemberRefrigeratorKey key) {
+        foodModifier.add(foodId, key.refrigeratorId(), amount);
+    }
+
+    @ValidateRefrigeratorAccess(key = "#key")
+    public void consumeFood(long foodId, Quantity amount, MemberRefrigeratorKey key) {
+        Food food = foodModifier.consume(foodId, key.refrigeratorId(), amount);
+        if (food.isOutOfStock()) {
+            foodStockHandler.onStockExhausted(food);
+        }
     }
 
 }

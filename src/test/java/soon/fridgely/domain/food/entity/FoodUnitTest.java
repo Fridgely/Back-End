@@ -219,6 +219,66 @@ class FoodUnitTest {
         assertThat(daysLeft).isEqualTo(0);
     }
 
+    @Test
+    void 음식을_소비하면_재고가_차감된다() {
+        // given
+        Quantity quantity = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
+        Food food = createFood(quantity);
+
+        Quantity amount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+
+        // when
+        food.consume(amount);
+
+        // then
+        assertThat(food.getQuantity().amount())
+            .isEqualTo(new BigDecimal("3.00"));
+    }
+
+    @Test
+    void 음식을_추가하면_재고가_증가한다() {
+        // given
+        Quantity quantity = new Quantity(new BigDecimal("1.00"), Unit.PIECE);
+        Food food = createFood(quantity);
+
+        Quantity amount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+
+        // when
+        food.add(amount);
+
+        // then
+        assertThat(food.getQuantity().amount())
+            .isEqualTo(new BigDecimal("3.00"));
+    }
+
+    @Test
+    void 재고가_0이면_소진_상태로_판단한다() {
+        // given
+        Quantity quantity = new Quantity(new BigDecimal("1.00"), Unit.PIECE);
+        Food food = createFood(quantity);
+
+        // when
+        food.consume(quantity);
+
+        // then
+        assertThat(food.isOutOfStock()).isTrue();
+    }
+
+    @Test
+    void 재고가_남아있으면_소진_상태가_아니다() {
+        // given
+        Quantity quantity = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+        Food food = createFood(quantity);
+
+        Quantity amount = new Quantity(new BigDecimal("1.00"), Unit.PIECE);
+
+        // when
+        food.consume(amount);
+
+        // then
+        assertThat(food.isOutOfStock()).isFalse();
+    }
+
     private Member createMember() {
         return Member.builder()
             .loginId("testId")
@@ -239,6 +299,26 @@ class FoodUnitTest {
             StorageType.FROZEN,
             "testDescription",
             "http://example.com/image.jpg",
+            now
+        );
+    }
+
+    private Food createFood(Quantity quantity) {
+        Member member = createMember();
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        Category category = Category.register("기본 카테고리", refrigerator, member, CategoryType.CUSTOM);
+        LocalDate now = LocalDate.now();
+
+        return Food.register(
+            refrigerator,
+            member,
+            "테스트 음식",
+            category,
+            quantity,
+            now.plusDays(7).atStartOfDay(),
+            StorageType.REFRIGERATION,
+            "테스트 설명",
+            "http://dummy.url",
             now
         );
     }
