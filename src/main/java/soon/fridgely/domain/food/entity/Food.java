@@ -119,16 +119,20 @@ public class Food extends BaseEntity {
 
     public void add(Quantity amount) {
         requireNonNull(amount, "추가할 양은 필수입니다.");
+        requireNonNull(this.quantity, "현재 수량이 존재하지 않습니다.");
+
         this.quantity = this.quantity.plus(amount);
     }
 
     public void consume(Quantity amount) {
         requireNonNull(amount, "소비할 양은 필수입니다.");
+        requireNonNull(this.quantity, "현재 수량이 존재하지 않습니다.");
+
         this.quantity = this.quantity.minus(amount);
     }
 
     public boolean isOutOfStock() {
-        return this.quantity.isZero();
+        return this.quantity != null && this.quantity.isZero();
     }
 
 }

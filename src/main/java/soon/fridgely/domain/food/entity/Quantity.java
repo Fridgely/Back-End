@@ -22,30 +22,33 @@ public record Quantity(
 
 ) {
 
+    public Quantity {
+        requireNonNull(unit, "unit은 필수입니다.");
+
+        if (amount == null) {
+            amount = BigDecimal.ZERO;
+        }
+        amount = amount.setScale(2, RoundingMode.HALF_UP);
+
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("수량은 음수일 수 없습니다.");
+        }
+    }
+
     public static Quantity register(BigDecimal amount, Unit unit) {
-        return new Quantity(
-            amount == null ? BigDecimal.ZERO : amount.setScale(2, RoundingMode.HALF_UP),
-            requireNonNull(unit, "unit은 필수입니다.")
-        );
+        return new Quantity(amount, unit);
     }
 
     public Quantity plus(Quantity other) {
         requireNonNull(other, "더할 수량은 필수입니다.");
+        validateUnit(other);
 
-        if (this.unit != other.unit) {
-            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
-        }
-
-        BigDecimal result = this.amount.add(other.amount);
-        return new Quantity(result, this.unit);
+        return new Quantity(this.amount.add(other.amount), this.unit);
     }
 
     public Quantity minus(Quantity other) {
         requireNonNull(other, "차감할 수량은 필수입니다.");
-
-        if (this.unit != other.unit) {
-            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
-        }
+        validateUnit(other);
 
         BigDecimal result = this.amount.subtract(other.amount);
         if (result.compareTo(BigDecimal.ZERO) < 0) {
@@ -53,6 +56,12 @@ public record Quantity(
         }
 
         return new Quantity(result, this.unit);
+    }
+
+    private void validateUnit(Quantity other) {
+        if (this.unit != other.unit) {
+            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
+        }
     }
 
     public boolean isZero() {
