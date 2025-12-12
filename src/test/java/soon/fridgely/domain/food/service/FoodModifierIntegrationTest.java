@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FoodModifierIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private FoodModifier foodManager;
+    private FoodModifier foodModifier;
 
     @Autowired
     private FoodRepository foodRepository;
@@ -64,7 +64,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         foodRepository.saveAll(foods);
 
         // when
-        foodManager.moveAllFoodsToFallback(refrigerator.getId(), targetCategory.getId());
+        foodModifier.moveAllFoodsToFallback(refrigerator.getId(), targetCategory.getId());
 
         // then
         List<Food> updatedFoods = foodRepository.findAll();
@@ -102,7 +102,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        foodManager.update(
+        foodModifier.update(
             food.getId(),
             updateInfo,
             new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
@@ -143,7 +143,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        foodManager.update(
+        foodModifier.update(
             food.getId(),
             updateInfo,
             new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
@@ -153,6 +153,64 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         // then
         Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(updatedFood.getCategory().getId()).isEqualTo(newCategory.getId());
+    }
+
+    @Test
+    void 음식을_추가하면_변경된_재고가_반영된다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("음료", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Quantity initialQuantity = new Quantity(new BigDecimal("10.0"), Unit.L);
+        Food food = createFood(refrigerator, member, category, initialQuantity);
+        foodRepository.save(food);
+
+        // when
+        Quantity addAmount = new Quantity(new BigDecimal("2.5"), Unit.L);
+        Food result = foodModifier.add(food.getId(), refrigerator.getId(), addAmount);
+
+        // then
+        assertThat(result.getQuantity().amount())
+            .isEqualTo(new BigDecimal("12.50"));
+
+        Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(savedFood.getQuantity().amount())
+            .isEqualTo(new BigDecimal("12.50"));
+    }
+
+    @Test
+    void 음식을_소비하면_변경된_재고가_반영된다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("식자재", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Quantity initialQuantity = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
+        Food food = createFood(refrigerator, member, category, initialQuantity);
+        foodRepository.save(food);
+
+        // when
+        Quantity consumeAmount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+        Food result = foodModifier.consume(food.getId(), refrigerator.getId(), consumeAmount);
+
+        // then
+        assertThat(result.getQuantity().amount())
+            .isEqualTo(new BigDecimal("3.00"));
+
+        Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(savedFood.getQuantity().amount())
+            .isEqualTo(new BigDecimal("3.00"));
     }
 
     private Member createMember() {
@@ -176,6 +234,21 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
             "testDescription",
             "http://example.com/image.jpg",
             now
+        );
+    }
+
+    private Food createFood(Refrigerator refrigerator, Member member, Category category, Quantity quantity) {
+        return Food.register(
+            refrigerator,
+            member,
+            "testFood",
+            category,
+            quantity,
+            LocalDateTime.now().plusDays(5L),
+            StorageType.REFRIGERATION,
+            "description",
+            "http://image.url",
+            LocalDate.now()
         );
     }
 

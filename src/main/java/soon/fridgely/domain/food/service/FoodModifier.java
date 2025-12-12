@@ -8,6 +8,7 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.service.CategoryFinder;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.exception.CoreException;
@@ -31,6 +32,10 @@ public class FoodModifier {
         foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
     }
 
+    /*
+     * 음식 정보 수정
+     * 수량이 0으로 변경되어도 소진 알림을 발송하지 않음
+     */
     @Transactional
     public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
         Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, key.refrigeratorId(), EntityStatus.ACTIVE)
@@ -51,6 +56,30 @@ public class FoodModifier {
             updateInfo.imageURL(),
             now
         );
+    }
+
+    /*
+     * 음식 수량 추가
+     */
+    @Transactional
+    public Food add(long foodId, long refrigeratorId, Quantity amount) {
+        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+
+        food.add(amount);
+        return food;
+    }
+
+    /*
+     * 음식 수량 소비
+     */
+    @Transactional
+    public Food consume(long foodId, long refrigeratorId, Quantity amount) {
+        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, refrigeratorId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+
+        food.consume(amount);
+        return food;
     }
 
     private boolean hasCategoryChanged(Food food, long newCategoryId) {
