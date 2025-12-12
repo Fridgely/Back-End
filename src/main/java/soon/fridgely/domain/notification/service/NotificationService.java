@@ -23,7 +23,7 @@ public class NotificationService {
         return notificationBatchExecutor.execute(
             TimeRangeUtils.startOfHour(now),
             TimeRangeUtils.endOfHour(now),
-            notificationProcessor::process
+            notificationProcessor::processExpiration
         );
     }
 
