@@ -65,15 +65,42 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("status") EntityStatus status
     );
 
+    /*
+     * 특정 냉장고의 Food를 ID로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.id = :foodId
+            AND f.refrigerator.id = :refrigeratorId
+            AND f.status = :status
+        """)
+    Optional<Food> findByIdAndRefrigeratorIdAndStatusWithCategory(
+        @Param("foodId") long foodId,
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("status") EntityStatus status
+    );
+
+    /*
+     * 특정 냉장고의 Food를 커서 기반 페이징으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorWithCategory(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 
     Optional<Food> findByIdAndRefrigeratorId(long foodId, long refrigeratorId);
-
-    Slice<Food> findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
-        long refrigeratorId,
-        long id, // 마지막으로 조회된 Food의 ID
-        EntityStatus status,
-        Pageable pageable
-    );
 
 }

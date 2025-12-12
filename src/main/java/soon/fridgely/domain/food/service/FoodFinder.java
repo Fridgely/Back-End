@@ -23,13 +23,13 @@ public class FoodFinder {
 
     @Transactional(readOnly = true)
     public Food find(long foodId, long refrigeratorId) {
-        return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+        return foodRepository.findByIdAndRefrigeratorIdAndStatusWithCategory(foodId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 
     @Transactional(readOnly = true)
     public Slice<Food> findAll(long refrigeratorId, long cursorId, Pageable pageable) {
-        return foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        return foodRepository.findAllByRefrigeratorWithCategory(
             refrigeratorId,
             cursorId,
             EntityStatus.ACTIVE,

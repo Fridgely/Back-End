@@ -113,7 +113,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Pageable pageable = PageRequest.ofSize(10);
 
         // when
-        Slice<Food> result = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        Slice<Food> result = foodRepository.findAllByRefrigeratorWithCategory(
             refrigerator1.getId(),
             Long.MAX_VALUE,
             EntityStatus.ACTIVE,
@@ -148,7 +148,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Pageable pageable = PageRequest.ofSize(10);
 
         // when
-        Slice<Food> result = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        Slice<Food> result = foodRepository.findAllByRefrigeratorWithCategory(
             refrigerator.getId(),
             Long.MAX_VALUE,
             EntityStatus.ACTIVE,
@@ -187,7 +187,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Pageable pageable = PageRequest.ofSize(3);
 
         // when
-        Slice<Food> firstSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        Slice<Food> firstSlice = foodRepository.findAllByRefrigeratorWithCategory(
             refrigerator.getId(),
             Long.MAX_VALUE,
             EntityStatus.ACTIVE,
@@ -218,7 +218,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
 
         Pageable pageable = PageRequest.ofSize(3);
 
-        Slice<Food> firstSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        Slice<Food> firstSlice = foodRepository.findAllByRefrigeratorWithCategory(
             refrigerator.getId(),
             Long.MAX_VALUE,
             EntityStatus.ACTIVE,
@@ -230,7 +230,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
             .getId();
 
         // when
-        Slice<Food> secondSlice = foodRepository.findByRefrigeratorIdAndIdLessThanAndStatusOrderByIdDesc(
+        Slice<Food> secondSlice = foodRepository.findAllByRefrigeratorWithCategory(
             refrigerator.getId(),
             lastIdOfFirstSlice,
             EntityStatus.ACTIVE,
