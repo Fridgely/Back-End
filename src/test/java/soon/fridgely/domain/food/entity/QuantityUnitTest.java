@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class QuantityUnitTest {
+public class QuantityUnitTest {
 
     @Test
     void 수량을_생성하면_소수점_2자리로_반올림된다() {
