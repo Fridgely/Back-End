@@ -31,7 +31,6 @@ public class FoodService {
     private final FoodFinder foodFinder;
     private final FoodManager foodManager;
     private final FoodModifier foodModifier;
-    private final FoodStockHandler foodStockHandler;
     private final ImageManager imageManager;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -99,19 +98,8 @@ public class FoodService {
         Quantity quantity = request.toQuantity();
 
         switch (request.action()) {
-            case ADD -> addFood(foodId, quantity, key.refrigeratorId());
-            case CONSUME -> consumeFood(foodId, quantity, key.refrigeratorId());
-        }
-    }
-
-    private void addFood(long foodId, Quantity amount, long refrigeratorId) {
-        foodModifier.add(foodId, refrigeratorId, amount);
-    }
-
-    private void consumeFood(long foodId, Quantity amount, long refrigeratorId) {
-        Food food = foodModifier.consume(foodId, refrigeratorId, amount);
-        if (food.isOutOfStock()) {
-            foodStockHandler.onStockExhausted(food);
+            case ADD -> foodModifier.add(foodId, key.refrigeratorId(), quantity);
+            case CONSUME -> foodModifier.consume(foodId, key.refrigeratorId(), quantity);
         }
     }
 

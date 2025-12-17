@@ -85,7 +85,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         verify(notificationSender, timeout(2000))
@@ -103,7 +103,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         Thread.sleep(500);
@@ -135,7 +135,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
@@ -170,7 +170,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         verify(notificationSender, timeout(2000))
@@ -206,7 +206,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member1.getId());
 
         // then
         verify(notificationSender, timeout(2000))
@@ -240,7 +240,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(setting);
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
@@ -273,13 +273,13 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processStockExhaustion(exhaustedFood);
+        notificationProcessor.processStockSummary(member.getId());
 
         // then
         verify(notificationSender, timeout(2000)).send(
             eq(member.getId()),
             eq("재고 소진 알림 ⏰"),
-            contains("우유 재고가 모두 소진되었습니다. 장바구니에 담으시겠어요?")
+            contains("우유 재고가 모두 소진되었습니다.")
         );
     }
 
@@ -303,7 +303,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.save(food);
 
         // when
-        notificationProcessor.processStockExhaustion(food);
+        notificationProcessor.processStockSummary(member.getId());
 
         // then
         Thread.sleep(500);

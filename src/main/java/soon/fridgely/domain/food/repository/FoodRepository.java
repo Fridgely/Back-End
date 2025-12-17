@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public interface FoodRepository extends JpaRepository<Food, Long> {
 
-    /*
+    /**
      * 지정된 카테고리에 속한 모든 Food의 카테고리를 fallback('기타')으로 일괄 변경
      * 삭제된(Category.status == 'DELETED') 카테고리에 속한 Food도 함께 이동하여 데이터 정합성을 보장
      */
@@ -27,7 +27,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("fallback") Category fallbackCategory
     );
 
-    /*
+    /**
      * 특정 회원이 소유한 모든 Food 조회
      */
     @Query("""
@@ -45,7 +45,24 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("status") EntityStatus status
     );
 
-    /*
+    /**
+     * 특정 회원의 재고가 0인 음식 조회
+     */
+    @Query("""
+        SELECT f FROM Food f
+        JOIN f.refrigerator r
+        JOIN MemberRefrigerator mr ON mr.refrigerator = r
+        WHERE mr.member.id = :memberId
+        AND mr.status = :status
+        AND f.quantity.amount = 0
+        AND f.status = :status
+        """)
+    List<Food> findAllOutOfStock(
+        @Param("memberId") long memberId,
+        @Param("status") EntityStatus status
+    );
+
+    /**
      * 회원이 소유한 Food 중 유통기한이 특정 기간 내에 속하는 Food 조회
      */
     @Query("""
@@ -65,7 +82,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("status") EntityStatus status
     );
 
-    /*
+    /**
      * 특정 냉장고의 Food를 ID로 조회
      */
     @Query("""
@@ -81,7 +98,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         @Param("status") EntityStatus status
     );
 
-    /*
+    /**
      * 특정 냉장고의 Food를 커서 기반 페이징으로 조회
      */
     @Query("""

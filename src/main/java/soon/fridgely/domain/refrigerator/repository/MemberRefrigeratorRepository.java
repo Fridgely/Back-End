@@ -20,6 +20,9 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
 
     boolean existsByRefrigeratorIdAndMemberIdAndStatus(long refrigeratorId, long memberId, EntityStatus status);
 
+    /**
+     * 특정 회원이 소유한 모든 냉장고 조회
+     */
     @Query("""
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.refrigerator r
@@ -33,6 +36,9 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
         @Param("status") EntityStatus status
     );
 
+    /**
+     * 특정 회원이 특정 냉장고에 속해있는지 조회
+     */
     @Query("""
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.refrigerator r

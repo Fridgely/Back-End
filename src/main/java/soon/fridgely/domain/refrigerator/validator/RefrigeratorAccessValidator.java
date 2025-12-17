@@ -13,7 +13,7 @@ public class RefrigeratorAccessValidator {
 
     private final MemberRefrigeratorFinder memberRefrigeratorFinder;
 
-    /*
+    /**
      * 냉장고에 속한 멤버인지 검증
      * 실패 시 AUTHORIZATION_FAILED(403) 예외 발생
      */

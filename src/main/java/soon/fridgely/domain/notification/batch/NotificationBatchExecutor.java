@@ -11,6 +11,7 @@ import soon.fridgely.global.support.CursorPageRequest;
 
 import java.time.LocalTime;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,11 +22,45 @@ public class NotificationBatchExecutor {
     private final NotificationSettingFinder notificationSettingFinder;
 
     /**
-     * 지정된 시간 범위 내의 활성화된 알림 설정에 대해 주어진 작업을 배치로 실행합니다.
-     *
-     * @return 총 처리(요청)된 건수
+     * 유통기한 알림용으로 특정 시간대 타겟 실행
      */
-    public BatchResult execute(LocalTime startTime, LocalTime endTime, Consumer<NotificationSetting> task) {
+    public BatchResult executeForExpiration(
+        LocalTime startTime,
+        LocalTime endTime,
+        Consumer<NotificationSetting> task
+    ) {
+        return executeInternal(
+            cursorRequest -> notificationSettingFinder.findAllActiveByTime(
+                startTime,
+                endTime,
+                cursorRequest.getCursorId(),
+                cursorRequest.toPageable()
+            ),
+            task
+        );
+    }
+
+    /**
+     * 재고 소진 알림용으로 시간에 무관한 타겟 실행
+     */
+    public BatchResult executeForStockSummary(Consumer<NotificationSetting> task) {
+        return executeInternal(
+            cursorRequest -> notificationSettingFinder.findAllActive(
+                cursorRequest.getCursorId(),
+                cursorRequest.toPageable()
+            ),
+            task
+        );
+    }
+
+    /**
+     * 커서기반 페이징 루프 처리
+     * fetcher: 데이터를 어떻게 가져올지 정의한 함수
+     */
+    private BatchResult executeInternal(
+        Function<CursorPageRequest, Slice<NotificationSetting>> fetcher,
+        Consumer<NotificationSetting> task
+    ) {
         StopWatch stopWatch = new StopWatch("Notification Batch Executor");
         stopWatch.start();
 
@@ -34,22 +69,21 @@ public class NotificationBatchExecutor {
 
         while (true) {
             CursorPageRequest cursorRequest = new CursorPageRequest(cursorId, BATCH_SIZE);
-            Slice<NotificationSetting> slice = notificationSettingFinder.findAllActiveByTime(
-                startTime, endTime, cursorRequest.getCursorId(), cursorRequest.toPageable()
-            );
+            Slice<NotificationSetting> slice = fetcher.apply(cursorRequest);
 
             if (slice.isEmpty()) {
                 break;
             }
 
             slice.forEach(task);
-            totalRequest += slice.getNumberOfElements();
+            int fetched = slice.getNumberOfElements();
+            totalRequest += fetched;
 
             if (!slice.hasNext()) {
                 break;
             }
 
-            cursorId = slice.getContent().get(slice.getNumberOfElements() - 1).getId();
+            cursorId = slice.getContent().get(fetched - 1).getId();
         }
 
         stopWatch.stop();

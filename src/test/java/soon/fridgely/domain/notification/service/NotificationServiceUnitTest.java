@@ -2,17 +2,24 @@ package soon.fridgely.domain.notification.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
+import soon.fridgely.domain.notification.entity.NotificationSetting;
 
 import java.time.LocalTime;
+import java.util.function.Consumer;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceUnitTest {
@@ -26,19 +33,57 @@ class NotificationServiceUnitTest {
     @Mock
     private NotificationProcessor notificationProcessor;
 
+    @Captor
+    private ArgumentCaptor<Consumer<NotificationSetting>> taskCaptor;
+
     @Test
-    void 배치를_실행하고_결과를_로그로_남긴다() {
+    void 유통기한_임박_알림_배치를_실행한다() {
         // given
         BatchResult mockResult = BatchResult.of(100, 500L);
-        given(notificationBatchExecutor.execute(any(LocalTime.class), any(LocalTime.class), any()))
+        given(notificationBatchExecutor.executeForExpiration(any(LocalTime.class), any(LocalTime.class), any()))
             .willReturn(mockResult);
 
         // when
-        notificationService.sendScheduledAlerts();
+        BatchResult result = notificationService.sendScheduledAlerts();
+
+        // then
+        assertThat(result).isEqualTo(mockResult);
+        then(notificationBatchExecutor).should()
+            .executeForExpiration(any(LocalTime.class), any(LocalTime.class), any());
+    }
+
+    @Test
+    void 재고_소진_알림_배치를_실행한다() {
+        // given
+        BatchResult mockResult = BatchResult.of(50, 300L);
+        given(notificationBatchExecutor.executeForStockSummary(any()))
+            .willReturn(mockResult);
+
+        // when
+        BatchResult result = notificationService.sendOutOfStockSummaries();
 
         // then
         then(notificationBatchExecutor).should()
-            .execute(any(LocalTime.class), any(LocalTime.class), any());
+            .executeForStockSummary(taskCaptor.capture());
+        assertThat(result).isEqualTo(mockResult);
+
+        verifyTaskLogic(taskCaptor.getValue());
+    }
+
+    private void verifyTaskLogic(Consumer<NotificationSetting> task) {
+        // given
+        NotificationSetting setting = mock(NotificationSetting.class);
+        Member member = mock(Member.class);
+        long memberId = 123L;
+
+        given(setting.getMember()).willReturn(member);
+        given(member.getId()).willReturn(memberId);
+
+        // when
+        task.accept(setting);
+
+        // then
+        then(notificationProcessor).should().processStockSummary(memberId);
     }
 
 }
