@@ -50,7 +50,10 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
      */
     @Query("""
         SELECT f FROM Food f
-        WHERE f.member.id = :memberId
+        JOIN f.refrigerator r
+        JOIN MemberRefrigerator mr ON mr.refrigerator = r
+        WHERE mr.member.id = :memberId
+        AND mr.status = :status
         AND f.quantity.amount = 0
         AND f.status = :status
         """)
