@@ -27,11 +27,16 @@ public class NotificationProcessor {
 
     /*
      * 유통기한 임박 알림 처리
+     * TODO: 파라미터로 NotificationSetting 대신 memberId를 받도록 변경하고, 메서드 내부에서 NotificationSetting을 조회하도록 수정
      */
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void processExpiration(NotificationSetting setting) {
         final long memberId = setting.getMember().getId();
+
+        if (!setting.isEnabled()) {
+            return;
+        }
 
         try {
             int daysBefore = setting.getAlertSchedule().daysBeforeExpiration();
