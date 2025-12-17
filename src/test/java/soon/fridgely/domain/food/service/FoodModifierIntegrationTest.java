@@ -199,12 +199,9 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
 
         // when
         Quantity consumeAmount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
-        Food result = foodModifier.consume(food.getId(), refrigerator.getId(), consumeAmount);
+        foodModifier.consume(food.getId(), refrigerator.getId(), consumeAmount);
 
         // then
-        assertThat(result.getQuantity().amount())
-            .isEqualTo(new BigDecimal("3.00"));
-
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(savedFood.getQuantity().amount())
             .isEqualTo(new BigDecimal("3.00"));

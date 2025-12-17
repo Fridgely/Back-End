@@ -73,12 +73,11 @@ public class FoodModifier {
      * 음식 수량 소비
      */
     @Transactional
-    public Food consume(long foodId, long refrigeratorId, Quantity amount) {
+    public void consume(long foodId, long refrigeratorId, Quantity amount) {
         Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
 
         food.consume(amount);
-        return food;
     }
 
     private boolean hasCategoryChanged(Food food, long newCategoryId) {
