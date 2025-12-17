@@ -27,18 +27,16 @@ public class NotificationProcessor {
 
     /*
      * 유통기한 임박 알림 처리
-     * TODO: 파라미터로 NotificationSetting 대신 memberId를 받도록 변경하고, 메서드 내부에서 NotificationSetting을 조회하도록 수정
      */
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-    public void processExpiration(NotificationSetting setting) {
-        final long memberId = setting.getMember().getId();
-
-        if (!setting.isEnabled()) {
-            return;
-        }
-
+    public void processExpiration(long memberId) {
         try {
+            NotificationSetting setting = notificationSettingFinder.findNotificationSetting(memberId);
+            if (!setting.isEnabled()) {
+                return;
+            }
+
             int daysBefore = setting.getAlertSchedule().daysBeforeExpiration();
             LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
 
@@ -56,19 +54,23 @@ public class NotificationProcessor {
 
     /*
      * 재고 소진 알림 처리
+     * 매일 정해진 시간에 실행됨
      */
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-    public void processStockExhaustion(Food food) {
-        final long memberId = food.getMember().getId();
-
+    public void processStockSummary(long memberId) {
         try {
             NotificationSetting setting = notificationSettingFinder.findNotificationSetting(memberId);
             if (!setting.isEnabled()) {
                 return;
             }
 
-            NotificationMessage message = messageGenerator.generateForExhaustion(food.getName());
+            List<Food> outOfStockFoods = foodFinder.findAllOutOfStock(memberId);
+            if (outOfStockFoods.isEmpty()) {
+                return;
+            }
+
+            NotificationMessage message = messageGenerator.generateForOutOfStockSummary(outOfStockFoods);
             notificationSender.send(memberId, message.title(), message.body());
         } catch (Exception e) {
             log.error("[Notification] 재고 소진 알림 처리 중 오류 발생 (MemberId={})", memberId, e);

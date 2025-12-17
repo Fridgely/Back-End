@@ -20,10 +20,23 @@ public class NotificationService {
     public BatchResult sendScheduledAlerts() {
         LocalTime now = LocalTime.now();
 
-        return notificationBatchExecutor.execute(
+        return notificationBatchExecutor.executeForExpiration(
             TimeRangeUtils.startOfHour(now),
             TimeRangeUtils.endOfHour(now),
-            notificationProcessor::processExpiration
+            setting -> {
+                long memberId = setting.getMember().getId();
+                notificationProcessor.processExpiration(memberId);
+            }
+        );
+    }
+
+    @Scheduled(cron = "0 0 10 * * *") // 매일 오전 10시에 실행
+    public BatchResult sendOutOfStockSummaries() {
+        return notificationBatchExecutor.executeForStockSummary(
+            setting -> {
+                long memberId = setting.getMember().getId();
+                notificationProcessor.processStockSummary(memberId);
+            }
         );
     }
 

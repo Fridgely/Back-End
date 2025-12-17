@@ -34,13 +34,13 @@ class NotificationBatchExecutorUnitTest {
     @Test
     void 빈_결과인_경우_작업을_실행하지_않는다() {
         // given
-        given(finder.findAllActiveByTime(any(), any(), anyLong(), any()))
+        given(finder.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
             .willReturn(new SliceImpl<>(List.of()));
 
         Consumer<NotificationSetting> task = mockTask();
 
         // when
-        BatchResult result = executor.execute(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
+        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
 
         // then
         assertThat(result.submittedCount()).isZero();
@@ -59,7 +59,7 @@ class NotificationBatchExecutorUnitTest {
         Slice<NotificationSetting> firstPage = new SliceImpl<>(List.of(setting1, setting2), Pageable.ofSize(2), true);
         Slice<NotificationSetting> secondPage = new SliceImpl<>(List.of(setting3), Pageable.ofSize(2), false);
 
-        given(finder.findAllActiveByTime(any(), any(), anyLong(), any()))
+        given(finder.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
             .willReturn(firstPage);
         given(finder.findAllActiveByTime(any(), any(), eq(20L), any()))
             .willReturn(secondPage);
@@ -67,14 +67,39 @@ class NotificationBatchExecutorUnitTest {
         Consumer<NotificationSetting> task = mockTask();
 
         // when
-        BatchResult result = executor.execute(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
+        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
 
         // then
+        then(finder).should()
+            .findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any());
         then(finder).should()
             .findAllActiveByTime(any(), any(), eq(20L), any());
 
         assertThat(result.submittedCount()).isEqualTo(3);
         then(task).should(times(3))
+            .accept(any());
+    }
+
+    @Test
+    void 재고_소진_알림_실행_시_전체_활성_설정을_조회한다() {
+        // given
+        NotificationSetting setting = mock(NotificationSetting.class);
+        Slice<NotificationSetting> page = new SliceImpl<>(List.of(setting), Pageable.ofSize(10), false);
+
+        given(finder.findAllActive(eq(Long.MAX_VALUE), any()))
+            .willReturn(page);
+
+        Consumer<NotificationSetting> task = mockTask();
+
+        // when
+        BatchResult result = executor.executeForStockSummary(task);
+
+        // then
+        assertThat(result.submittedCount()).isEqualTo(1);
+
+        then(finder).should()
+            .findAllActive(eq(Long.MAX_VALUE), any());
+        then(task).should(times(1))
             .accept(any());
     }
 
@@ -85,7 +110,7 @@ class NotificationBatchExecutorUnitTest {
             .willReturn(new SliceImpl<>(List.of()));
 
         // when
-        BatchResult result = executor.execute(LocalTime.of(9, 0), LocalTime.of(9, 59), mockTask());
+        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), mockTask());
 
         // then
         assertThat(result.durationMillis()).isNotNegative();
