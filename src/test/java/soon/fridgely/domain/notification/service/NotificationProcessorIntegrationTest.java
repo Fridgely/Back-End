@@ -81,11 +81,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.save(food);
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         verify(notificationSender, timeout(2000))
@@ -99,11 +99,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         memberRepository.save(member);
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         Thread.sleep(500);
@@ -131,11 +131,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.saveAll(List.of(food1, food2));
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 7);
-        NotificationSetting setting = createNotificationSetting(member, schedule);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
@@ -166,11 +166,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.saveAll(List.of(food1, food2, food3));
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 1);
-        NotificationSetting setting = createNotificationSetting(member, schedule);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         verify(notificationSender, timeout(2000))
@@ -202,11 +202,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.saveAll(List.of(food1, food2));
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member1, schedule);
+        NotificationSetting setting = createNotificationSetting(member1, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         verify(notificationSender, timeout(2000))
@@ -236,11 +236,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         foodRepository.saveAll(List.of(food1, food2, food3));
 
         AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.process(setting);
+        notificationProcessor.processExpiration(setting);
 
         // then
         ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
@@ -250,6 +250,64 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         String sentMessage = messageCaptor.getValue();
         assertThat(sentMessage).contains("우유");
         assertThat(sentMessage).doesNotContain("외");
+    }
+
+    @Test
+    void 재고_소진_알림이_켜져있으면_알림을_발송한다() {
+        // given
+        Member member = createMember("user1");
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("재고", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        Food exhaustedFood = createFood(refrigerator, member, category, "우유", LocalDateTime.now());
+        exhaustedFood.consume(exhaustedFood.getQuantity());
+        foodRepository.save(exhaustedFood);
+
+        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
+        NotificationSetting setting = createNotificationSetting(member, schedule, true);
+        notificationSettingRepository.save(setting);
+
+        // when
+        notificationProcessor.processStockExhaustion(exhaustedFood);
+
+        // then
+        verify(notificationSender, timeout(2000)).send(
+            eq(member.getId()),
+            eq("재고 소진 알림 ⏰"),
+            contains("우유 재고가 모두 소진되었습니다. 장바구니에 담으시겠어요?")
+        );
+    }
+
+    @Test
+    void 재고_소진_알림이_꺼져있으면_알림을_발송하지_않는다() throws InterruptedException {
+        // given
+        Member member = createMember("user1");
+        memberRepository.save(member);
+
+        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
+        NotificationSetting setting = createNotificationSetting(member, schedule, false);
+        notificationSettingRepository.save(setting);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        Category category = Category.register("재고", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        Food food = createFood(refrigerator, member, category, "음식", LocalDateTime.now());
+        foodRepository.save(food);
+
+        // when
+        notificationProcessor.processStockExhaustion(food);
+
+        // then
+        Thread.sleep(500);
+        verify(notificationSender, never()).send(anyLong(), anyString(), anyString());
     }
 
     private Member createMember(String loginId) {
@@ -276,11 +334,11 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         );
     }
 
-    private NotificationSetting createNotificationSetting(Member member, AlertSchedule schedule) {
+    private NotificationSetting createNotificationSetting(Member member, AlertSchedule schedule, boolean enabled) {
         return NotificationSetting.builder()
             .member(member)
             .alertSchedule(schedule)
-            .enabled(true)
+            .enabled(enabled)
             .build();
     }
 

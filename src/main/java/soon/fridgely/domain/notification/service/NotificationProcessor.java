@@ -21,13 +21,22 @@ import java.util.List;
 public class NotificationProcessor {
 
     private final FoodFinder foodFinder;
+    private final NotificationSettingFinder notificationSettingFinder;
     private final NotificationMessageGenerator messageGenerator;
     private final NotificationSender notificationSender;
 
+    /*
+     * 유통기한 임박 알림 처리
+     * TODO: 파라미터로 NotificationSetting 대신 memberId를 받도록 변경하고, 메서드 내부에서 NotificationSetting을 조회하도록 수정
+     */
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-    public void process(NotificationSetting setting) {
+    public void processExpiration(NotificationSetting setting) {
         final long memberId = setting.getMember().getId();
+
+        if (!setting.isEnabled()) {
+            return;
+        }
 
         try {
             int daysBefore = setting.getAlertSchedule().daysBeforeExpiration();
@@ -38,10 +47,31 @@ public class NotificationProcessor {
                 return;
             }
 
-            NotificationMessage message = messageGenerator.generate(expiringFoods, daysBefore);
+            NotificationMessage message = messageGenerator.generateForExpiredFoods(expiringFoods, daysBefore);
             notificationSender.send(memberId, message.title(), message.body());
         } catch (Exception e) {
-            log.error("[Notification] 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
+            log.error("[Notification] 유통기한 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
+        }
+    }
+
+    /*
+     * 재고 소진 알림 처리
+     */
+    @Async("applicationTaskExecutor")
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public void processStockExhaustion(Food food) {
+        final long memberId = food.getMember().getId();
+
+        try {
+            NotificationSetting setting = notificationSettingFinder.findNotificationSetting(memberId);
+            if (!setting.isEnabled()) {
+                return;
+            }
+
+            NotificationMessage message = messageGenerator.generateForExhaustion(food.getName());
+            notificationSender.send(memberId, message.title(), message.body());
+        } catch (Exception e) {
+            log.error("[Notification] 재고 소진 알림 처리 중 오류 발생 (MemberId={})", memberId, e);
         }
     }
 

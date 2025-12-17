@@ -14,13 +14,11 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
+import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
@@ -316,6 +314,48 @@ class FoodControllerE2ETest extends E2ETestSupport {
         assertThat(deletedFood.getStatus()).isEqualTo(EntityStatus.DELETED);
     }
 
+    @Test
+    void 식재료_재고를_조정한다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
+        memberRefrigeratorRepository.save(memberRefrigerator);
+
+        Category category = Category.register("재고", refrigerator, member, CategoryType.CUSTOM);
+        categoryRepository.save(category);
+
+        Quantity initialQuantity = new Quantity(new BigDecimal("5.0"), Unit.PIECE);
+        Food food = createFood(refrigerator, member, category, initialQuantity);
+        foodRepository.save(food);
+
+        var stockRequest = new FoodStockUpdateRequest(new BigDecimal("2.0"), Unit.PIECE, StockActionType.CONSUME);
+        var httpEntity = createAuthEntity(stockRequest, member);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL + "/" + refrigerator.getId() + "/foods/" + food.getId() + "/stock",
+            HttpMethod.PATCH,
+            httpEntity,
+            responseType
+        );
+
+        // then
+        assertThat(response).isNotNull()
+            .extracting("statusCode", "body.result")
+            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getQuantity().amount())
+            .isEqualByComparingTo(new BigDecimal("3.00"));
+    }
+
     private Member createMember() {
         return Member.builder()
             .loginId("testId")
@@ -337,6 +377,21 @@ class FoodControllerE2ETest extends E2ETestSupport {
             "testDescription",
             "http://example.com/image.jpg",
             now
+        );
+    }
+
+    private Food createFood(Refrigerator refrigerator, Member member, Category category, Quantity quantity) {
+        return Food.register(
+            refrigerator,
+            member,
+            "testFood",
+            category,
+            quantity,
+            LocalDateTime.now().plusDays(5L),
+            StorageType.REFRIGERATION,
+            "description",
+            "http://image.url",
+            LocalDate.now()
         );
     }
 

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
@@ -94,13 +95,21 @@ public class FoodService {
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
-    public void addFood(long foodId, Quantity amount, MemberRefrigeratorKey key) {
-        foodModifier.add(foodId, key.refrigeratorId(), amount);
+    public void updateFoodStock(long foodId, FoodStockUpdateRequest request, MemberRefrigeratorKey key) {
+        Quantity quantity = request.toQuantity();
+
+        switch (request.action()) {
+            case ADD -> addFood(foodId, quantity, key.refrigeratorId());
+            case CONSUME -> consumeFood(foodId, quantity, key.refrigeratorId());
+        }
     }
 
-    @ValidateRefrigeratorAccess(key = "#key")
-    public void consumeFood(long foodId, Quantity amount, MemberRefrigeratorKey key) {
-        Food food = foodModifier.consume(foodId, key.refrigeratorId(), amount);
+    private void addFood(long foodId, Quantity amount, long refrigeratorId) {
+        foodModifier.add(foodId, refrigeratorId, amount);
+    }
+
+    private void consumeFood(long foodId, Quantity amount, long refrigeratorId) {
+        Food food = foodModifier.consume(foodId, refrigeratorId, amount);
         if (food.isOutOfStock()) {
             foodStockHandler.onStockExhausted(food);
         }

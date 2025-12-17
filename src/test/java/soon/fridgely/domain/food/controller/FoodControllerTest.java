@@ -13,12 +13,14 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.QuantityResponse;
 import soon.fridgely.domain.food.entity.FoodStatus;
+import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -89,7 +91,7 @@ class FoodControllerTest extends ControllerTestSupport {
     @TestLoginMember
     @ParameterizedTest
     @MethodSource("provideInvalidFoodCreateRequests")
-    void 식품_등록_요청_시_필수값이_누락되면_예외가_발생한다(FoodCreateRequest request, String field, String message) throws Exception {
+    void 음식_등록_요청_시_필수값이_누락되면_예외가_발생한다(FoodCreateRequest request, String field, String message) throws Exception {
         // given
         MockMultipartFile jsonRequest = new MockMultipartFile(
             "request",
@@ -282,6 +284,51 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
+    @TestLoginMember
+    @Test
+    void 음식의_재고를_조정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long foodId = 1L;
+
+        var request = new FoodStockUpdateRequest(
+            BigDecimal.ONE,
+            Unit.PIECE,
+            StockActionType.CONSUME
+        );
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/{foodId}/stock", refrigeratorId, foodId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @ParameterizedTest
+    @MethodSource("provideInvalidFoodStockUpdateRequests")
+    void 음식의_재고_조정_요청_시_필수값이_누락되면_예외가_발생한다(FoodStockUpdateRequest request, String field, String message) throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long foodId = 1L;
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/{foodId}/stock", refrigeratorId, foodId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.result").value(ResultType.ERROR.name()))
+            .andExpect(jsonPath("$.error.message").value(ErrorType.INVALID_REQUEST.getMessage()))
+            .andExpect(jsonPath("$.error.data.%s", field).value(message));
+    }
+
     private static Stream<Arguments> provideInvalidFoodCreateRequests() {
         return Stream.of(
             Arguments.of(
@@ -315,6 +362,27 @@ class FoodControllerTest extends ControllerTestSupport {
             Arguments.of(
                 new FoodCreateRequest("name", 1L, BigDecimal.ONE, Unit.PIECE, LocalDateTime.now().plusDays(1), null, "description"),
                 "storageType", "보관 위치는 필수입니다."
+            )
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidFoodStockUpdateRequests() {
+        return Stream.of(
+            Arguments.of(
+                new FoodStockUpdateRequest(null, Unit.PIECE, StockActionType.ADD),
+                "amount", "수량은 필수입니다."
+            ),
+            Arguments.of(
+                new FoodStockUpdateRequest(BigDecimal.ZERO, Unit.PIECE, StockActionType.ADD),
+                "amount", "수량은 양수여야 합니다."
+            ),
+            Arguments.of(
+                new FoodStockUpdateRequest(BigDecimal.ONE, null, StockActionType.ADD),
+                "unit", "단위는 필수입니다."
+            ),
+            Arguments.of(
+                new FoodStockUpdateRequest(BigDecimal.ONE, Unit.PIECE, null),
+                "action", "변경 유형은 필수입니다."
             )
         );
     }
