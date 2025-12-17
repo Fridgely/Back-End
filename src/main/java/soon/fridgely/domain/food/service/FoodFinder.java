@@ -52,4 +52,9 @@ public class FoodFinder {
         );
     }
 
+    @Transactional(readOnly = true)
+    public List<Food> findAllOutOfStock(long memberId) {
+        return foodRepository.findAllOutOfStock(memberId, EntityStatus.ACTIVE);
+    }
+
 }
