@@ -30,7 +30,7 @@ public class NotificationService {
         );
     }
 
-    @Scheduled(cron = "0 0 10 * * *") // 매일 오전 10시에 실행
+    @Scheduled(cron = "0 30 10 * * *") // 매일 오전 10시 30분에 실행
     public BatchResult sendOutOfStockSummaries() {
         return notificationBatchExecutor.executeForStockSummary(
             setting -> {
