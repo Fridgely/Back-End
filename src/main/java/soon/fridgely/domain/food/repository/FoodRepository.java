@@ -46,6 +46,20 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     );
 
     /*
+     * 특정 회원의 재고가 0인 음식 조회
+     */
+    @Query("""
+        SELECT f FROM Food f
+        WHERE f.member.id = :memberId
+        AND f.quantity.amount = 0
+        AND f.status = :status
+        """)
+    List<Food> findAllOutOfStock(
+        @Param("memberId") long memberId,
+        @Param("status") EntityStatus status
+    );
+
+    /*
      * 회원이 소유한 Food 중 유통기한이 특정 기간 내에 속하는 Food 조회
      */
     @Query("""

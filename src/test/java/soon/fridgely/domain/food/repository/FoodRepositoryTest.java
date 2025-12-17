@@ -314,6 +314,39 @@ class FoodRepositoryTest extends IntegrationTestSupport {
             .containsExactly(targetFood1.getId(), targetFood2.getId());
     }
 
+    @Test
+    void 특정_회원의_음식_중_재고가_0인_음식을_조회한다() {
+        // given
+        Member member = createMember("testNickname", "testId");
+        memberRepository.save(member);
+
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        refrigeratorRepository.save(refrigerator);
+
+        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
+        memberRefrigeratorRepository.save(memberRefrigerator);
+
+        Category category = Category.register("채소", refrigerator, member, CategoryType.DEFAULT);
+        categoryRepository.save(category);
+
+        Food targetFood = createFood(refrigerator, member, category, new Quantity(BigDecimal.ZERO, Unit.PIECE));
+        Food food1 = createFood(refrigerator, member, category, new Quantity(BigDecimal.ONE, Unit.PIECE));
+        Food food2 = createFood(refrigerator, member, category, new Quantity(BigDecimal.ZERO, Unit.PIECE));
+        food2.delete();
+        foodRepository.saveAll(List.of(targetFood, food1, food2));
+
+        // when
+        List<Food> results = foodRepository.findAllOutOfStock(member.getId(), EntityStatus.ACTIVE);
+
+        // then
+        assertThat(results).hasSize(1)
+            .extracting("id")
+            .containsExactly(targetFood.getId());
+
+        assertThat(results.get(0).getQuantity().amount())
+            .isEqualTo(new BigDecimal("0.00"));
+    }
+
     private Member createMember(String testNickname, String testId) {
         return Member.builder()
             .loginId(testId)
@@ -361,6 +394,26 @@ class FoodRepositoryTest extends IntegrationTestSupport {
             "testDescription",
             "http://example.com/image.jpg",
             now
+        );
+    }
+
+    private Food createFood(
+        Refrigerator refrigerator,
+        Member member,
+        Category category,
+        Quantity quantity
+    ) {
+        return Food.register(
+            refrigerator,
+            member,
+            "testFood",
+            category,
+            quantity,
+            LocalDateTime.now().plusDays(5),
+            StorageType.FROZEN,
+            "testDescription",
+            "http://example.com/image.jpg",
+            LocalDate.now()
         );
     }
 
