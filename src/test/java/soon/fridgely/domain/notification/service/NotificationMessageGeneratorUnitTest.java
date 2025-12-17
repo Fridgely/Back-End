@@ -51,7 +51,7 @@ class NotificationMessageGeneratorUnitTest {
     }
 
     @Test
-    void 단건_재고_소진_알림_메시지를_생선한다() {
+    void 단건_재고_소진_알림_메시지를_생성한다() {
         // given
         Food food = mock(Food.class);
         given(food.getName()).willReturn("우유");
