@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.food.entity.Unit;
@@ -9,6 +10,7 @@ import java.math.BigDecimal;
 
 public record FoodStockUpdateRequest(
 
+    @Positive(message = "수량은 양수여야 합니다.")
     @NotNull(message = "수량은 필수입니다.")
     BigDecimal amount,
 

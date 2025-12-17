@@ -91,7 +91,7 @@ class FoodControllerTest extends ControllerTestSupport {
     @TestLoginMember
     @ParameterizedTest
     @MethodSource("provideInvalidFoodCreateRequests")
-    void 식품_등록_요청_시_필수값이_누락되면_예외가_발생한다(FoodCreateRequest request, String field, String message) throws Exception {
+    void 음식_등록_요청_시_필수값이_누락되면_예외가_발생한다(FoodCreateRequest request, String field, String message) throws Exception {
         // given
         MockMultipartFile jsonRequest = new MockMultipartFile(
             "request",
@@ -286,7 +286,7 @@ class FoodControllerTest extends ControllerTestSupport {
 
     @TestLoginMember
     @Test
-    void 식재료_재고를_조정한다() throws Exception {
+    void 음식의_재고를_조정한다() throws Exception {
         // given
         long refrigeratorId = 1L;
         long foodId = 1L;
@@ -311,7 +311,7 @@ class FoodControllerTest extends ControllerTestSupport {
     @TestLoginMember
     @ParameterizedTest
     @MethodSource("provideInvalidFoodStockUpdateRequests")
-    void 식재료_재고_조정_요청_시_필수값이_누락되면_예외가_발생한다(FoodStockUpdateRequest request, String field, String message) throws Exception {
+    void 음식의_재고_조정_요청_시_필수값이_누락되면_예외가_발생한다(FoodStockUpdateRequest request, String field, String message) throws Exception {
         // given
         long refrigeratorId = 1L;
         long foodId = 1L;
@@ -371,6 +371,10 @@ class FoodControllerTest extends ControllerTestSupport {
             Arguments.of(
                 new FoodStockUpdateRequest(null, Unit.PIECE, StockActionType.ADD),
                 "amount", "수량은 필수입니다."
+            ),
+            Arguments.of(
+                new FoodStockUpdateRequest(BigDecimal.ZERO, Unit.PIECE, StockActionType.ADD),
+                "amount", "수량은 양수여야 합니다."
             ),
             Arguments.of(
                 new FoodStockUpdateRequest(BigDecimal.ONE, null, StockActionType.ADD),
