@@ -25,7 +25,7 @@ public class NotificationProcessor {
     private final NotificationMessageGenerator messageGenerator;
     private final NotificationSender notificationSender;
 
-    /*
+    /**
      * 유통기한 임박 알림 처리
      */
     @Async("applicationTaskExecutor")
@@ -52,7 +52,7 @@ public class NotificationProcessor {
         }
     }
 
-    /*
+    /**
      * 재고 소진 알림 처리
      * 매일 정해진 시간에 실행됨
      */

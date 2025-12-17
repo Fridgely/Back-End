@@ -41,7 +41,7 @@ public class CategoryService {
         categoryModifier.modify(modifyCategory);
     }
 
-    /*
+    /**
      * 삭제 대상 카테고리에 속한 모든 음식을 '기타' 카테고리로 이동한 후 대상 카테고리를 삭제
      */
     @ValidateRefrigeratorAccess(key = "#deleteCategory.toKey()")

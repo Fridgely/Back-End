@@ -32,7 +32,7 @@ public class FoodModifier {
         foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
     }
 
-    /*
+    /**
      * 음식 정보 수정
      * 수량이 0으로 변경되어도 소진 알림을 발송하지 않음
      */
@@ -58,7 +58,7 @@ public class FoodModifier {
         );
     }
 
-    /*
+    /**
      * 음식 수량 추가
      */
     @Transactional
@@ -69,7 +69,7 @@ public class FoodModifier {
         food.add(amount);
     }
 
-    /*
+    /**
      * 음식 수량 소비
      */
     @Transactional

@@ -21,7 +21,7 @@ public class NotificationBatchExecutor {
     private static final int BATCH_SIZE = 100;
     private final NotificationSettingFinder notificationSettingFinder;
 
-    /*
+    /**
      * 유통기한 알림용으로 특정 시간대 타겟 실행
      */
     public BatchResult executeForExpiration(
@@ -40,7 +40,7 @@ public class NotificationBatchExecutor {
         );
     }
 
-    /*
+    /**
      * 재고 소진 알림용으로 시간에 무관한 타겟 실행
      */
     public BatchResult executeForStockSummary(Consumer<NotificationSetting> task) {
@@ -53,7 +53,7 @@ public class NotificationBatchExecutor {
         );
     }
 
-    /*
+    /**
      * 커서기반 페이징 루프 처리
      * fetcher: 데이터를 어떻게 가져올지 정의한 함수
      */

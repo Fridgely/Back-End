@@ -16,7 +16,7 @@ public interface NotificationSettingRepository extends JpaRepository<Notificatio
 
     boolean existsByMemberId(long memberId);
 
-    /*
+    /**
      * 활성화된 알림 설정을 특정 시간대에 맞춰 모두 조회
      */
     @Query("""
@@ -34,7 +34,7 @@ public interface NotificationSettingRepository extends JpaRepository<Notificatio
         Pageable pageable
     );
 
-    /*
+    /**
      * 시간에 상관없이 활성화된 모든 알림 설정 조회
      */
     @Query("""
