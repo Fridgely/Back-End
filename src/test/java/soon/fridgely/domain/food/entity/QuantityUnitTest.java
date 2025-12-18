@@ -31,7 +31,7 @@ public class QuantityUnitTest {
         Quantity quantity = Quantity.register(null, Unit.PIECE);
 
         // expected
-        assertThat(quantity.amount()).isEqualTo(new BigDecimal("0"));
+        assertThat(quantity.amount()).isEqualTo(new BigDecimal("0.00"));
     }
 
     @Test

@@ -5,10 +5,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
-import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.support.ControllerTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 

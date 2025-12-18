@@ -2,13 +2,13 @@ package soon.fridgely.domain.category.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
 import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.dto.response.CategoryResponse;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.support.ControllerTestSupport;
 
 import java.util.List;
 

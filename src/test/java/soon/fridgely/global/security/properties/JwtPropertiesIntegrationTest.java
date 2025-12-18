@@ -2,7 +2,7 @@ package soon.fridgely.global.security.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.Duration;
 

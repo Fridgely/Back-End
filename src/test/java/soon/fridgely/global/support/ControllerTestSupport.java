@@ -1,6 +1,7 @@
-package soon.fridgely;
+package soon.fridgely.global.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -32,6 +33,8 @@ import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
     NotificationSettingController.class
 })
 public abstract class ControllerTestSupport {
+
+    protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
     @Autowired
     protected MockMvc mockMvc;

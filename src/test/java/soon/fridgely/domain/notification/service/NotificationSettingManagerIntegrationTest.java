@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalTime;
 import java.util.List;

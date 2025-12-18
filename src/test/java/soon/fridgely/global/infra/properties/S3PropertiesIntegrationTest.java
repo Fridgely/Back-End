@@ -2,7 +2,7 @@ package soon.fridgely.global.infra.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import soon.fridgely.IntegrationTestSupport;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

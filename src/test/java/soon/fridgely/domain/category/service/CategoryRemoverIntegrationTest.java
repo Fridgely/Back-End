@@ -2,7 +2,6 @@ package soon.fridgely.domain.category.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
@@ -17,6 +16,7 @@ import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
