@@ -2,7 +2,8 @@ package soon.fridgely.global.support;
 
 import com.navercorp.fixturemonkey.ArbitraryBuilder;
 import com.navercorp.fixturemonkey.FixtureMonkey;
-import com.navercorp.fixturemonkey.api.introspector.*;
+import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitraryIntrospector;
+import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector;
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
 import net.jqwik.api.Arbitraries;
 import soon.fridgely.domain.food.entity.Quantity;
@@ -12,8 +13,6 @@ import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -27,14 +26,6 @@ public final class FixtureMonkeyFactory {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    // 우선순위: 필드 리플렉션 -> 생성자 프로퍼티 -> 빌더 -> 자바 빈
-    private static final List<ArbitraryIntrospector> INTROSPECTORS = Arrays.asList(
-        FieldReflectionArbitraryIntrospector.INSTANCE,
-        ConstructorPropertiesArbitraryIntrospector.INSTANCE,
-        BuilderArbitraryIntrospector.INSTANCE,
-        BeanArbitraryIntrospector.INSTANCE
-    );
-
     private static final FixtureMonkey FIXTURE_MONKEY = createFixtureMonkey();
 
     public static FixtureMonkey get() {
@@ -43,7 +34,11 @@ public final class FixtureMonkeyFactory {
 
     private static FixtureMonkey createFixtureMonkey() {
         return FixtureMonkey.builder()
-            .objectIntrospector(new FailoverIntrospector(INTROSPECTORS, false)) // 로깅 비활성화
+            .objectIntrospector(FieldReflectionArbitraryIntrospector.INSTANCE) // 기본 필드 리플렉션 인트로스펙터 설정
+            .pushAssignableTypeArbitraryIntrospector( // 레코드 타입은 생성자 기반 인트로스펙터 사용
+                Record.class,
+                ConstructorPropertiesArbitraryIntrospector.INSTANCE
+            )
             .plugin(new JakartaValidationPlugin())
             .defaultNotNull(true)
             .register(Quantity.class, quantityFixture())
