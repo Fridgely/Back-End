@@ -1,4 +1,4 @@
-package soon.fridgely;
+package soon.fridgely.global.support;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestContext;

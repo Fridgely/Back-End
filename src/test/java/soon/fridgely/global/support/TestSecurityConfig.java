@@ -1,4 +1,4 @@
-package soon.fridgely;
+package soon.fridgely.global.support;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package soon.fridgely;
+package soon.fridgely.global.support;
 
 import org.springframework.test.context.TestExecutionListeners;
 

@@ -7,12 +7,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalTime;
 import java.util.List;

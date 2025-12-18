@@ -2,7 +2,6 @@ package soon.fridgely.domain.member.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
@@ -14,6 +13,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalTime;
 

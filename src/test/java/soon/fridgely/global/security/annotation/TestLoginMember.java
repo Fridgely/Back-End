@@ -1,7 +1,7 @@
 package soon.fridgely.global.security.annotation;
 
 import org.springframework.security.test.context.support.WithSecurityContext;
-import soon.fridgely.TestSecurityContext;
+import soon.fridgely.global.support.TestSecurityContext;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

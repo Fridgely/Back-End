@@ -2,7 +2,6 @@ package soon.fridgely.domain.food.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
@@ -11,6 +10,7 @@ import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.support.ControllerTestSupport;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

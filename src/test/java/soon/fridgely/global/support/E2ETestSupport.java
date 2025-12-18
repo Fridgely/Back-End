@@ -1,5 +1,6 @@
-package soon.fridgely;
+package soon.fridgely.global.support;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -15,6 +16,8 @@ import soon.fridgely.domain.member.entity.Member;
 @TruncateTables
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class E2ETestSupport {
+
+    protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
     @Autowired
     protected TestRestTemplate testRestTemplate;

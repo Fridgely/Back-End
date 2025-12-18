@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import soon.fridgely.E2ETestSupport;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
 import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
@@ -27,6 +26,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.E2ETestSupport;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 

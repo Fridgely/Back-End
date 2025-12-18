@@ -2,7 +2,6 @@ package soon.fridgely.domain.refrigerator.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
@@ -10,6 +9,7 @@ import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.support.ControllerTestSupport;
 
 import java.time.LocalDateTime;
 import java.util.List;

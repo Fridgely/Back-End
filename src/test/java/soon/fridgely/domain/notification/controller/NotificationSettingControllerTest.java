@@ -5,10 +5,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
-import soon.fridgely.ControllerTestSupport;
 import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRequest;
 import soon.fridgely.domain.notification.dto.response.NotificationSettingDetailResponse;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.support.ControllerTestSupport;
 
 import java.time.LocalTime;
 import java.util.stream.Stream;

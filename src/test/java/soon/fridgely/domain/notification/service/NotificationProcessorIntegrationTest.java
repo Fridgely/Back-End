@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import soon.fridgely.IntegrationTestSupport;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
@@ -24,6 +23,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.notification.NotificationSender;
 
 import java.math.BigDecimal;
@@ -260,6 +260,9 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
 
         Refrigerator refrigerator = Refrigerator.register(member.getNickname());
         refrigeratorRepository.save(refrigerator);
+
+        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
+        memberRefrigeratorRepository.save(memberRefrigerator);
 
         Category category = Category.register("재고", refrigerator, member, CategoryType.DEFAULT);
         categoryRepository.save(category);
