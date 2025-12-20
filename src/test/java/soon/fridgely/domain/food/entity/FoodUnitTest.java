@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.entity;
 
 import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -20,9 +21,17 @@ import static soon.fridgely.global.support.fixture.FoodFixture.food;
 class FoodUnitTest {
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
-    private final Member member = fixtureMonkey.giveMeOne(Member.class);
-    private final Refrigerator refrigerator = fixtureMonkey.giveMeOne(Refrigerator.class);
-    private final Category category = fixtureMonkey.giveMeOne(Category.class);
+
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
+    @BeforeEach
+    void setUp() {
+        member = fixtureMonkey.giveMeOne(Member.class);
+        refrigerator = fixtureMonkey.giveMeOne(Refrigerator.class);
+        category = fixtureMonkey.giveMeOne(Category.class);
+    }
 
     @Test
     void 음식을_등록하면_입력받은_기준_시간에_따라_상태가_자동으로_설정되어야_한다() {
@@ -84,7 +93,7 @@ class FoodUnitTest {
             .set("foodStatus", FoodStatus.BLACK)
             .sample();
 
-        // 유툥기간 30일 후로 변경 -> 상태가 GREEN으로 변경되어야 함
+        // 유통기간 30일 후로 변경 -> 상태가 GREEN으로 변경되어야 함
         LocalDateTime newExpirationDate = fixedNow.plusDays(30).atStartOfDay();
         String newName = "신선한 우유";
 
@@ -114,7 +123,6 @@ class FoodUnitTest {
 
         Food food = food(fixtureMonkey, refrigerator, member, category)
             .set("imageURL", originalImage)
-            .set("category", category)
             .sample();
 
         Category oldCategory = food.getCategory();
