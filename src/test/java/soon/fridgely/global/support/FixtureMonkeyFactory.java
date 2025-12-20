@@ -6,7 +6,6 @@ import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitra
 import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector;
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
 import net.jqwik.api.Arbitraries;
-import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 
@@ -41,16 +40,18 @@ public final class FixtureMonkeyFactory {
             )
             .plugin(new JakartaValidationPlugin())
             .defaultNotNull(true)
-            .register(Quantity.class, quantityFixture())
+            .register(BigDecimal.class, bigDecimalFixture())
             .register(AlertSchedule.class, alertScheduleFixture())
             .register(InvitationCode.class, invitationCodeFixture())
             .build();
     }
 
-    private static Function<FixtureMonkey, ArbitraryBuilder<Quantity>> quantityFixture() {
-        return fixture -> fixture.giveMeBuilder(Quantity.class)
-            .set("amount", Arbitraries.bigDecimals()
-                .between(BigDecimal.ZERO, BigDecimal.valueOf(10000)));
+    private static Function<FixtureMonkey, ArbitraryBuilder<BigDecimal>> bigDecimalFixture() {
+        return fixture -> fixture.giveMeBuilder(BigDecimal.class)
+            .set(Arbitraries.bigDecimals()
+                .between(BigDecimal.ZERO, BigDecimal.valueOf(9999))
+                .ofScale(2)
+            );
     }
 
     private static Function<FixtureMonkey, ArbitraryBuilder<AlertSchedule>> alertScheduleFixture() {
