@@ -5,11 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.food.dto.command.FoodCondition;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -20,8 +18,8 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
@@ -46,23 +44,14 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
     @Test
     void 카테고리의_모든_음식을_기본_카테고리로_이동한다() {
         // given
-        Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
-
-        Refrigerator refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-
-        Category targetCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
-                .set("type", CategoryType.CUSTOM)
-                .sample()
-        );
-
+        setupBasicEnvironment();
         Category fallbackCategory = categoryRepository.save(
             category(fixtureMonkey, refrigerator, member)
                 .set("name", "기타")
@@ -70,14 +59,10 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
                 .sample()
         );
 
-        foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, targetCategory).sample(),
-            food(fixtureMonkey, refrigerator, member, targetCategory).sample(),
-            food(fixtureMonkey, refrigerator, member, targetCategory).sample()
-        ));
+        createFoods(3, category); // 기존 카테고리에 음식 3개 생성
 
         // when
-        foodModifier.moveAllFoodsToFallback(refrigerator.getId(), targetCategory.getId());
+        foodModifier.moveAllFoodsToFallback(refrigerator.getId(), category.getId());
 
         // then
         List<Food> updatedFoods = foodRepository.findAll();
@@ -91,41 +76,20 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식_정보_수정_시_카테고리가_변경되지_않으면_기존_카테고리를_유지한다() {
         // given
-        Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
+        setupBasicEnvironment();
+        Food food = createFood();
 
-        Refrigerator refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-
-        Category category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
-                .set("type", CategoryType.CUSTOM)
-                .sample()
-        );
-
-        Food food = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
-        );
-
-        FoodInfo updateInfo = new FoodInfo(
-            "수정된 홈런볼",
-            new Quantity(new BigDecimal("2.0"), Unit.KG),
-            new FoodCondition(
-                LocalDateTime.now().plusDays(30),
-                StorageType.ROOM_TEMPERATURE
-            ),
-            "바나나맛",
-            "http://example.com/new-image.jpg"
-        );
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("name", "수정된 홈런볼")
+            .set("description", "바나나맛")
+            .sample();
 
         // when
         foodModifier.update(
             food.getId(),
             updateInfo,
             new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
-            category.getId() // 기존 카테고리 ID 전달
+            category.getId()
         );
 
         // then
@@ -140,39 +104,20 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식_정보_수정_시_카테고리_ID가_다르면_카테고리를_변경한다() {
         // given
-        Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
-
-        Refrigerator refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-
-        Category oldCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
-        );
+        setupBasicEnvironment();
+        Food food = createFood(); // oldCategory(기본 category)에 생성
         Category newCategory = categoryRepository.save(
             category(fixtureMonkey, refrigerator, member).sample()
         );
 
-        Food food = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, oldCategory).sample()
-        );
-
-        FoodInfo updateInfo = new FoodInfo(
-            food.getName(),
-            food.getQuantity(),
-            new FoodCondition(food.getExpirationDate(), food.getStorageType()),
-            food.getDescription(),
-            food.getImageURL()
-        );
+        var updateInfo = fixtureMonkey.giveMeOne(FoodInfo.class);
 
         // when
         foodModifier.update(
             food.getId(),
             updateInfo,
             new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
-            newCategory.getId() // 새로운 카테고리 ID 전달
+            newCategory.getId()
         );
 
         // then
@@ -183,17 +128,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_추가하면_변경된_재고가_반영된다() {
         // given
-        Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
-
-        Refrigerator refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-
-        Category category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
-        );
+        setupBasicEnvironment();
 
         Quantity initialQuantity = new Quantity(new BigDecimal("10.0"), Unit.L);
         Food food = foodRepository.save(
@@ -209,23 +144,13 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         // then
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(savedFood.getQuantity().amount())
-            .isEqualTo(new BigDecimal("12.50"));
+            .isEqualByComparingTo(BigDecimal.valueOf(12.5));
     }
 
     @Test
     void 음식을_소비하면_변경된_재고가_반영된다() {
         // given
-        Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
-
-        Refrigerator refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-
-        Category category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
-        );
+        setupBasicEnvironment();
 
         Quantity initialQuantity = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
         Food food = foodRepository.save(
@@ -241,7 +166,34 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         // then
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(savedFood.getQuantity().amount())
-            .isEqualTo(new BigDecimal("3.00"));
+            .isEqualByComparingTo(BigDecimal.valueOf(3.0));
+    }
+
+    private void setupBasicEnvironment() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
+    }
+
+    private Food createFood() {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category).sample()
+        );
+    }
+
+    private void createFoods(int count, Category targetCategory) {
+        List<Food> foods = IntStream.range(0, count)
+            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory).sample())
+            .toList();
+        foodRepository.saveAll(foods);
     }
 
 }

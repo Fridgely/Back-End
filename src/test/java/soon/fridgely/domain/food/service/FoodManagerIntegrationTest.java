@@ -1,19 +1,14 @@
 package soon.fridgely.domain.food.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.food.dto.command.FoodCondition;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -22,14 +17,15 @@ import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class FoodManagerIntegrationTest extends IntegrationTestSupport {
 
@@ -51,29 +47,36 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member).sample()
+        );
+    }
+
     @Test
     void 음식을_등록한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        FoodCondition condition = new FoodCondition(LocalDateTime.now().plusDays(5L), StorageType.ROOM_TEMPERATURE);
-        FoodInfo foodInfo = new FoodInfo(
-            "홈런볼",
-            new Quantity(BigDecimal.ONE, Unit.KG),
-            condition,
-            "초코맛",
-            "http://example.com/image.jpg"
-        );
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var foodInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("name", "홈런볼")
+            .set("description", "초코맛")
+            .sample();
 
         // when
-        foodManager.createFood(foodInfo, new MemberRefrigeratorKey(member.getId(), refrigerator.getId()), category.getId());
+        foodManager.createFood(foodInfo, key, category.getId());
 
         // then
         List<Food> foods = foodRepository.findAll();
@@ -85,17 +88,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_삭제하면_조회되지_않아야_한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.save(food);
+        Food food = createFood();
 
         // when
         foodManager.delete(food.getId(), refrigerator.getId());
@@ -113,17 +106,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_중복_삭제해도_예외가_발생하지_않는다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category category = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.save(food);
+        Food food = createFood();
 
         // when
         foodManager.delete(food.getId(), refrigerator.getId());
@@ -134,27 +117,9 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(deletedFood.isDeleted()).isTrue();
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
-    }
-
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            now
+    private Food createFood() {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category).sample()
         );
     }
 
