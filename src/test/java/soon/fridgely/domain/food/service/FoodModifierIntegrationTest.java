@@ -1,5 +1,6 @@
 package soon.fridgely.domain.food.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.category.entity.Category;
@@ -48,10 +49,24 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     private Refrigerator refrigerator;
     private Category category;
 
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
+    }
+
     @Test
     void 카테고리의_모든_음식을_기본_카테고리로_이동한다() {
         // given
-        setupBasicEnvironment();
         Category fallbackCategory = categoryRepository.save(
             category(fixtureMonkey, refrigerator, member)
                 .set("name", "기타")
@@ -76,7 +91,6 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식_정보_수정_시_카테고리가_변경되지_않으면_기존_카테고리를_유지한다() {
         // given
-        setupBasicEnvironment();
         Food food = createFood();
 
         var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
@@ -104,7 +118,6 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식_정보_수정_시_카테고리_ID가_다르면_카테고리를_변경한다() {
         // given
-        setupBasicEnvironment();
         Food food = createFood(); // oldCategory(기본 category)에 생성
         Category newCategory = categoryRepository.save(
             category(fixtureMonkey, refrigerator, member).sample()
@@ -128,8 +141,6 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_추가하면_변경된_재고가_반영된다() {
         // given
-        setupBasicEnvironment();
-
         Quantity initialQuantity = new Quantity(new BigDecimal("10.0"), Unit.L);
         Food food = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
@@ -150,8 +161,6 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_소비하면_변경된_재고가_반영된다() {
         // given
-        setupBasicEnvironment();
-
         Quantity initialQuantity = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
         Food food = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
@@ -167,20 +176,6 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
         assertThat(savedFood.getQuantity().amount())
             .isEqualByComparingTo(BigDecimal.valueOf(3.0));
-    }
-
-    private void setupBasicEnvironment() {
-        this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
-        );
-        this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
-        );
-        this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
-                .set("type", CategoryType.CUSTOM)
-                .sample()
-        );
     }
 
     private Food createFood() {
