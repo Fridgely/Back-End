@@ -10,7 +10,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 /**
  * FixtureMonkey를 사용하여 MemberRefrigerator 엔티티의 테스트 데이터를 생성하는 유틸리티 클래스
  */
-public class MemberRefrigeratorFixture {
+public final class MemberRefrigeratorFixture {
 
     private MemberRefrigeratorFixture() {
         throw new UnsupportedOperationException("Utility class");
