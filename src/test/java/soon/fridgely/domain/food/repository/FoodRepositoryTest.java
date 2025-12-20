@@ -269,6 +269,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         createFoodWithExpirationDate(targetDate.minusDays(1).atStartOfDay());
         createFoodWithExpirationDate(targetDate.plusDays(1).atStartOfDay());
 
+        // when
         List<Food> results = foodRepository.findMyFoodsExpiringBetween(
             member.getId(),
             targetDate.atStartOfDay(),
