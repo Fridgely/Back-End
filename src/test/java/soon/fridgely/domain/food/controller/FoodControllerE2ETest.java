@@ -17,14 +17,14 @@ import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StockActionType;
+import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.E2ETestSupport;
@@ -33,14 +33,17 @@ import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class FoodControllerE2ETest extends E2ETestSupport {
 
@@ -64,51 +67,23 @@ class FoodControllerE2ETest extends E2ETestSupport {
     @MockitoBean
     private ImageManager imageManager;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
     @Test
     void 음식을_등록한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("육류", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
+        setupBasicEnvironment();
         given(imageManager.upload(any())).willReturn("http://fake-s3-url.com/image.jpg");
 
-        var foodRequest = new FoodCreateRequest(
-            "삼겹살",
-            category.getId(),
-            new BigDecimal("600"),
-            Unit.G,
-            LocalDateTime.now().plusDays(5),
-            StorageType.REFRIGERATION,
-            "구워먹을 예정"
-        );
+        var foodRequest = fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+            .set("name", "삼겹살")
+            .set("categoryId", category.getId())
+            .set("description", "구워먹을 예정")
+            .sample();
 
-        var jsonHeaders = new HttpHeaders();
-        jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
-        var requestPart = new HttpEntity<>(foodRequest, jsonHeaders);
-
-        var imageResource = new ByteArrayResource("fake-image".getBytes()) {
-            @Override
-            public String getFilename() {
-                return "image.jpg";
-            }
-        };
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("request", requestPart);
-        body.add("image", imageResource);
-
-        var headers = createAuthHeaders(member);
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        var httpEntity = new HttpEntity<>(body, headers);
+        var httpEntity = createMultipartRequest(foodRequest);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
@@ -128,29 +103,14 @@ class FoodControllerE2ETest extends E2ETestSupport {
         List<Food> foods = foodRepository.findAll();
         assertThat(foods).hasSize(1)
             .extracting("name", "description")
-            .containsExactly(
-                tuple("삼겹살", "구워먹을 예정")
-            );
+            .containsExactly(tuple("삼겹살", "구워먹을 예정"));
     }
 
     @Test
     void 음식_단건을_조회한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.save(food);
-
+        setupBasicEnvironment();
+        Food food = createFood();
         var httpEntity = createAuthEntity(member);
 
         // when
@@ -170,27 +130,15 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
         assertThat(response.getBody().data())
             .extracting("name", "categoryName")
-            .containsExactly("testFood", "과일");
+            .containsExactly(food.getName(), category.getName());
     }
 
     @Test
     void 음식_목록을_조회한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("채소", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food1 = createFood(refrigerator, member, category, LocalDate.now());
-        Food food2 = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.saveAll(List.of(food1, food2));
+        setupBasicEnvironment();
+        createFood();
+        createFood();
 
         var httpEntity = createAuthEntity(member);
 
@@ -217,42 +165,21 @@ class FoodControllerE2ETest extends E2ETestSupport {
     @Test
     void 음식을_수정한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        setupBasicEnvironment();
+        Food food = createFood();
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category oldCategory = Category.register("과자", refrigerator, member, CategoryType.CUSTOM);
-        Category newCategory = Category.register("냉동", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.saveAll(List.of(oldCategory, newCategory));
-
-        Food food = createFood(refrigerator, member, oldCategory, LocalDate.now());
-        foodRepository.save(food);
-
-        var updateRequest = new FoodUpdateRequest(
-            "수정된 이름",
-            newCategory.getId(),
-            new BigDecimal("2.0"),
-            Unit.KG,
-            LocalDateTime.now().plusDays(10),
-            StorageType.ROOM_TEMPERATURE,
-            "설명 수정"
+        Category newCategory = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member).sample()
         );
 
-        var jsonHeaders = new HttpHeaders();
-        jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
-        var requestPart = new HttpEntity<>(updateRequest, jsonHeaders);
+        var updateRequest = fixtureMonkey.giveMeBuilder(FoodUpdateRequest.class)
+            .set("name", "수정된 이름")
+            .set("description", "설명 수정")
+            .set("categoryId", newCategory.getId())
+            .set("amount", new BigDecimal("2.00"))
+            .sample();
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("request", requestPart);
-
-        var headers = createAuthHeaders(member);
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        var httpEntity = new HttpEntity<>(body, headers);
+        var httpEntity = createMultipartRequest(updateRequest);
 
         // when
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
@@ -278,20 +205,8 @@ class FoodControllerE2ETest extends E2ETestSupport {
     @Test
     void 음식을_삭제한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, LocalDate.now());
-        foodRepository.save(food);
+        setupBasicEnvironment();
+        Food food = createFood();
 
         var httpEntity = createAuthEntity(member);
 
@@ -317,23 +232,20 @@ class FoodControllerE2ETest extends E2ETestSupport {
     @Test
     void 식재료_재고를_조정한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("재고", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
+        setupBasicEnvironment();
 
         Quantity initialQuantity = new Quantity(new BigDecimal("5.0"), Unit.PIECE);
-        Food food = createFood(refrigerator, member, category, initialQuantity);
-        foodRepository.save(food);
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("quantity", initialQuantity)
+                .sample()
+        );
 
-        var stockRequest = new FoodStockUpdateRequest(new BigDecimal("2.0"), Unit.PIECE, StockActionType.CONSUME);
+        var stockRequest = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+            .set("amount", new BigDecimal("2.0"))
+            .set("unit", Unit.PIECE)
+            .set("action", StockActionType.CONSUME)
+            .sample();
         var httpEntity = createAuthEntity(stockRequest, member);
 
         // when
@@ -356,43 +268,48 @@ class FoodControllerE2ETest extends E2ETestSupport {
             .isEqualByComparingTo(new BigDecimal("3.00"));
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
-    }
-
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            now
+    private void setupBasicEnvironment() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("type", CategoryType.CUSTOM)
+                .sample()
         );
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, Quantity quantity) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            quantity,
-            LocalDateTime.now().plusDays(5L),
-            StorageType.REFRIGERATION,
-            "description",
-            "http://image.url",
-            LocalDate.now()
+    private Food createFood() {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category).sample()
         );
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> createMultipartRequest(Object requestDto) {
+        var jsonHeaders = new HttpHeaders();
+        jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
+        var requestPart = new HttpEntity<>(requestDto, jsonHeaders);
+        var imageResource = new ByteArrayResource("fake-image".getBytes()) {
+            @Override
+            public String getFilename() {
+                return "image.jpg";
+            }
+        };
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("request", requestPart);
+        body.add("image", imageResource);
+
+        var headers = createAuthHeaders(member);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        return new HttpEntity<>(body, headers);
     }
 
     // Slice 역직렬화 오류 해결을 위한 임시 Slice 구현체

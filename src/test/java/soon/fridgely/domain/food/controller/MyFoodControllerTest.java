@@ -2,18 +2,12 @@ package soon.fridgely.domain.food.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
-import soon.fridgely.domain.food.dto.response.QuantityResponse;
 import soon.fridgely.domain.food.entity.FoodStatus;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -31,15 +25,21 @@ class MyFoodControllerTest extends ControllerTestSupport {
     @Test
     void 내_모든_음식을_상태별로_그룹핑하여_조회한다() throws Exception {
         // given
-        var redFood = createFoodResponse(1L, FoodStatus.RED);
-        var greenFood = createFoodResponse(2L, FoodStatus.GREEN);
+        var redFood = fixtureMonkey.giveMeBuilder(FoodResponse.class)
+            .set("id", 1L)
+            .set("condition.foodStatus", FoodStatus.RED)
+            .sample();
+        var greenFood = fixtureMonkey.giveMeBuilder(FoodResponse.class)
+            .set("id", 2L)
+            .set("condition.foodStatus", FoodStatus.GREEN)
+            .sample();
 
-        var response = new FoodStatusResponse(
-            List.of(), // BLACK
-            List.of(redFood), // RED
-            List.of(), // YELLOW
-            List.of(greenFood) // GREEN
-        );
+        var response = fixtureMonkey.giveMeBuilder(FoodStatusResponse.class)
+            .set("black", List.of())
+            .set("red", List.of(redFood))
+            .set("yellow", List.of())
+            .set("green", List.of(greenFood))
+            .sample();
 
         given(foodService.findAllMyFoodsGroupedByStatus(anyLong()))
             .willReturn(response);
@@ -60,17 +60,6 @@ class MyFoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.green[0].condition.foodStatus").value("GREEN"))
             .andExpect(jsonPath("$.data.black").isEmpty())
             .andExpect(jsonPath("$.data.yellow").isEmpty());
-    }
-
-    private FoodResponse createFoodResponse(long id, FoodStatus status) {
-        return new FoodResponse(
-            id,
-            "FoodName",
-            "CategoryName",
-            "imageURL",
-            new QuantityResponse(BigDecimal.ONE, Unit.PIECE),
-            new FoodConditionResponse(LocalDateTime.now(), StorageType.FROZEN, status, 3L)
-        );
     }
 
 }
