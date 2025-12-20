@@ -281,14 +281,12 @@ class FoodControllerTest extends ControllerTestSupport {
             Arguments.of(
                 fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
                     .validOnly(false)
-                    .validOnly(false)
                     .setNull("name")
                     .sample(),
                 "name", "음식 이름은 필수입니다."
             ),
             Arguments.of(
                 fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
-                    .validOnly(false)
                     .validOnly(false)
                     .set("name", "")
                     .sample(),
@@ -297,14 +295,12 @@ class FoodControllerTest extends ControllerTestSupport {
             Arguments.of(
                 fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
                     .validOnly(false)
-                    .validOnly(false)
                     .set("categoryId", 0L)
                     .sample(),
                 "categoryId", "카테고리 ID는 양수여야 합니다."
             ),
             Arguments.of(
                 fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
-                    .validOnly(false)
                     .validOnly(false)
                     .setNull("amount")
                     .sample(),
