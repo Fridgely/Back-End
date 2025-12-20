@@ -27,6 +27,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
@@ -104,7 +105,7 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
     }
 
     private Food createFoodWithExpiration(LocalDateTime expirationDate, LocalDate now) {
-        Food validSample = fixtureMonkey.giveMeOne(Food.class);
+        Food validSample = food(fixtureMonkey, refrigerator, member, category).sample();
 
         // register 메서드 내부에서 status를 계산하기 때문에 팩토리 메서드로 생성
         Food food = Food.register(
