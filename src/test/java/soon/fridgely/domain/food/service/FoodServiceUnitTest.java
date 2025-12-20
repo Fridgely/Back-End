@@ -54,7 +54,7 @@ class FoodServiceUnitTest {
     @Mock
     private ImageManager imageManager;
 
-    FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
     @Test
     void 음식을_등록한다() {
