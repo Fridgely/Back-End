@@ -1,10 +1,10 @@
 package soon.fridgely.domain.food.controller;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -14,24 +14,19 @@ import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
-import soon.fridgely.domain.food.dto.response.FoodConditionResponse;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.domain.food.dto.response.QuantityResponse;
-import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.StockActionType;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
 import soon.fridgely.global.support.CursorPageRequest;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ResultType;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -51,23 +46,13 @@ class FoodControllerTest extends ControllerTestSupport {
     @Test
     void 음식을_등록한다() throws Exception {
         // given
-        var request = new FoodCreateRequest(
-            "foodName",
-            1L,
-            BigDecimal.ONE,
-            Unit.KG,
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "description"
-        );
-
+        var request = fixtureMonkey.giveMeOne(FoodCreateRequest.class);
         MockMultipartFile jsonRequest = new MockMultipartFile(
             "request",
             "request.json",
             MediaType.APPLICATION_JSON_VALUE,
             objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8)
         );
-
         MockMultipartFile imageFile = new MockMultipartFile(
             "image",
             "image.jpg",
@@ -120,16 +105,7 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         long foodId = 1L;
-
-        var request = new FoodUpdateRequest(
-            "수정된 이름",
-            2L,
-            BigDecimal.TEN,
-            Unit.KG,
-            LocalDateTime.now().plusDays(10),
-            StorageType.ROOM_TEMPERATURE,
-            "수정된 설명"
-        );
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
 
         MockMultipartFile jsonRequest = new MockMultipartFile(
             "request",
@@ -137,7 +113,6 @@ class FoodControllerTest extends ControllerTestSupport {
             MediaType.APPLICATION_JSON_VALUE,
             objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8)
         );
-
         MockMultipartFile imageFile = new MockMultipartFile(
             "image",
             "new-image.jpg",
@@ -164,16 +139,7 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         long foodId = 1L;
-
-        var request = new FoodUpdateRequest(
-            "수정된 이름",
-            1L,
-            BigDecimal.ONE,
-            Unit.KG,
-            LocalDateTime.now(),
-            StorageType.FROZEN,
-            "설명"
-        );
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
 
         MockMultipartFile jsonRequest = new MockMultipartFile(
             "request",
@@ -198,15 +164,7 @@ class FoodControllerTest extends ControllerTestSupport {
     @Test
     void 음식을_조회한다() throws Exception {
         // given
-        var response = new FoodDetailResponse(
-            1L,
-            "foodName",
-            "categoryName",
-            new QuantityResponse(BigDecimal.ONE, Unit.KG),
-            new FoodConditionResponse(LocalDateTime.now().plusDays(2L), StorageType.FROZEN, FoodStatus.GREEN, 1L),
-            "description",
-            "http://example.com/image.jpg"
-        );
+        var response = fixtureMonkey.giveMeOne(FoodDetailResponse.class);
 
         given(foodService.findFood(anyLong(), any(MemberRefrigeratorKey.class)))
             .willReturn(response);
@@ -234,19 +192,10 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         int size = 10;
-
-        var foodResponse = new FoodResponse(
-            1L,
-            "Test Food",
-            "Test Category",
-            "http://example.com/image.jpg",
-            new QuantityResponse(new BigDecimal("2.5"), Unit.KG),
-            new FoodConditionResponse(LocalDateTime.now(), StorageType.REFRIGERATION, FoodStatus.GREEN, 2L)
-        );
+        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
 
         List<FoodResponse> content = List.of(foodResponse);
-        Pageable pageable = PageRequest.of(0, size);
-        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, pageable, true);
+        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
         given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(CursorPageRequest.class)))
             .willReturn(mockSlice);
@@ -290,12 +239,9 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         long foodId = 1L;
-
-        var request = new FoodStockUpdateRequest(
-            BigDecimal.ONE,
-            Unit.PIECE,
-            StockActionType.CONSUME
-        );
+        var request = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+            .set("action", StockActionType.CONSUME)
+            .sample();
 
         // expected
         mockMvc.perform(
@@ -330,58 +276,96 @@ class FoodControllerTest extends ControllerTestSupport {
     }
 
     private static Stream<Arguments> provideInvalidFoodCreateRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
         return Stream.of(
             Arguments.of(
-                new FoodCreateRequest(null, 1L, BigDecimal.ONE, Unit.PIECE, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .setNull("name")
+                    .sample(),
                 "name", "음식 이름은 필수입니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("", 1L, BigDecimal.ONE, Unit.PIECE, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .set("name", "")
+                    .sample(),
                 "name", "음식 이름은 필수입니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 0L, BigDecimal.ONE, Unit.PIECE, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .set("categoryId", 0L)
+                    .sample(),
                 "categoryId", "카테고리 ID는 양수여야 합니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 1L, null, Unit.PIECE, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .setNull("amount")
+                    .sample(),
                 "amount", "수량은 필수입니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 1L, new BigDecimal("-1"), Unit.PIECE, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .set("amount", new BigDecimal("-1"))
+                    .sample(),
                 "amount", "수량은 0 이상이어야 합니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 1L, BigDecimal.ONE, null, LocalDateTime.now().plusDays(1), StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .setNull("unit")
+                    .sample(),
                 "unit", "단위는 필수입니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 1L, BigDecimal.ONE, Unit.PIECE, null, StorageType.REFRIGERATION, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .setNull("expirationDate")
+                    .sample(),
                 "expirationDate", "유통기한은 필수입니다."
             ),
             Arguments.of(
-                new FoodCreateRequest("name", 1L, BigDecimal.ONE, Unit.PIECE, LocalDateTime.now().plusDays(1), null, "description"),
+                fixtureMonkey.giveMeBuilder(FoodCreateRequest.class)
+                    .validOnly(false)
+                    .setNull("storageType")
+                    .sample(),
                 "storageType", "보관 위치는 필수입니다."
             )
         );
     }
 
     private static Stream<Arguments> provideInvalidFoodStockUpdateRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
         return Stream.of(
             Arguments.of(
-                new FoodStockUpdateRequest(null, Unit.PIECE, StockActionType.ADD),
+                fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+                    .validOnly(false)
+                    .setNull("amount")
+                    .sample(),
                 "amount", "수량은 필수입니다."
             ),
             Arguments.of(
-                new FoodStockUpdateRequest(BigDecimal.ZERO, Unit.PIECE, StockActionType.ADD),
+                fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+                    .validOnly(false)
+                    .set("amount", BigDecimal.ZERO)
+                    .sample(),
                 "amount", "수량은 양수여야 합니다."
             ),
             Arguments.of(
-                new FoodStockUpdateRequest(BigDecimal.ONE, null, StockActionType.ADD),
+                fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+                    .validOnly(false)
+                    .setNull("unit")
+                    .sample(),
                 "unit", "단위는 필수입니다."
             ),
             Arguments.of(
-                new FoodStockUpdateRequest(BigDecimal.ONE, Unit.PIECE, null),
+                fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+                    .validOnly(false)
+                    .setNull("action")
+                    .sample(),
                 "action", "변경 유형은 필수입니다."
             )
         );

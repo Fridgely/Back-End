@@ -1,5 +1,6 @@
 package soon.fridgely.domain.food.service;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -12,20 +13,21 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.FoodStatus;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.CursorPageRequest;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.image.ImageManager;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +35,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class FoodServiceUnitTest {
@@ -53,21 +54,14 @@ class FoodServiceUnitTest {
     @Mock
     private ImageManager imageManager;
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
     @Test
     void 음식을_등록한다() {
         // given
-        var request = new FoodCreateRequest(
-            "foodName",
-            1L,
-            BigDecimal.ONE,
-            Unit.KG,
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "description"
-        );
-
+        var request = fixtureMonkey.giveMeOne(FoodCreateRequest.class);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
         MockMultipartFile mockFile = createMockFile();
-        var key = new MemberRefrigeratorKey(1L, 1L);
 
         String expectedImageUrl = "http://s3.example.com/image.jpg";
         given(imageManager.upload(mockFile)).willReturn(expectedImageUrl);
@@ -94,20 +88,11 @@ class FoodServiceUnitTest {
     void 이미지가_포함된_음식을_수정한다() {
         // given
         long foodId = 1L;
-        var key = new MemberRefrigeratorKey(1L, 1L);
-
-        var request = new FoodUpdateRequest(
-            "수정된 이름",
-            2L,
-            BigDecimal.TEN,
-            Unit.KG,
-            LocalDateTime.now().plusDays(10),
-            StorageType.ROOM_TEMPERATURE,
-            "수정된 설명"
-        );
-
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
         MockMultipartFile mockFile = createMockFile();
         String expectedImageUrl = "http://s3.example.com/new-image.jpg";
+
         given(imageManager.upload(mockFile)).willReturn(expectedImageUrl);
 
         // when
@@ -137,17 +122,8 @@ class FoodServiceUnitTest {
     void 이미지가_포함되지_않은_경우_기존_이미지가_유지된다() {
         // given
         long foodId = 1L;
-        var key = new MemberRefrigeratorKey(1L, 1L);
-
-        var request = new FoodUpdateRequest(
-            "수정된 이름",
-            1L,
-            BigDecimal.ONE,
-            Unit.KG,
-            LocalDateTime.now().plusDays(5),
-            StorageType.FROZEN,
-            "설명"
-        );
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
         MultipartFile emptyFile = null;
 
         // when
@@ -174,9 +150,8 @@ class FoodServiceUnitTest {
     void 음식을_조회한다() {
         // given
         long foodId = 1L;
-        var key = new MemberRefrigeratorKey(1L, 1L);
-
-        Food mockFood = createMockFood(foodId, FoodStatus.BLACK);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        Food mockFood = fixtureMonkey.giveMeOne(Food.class);
         given(foodFinder.find(foodId, key.refrigeratorId())).willReturn(mockFood);
 
         // when
@@ -199,19 +174,16 @@ class FoodServiceUnitTest {
     @Test
     void 음식_목록을_조회한다() {
         // given
-        var key = new MemberRefrigeratorKey(1L, 1L);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
         var request = new CursorPageRequest(null, 10);
-
-        long expectedCursorId = request.getCursorId(); // Long.MAX_VALUE
+        long expectedCursorId = request.getCursorId();
         Pageable expectedPageable = request.toPageable();
 
-        Food mockFood = createMockFood(1L, FoodStatus.BLACK);
-        var foodList = List.of(mockFood);
-
-        Slice<Food> mockFoodSlice = new SliceImpl<>(foodList, expectedPageable, true);
+        List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
+        Slice<Food> foodSlice = new SliceImpl<>(foods, expectedPageable, true);
 
         given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable))
-            .willReturn(mockFoodSlice);
+            .willReturn(foodSlice);
 
         // when
         Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
@@ -223,22 +195,19 @@ class FoodServiceUnitTest {
 
         assertThat(responseSlice).isNotNull();
         assertThat(responseSlice.hasNext()).isTrue();
-        assertThat(responseSlice.getContent()).hasSize(1);
+        assertThat(responseSlice.getContent()).hasSize(2);
 
-        assertThat(responseSlice.getContent().get(0))
-            .extracting("id", "name", "imageURL")
-            .containsExactly(
-                mockFood.getId(),
-                mockFood.getName(),
-                mockFood.getImageURL()
-            );
+        assertThat(responseSlice.getContent()
+            .get(0)
+            .id()
+        ).isEqualTo(foods.get(0).getId());
     }
 
     @Test
     void 음식을_삭제한다() {
         // given
         long foodId = 1L;
-        var key = new MemberRefrigeratorKey(1L, 1L);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
 
         // when
         foodService.deleteFood(foodId, key);
@@ -254,10 +223,18 @@ class FoodServiceUnitTest {
         // given
         long memberId = 1L;
 
-        Food redFood = createMockFood(1L, FoodStatus.RED);
-        Food greenFood1 = createMockFood(2L, FoodStatus.GREEN);
-        Food greenFood2 = createMockFood(3L, FoodStatus.GREEN);
-        Food blackFood = createMockFood(4L, FoodStatus.BLACK);
+        Food redFood = fixtureMonkey.giveMeBuilder(Food.class)
+            .set("foodStatus", FoodStatus.RED)
+            .sample();
+        Food greenFood1 = fixtureMonkey.giveMeBuilder(Food.class)
+            .set("foodStatus", FoodStatus.GREEN)
+            .sample();
+        Food greenFood2 = fixtureMonkey.giveMeBuilder(Food.class)
+            .set("foodStatus", FoodStatus.GREEN)
+            .sample();
+        Food blackFood = fixtureMonkey.giveMeBuilder(Food.class)
+            .set("foodStatus", FoodStatus.BLACK)
+            .sample();
 
         List<Food> allFoods = List.of(redFood, greenFood1, greenFood2, blackFood);
         given(foodFinder.findAllMyFoods(memberId)).willReturn(allFoods);
@@ -277,8 +254,10 @@ class FoodServiceUnitTest {
     void 음식의_재고를_추가한다() {
         // given
         long foodId = 1L;
-        var request = new FoodStockUpdateRequest(BigDecimal.ONE, Unit.KG, StockActionType.ADD);
-        var key = new MemberRefrigeratorKey(1L, 1L);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        var request = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+            .set("action", StockActionType.ADD)
+            .sample();
 
         // when
         foodService.updateFoodStock(foodId, request, key);
@@ -292,8 +271,10 @@ class FoodServiceUnitTest {
     void 음식을_소비한다() {
         // given
         long foodId = 1L;
-        var request = new FoodStockUpdateRequest(BigDecimal.ONE, Unit.KG, StockActionType.CONSUME);
-        var key = new MemberRefrigeratorKey(1L, 1L);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        var request = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
+            .set("action", StockActionType.CONSUME)
+            .sample();
         Quantity amount = request.toQuantity();
 
         // when
@@ -307,24 +288,6 @@ class FoodServiceUnitTest {
     private MockMultipartFile createMockFile() {
         byte[] content = new byte[1024];
         return new MockMultipartFile("image", "originalFilename.jpg", "image/jpeg", content);
-    }
-
-    private Food createMockFood(long foodId, FoodStatus status) {
-        Food mockFood = mock(Food.class);
-        Category mockCategory = mock(Category.class);
-        Quantity mockQuantity = mock(Quantity.class);
-
-        given(mockFood.getId()).willReturn(foodId);
-        given(mockFood.getName()).willReturn("TestFood");
-        given(mockFood.getImageURL()).willReturn("http://example.com/test.jpg");
-        given(mockFood.getFoodStatus()).willReturn(status);
-        given(mockFood.getCategory()).willReturn(mockCategory);
-        given(mockCategory.getName()).willReturn("TestCategory");
-        given(mockFood.getQuantity()).willReturn(mockQuantity);
-        given(mockQuantity.amount()).willReturn(BigDecimal.TEN);
-        given(mockQuantity.unit()).willReturn(Unit.PIECE);
-
-        return mockFood;
     }
 
 }

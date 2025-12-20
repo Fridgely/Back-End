@@ -6,33 +6,31 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.E2ETestSupport;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 public class MyFoodControllerE2ETest extends E2ETestSupport {
 
@@ -53,26 +51,19 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
     @Test
     void 내_모든_음식을_상태별로_그룹핑하여_조회한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("채소", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
+        setupBasicEnvironment();
         LocalDate now = LocalDate.now();
-        Food blackFood = createFood(refrigerator, member, category, now.minusDays(1).atStartOfDay(), now);
-        Food redFood = createFood(refrigerator, member, category, now.plusDays(3).atStartOfDay(), now);
-        Food greenFood = createFood(refrigerator, member, category, now.plusDays(30).atStartOfDay(), now);
-        foodRepository.saveAll(List.of(blackFood, redFood, greenFood));
+
+        Food blackFood = createFoodWithExpiration(now.minusDays(1).atStartOfDay(), now);
+        Food redFood = createFoodWithExpiration(now.plusDays(3).atStartOfDay(), now);
+        Food greenFood = createFoodWithExpiration(now.plusDays(30).atStartOfDay(), now);
 
         var httpEntity = createAuthEntity(member);
 
@@ -98,28 +89,38 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
         assertThat(result.yellow()).isEmpty();
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
+    private void setupBasicEnvironment() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member).sample()
+        );
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDateTime expirationDate, LocalDate now) {
-        return Food.register(
+    private Food createFoodWithExpiration(LocalDateTime expirationDate, LocalDate now) {
+        Food validSample = food(fixtureMonkey, refrigerator, member, category).sample();
+
+        // register 메서드 내부에서 status를 계산하기 때문에 팩토리 메서드로 생성
+        Food food = Food.register(
             refrigerator,
             member,
-            "testFood",
+            validSample.getName(),
             category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
+            validSample.getQuantity(),
             expirationDate,
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
+            StorageType.REFRIGERATION,
+            validSample.getDescription(),
+            validSample.getImageURL(),
             now
         );
+        return foodRepository.save(food);
     }
 
     private void assertGroup(List<FoodResponse> actualList, Food expectedFood) {
