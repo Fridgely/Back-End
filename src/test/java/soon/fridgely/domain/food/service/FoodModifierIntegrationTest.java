@@ -123,7 +123,9 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
             category(fixtureMonkey, refrigerator, member).sample()
         );
 
-        var updateInfo = fixtureMonkey.giveMeOne(FoodInfo.class);
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("name", "수정된 홈런볼")
+            .sample();
 
         // when
         foodModifier.update(
