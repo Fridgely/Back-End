@@ -1,5 +1,6 @@
 package soon.fridgely.domain.category.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
@@ -7,30 +8,27 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.fixture.CategoryFixture;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class CategoryServiceIntegrationTest extends IntegrationTestSupport {
 
@@ -52,86 +50,83 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+        );
+    }
+
     @Test
     void 커스텀_카테고리를_삭제하고_연결된_음식을_기본_카테고리로_이동한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        Category customCategory = categoryRepository.save(
+            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+                .set("name", "category")
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
+        Category fallbackCategory = categoryRepository.save(
+            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+                .set("name", "기타")
+                .set("type", CategoryType.DEFAULT)
+                .sample()
+        );
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
+        createFoods(3, customCategory);
 
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category1 = Category.register("category", refrigerator, member, CategoryType.CUSTOM);
-        Category category2 = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.saveAll(List.of(category1, category2));
-
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, category1, LocalDate.now()))
-            .limit(3)
-            .toList();
-        foodRepository.saveAll(foods);
-
-        var deleteCategory = new DeleteCategory(member.getId(), refrigerator.getId(), category1.getId());
+        var deleteCategory = new DeleteCategory(member.getId(), refrigerator.getId(), customCategory.getId());
 
         // when
         categoryService.removeCustomCategory(deleteCategory);
 
         // then
-        Category deletedCategory = categoryRepository.findById(category1.getId()).orElseThrow();
+        Category deletedCategory = categoryRepository.findById(customCategory.getId()).orElseThrow();
         assertThat(deletedCategory.isDeleted()).isTrue();
 
         List<Food> updatedFoods = foodRepository.findAll();
         assertThat(updatedFoods).hasSize(3)
             .allSatisfy(f -> assertThat(f.getCategory().getId())
-                .isEqualTo(category2.getId())
+                .isEqualTo(fallbackCategory.getId())
             );
     }
 
     @Test
     void 권한이_없는_냉장고의_카테고리를_삭제하려_하면_예외가_발생한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        Refrigerator otherRefrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey)
+                .set("name", "남의 냉장고")
+                .sample()
+        );
 
-        Refrigerator otherRefrigerator = Refrigerator.register("남의 냉장고");
-        refrigeratorRepository.save(otherRefrigerator);
+        Category category = categoryRepository.save(
+            category(fixtureMonkey, otherRefrigerator, member).sample()
+        );
 
-        Category category = Category.register("target", otherRefrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        var deleteCommand = new DeleteCategory(member.getId(), otherRefrigerator.getId(), category.getId());
+        var deleteCategory = new DeleteCategory(member.getId(), otherRefrigerator.getId(), category.getId());
 
         // expected
-        assertThatThrownBy(() -> categoryService.removeCustomCategory(deleteCommand))
+        assertThatThrownBy(() -> categoryService.removeCustomCategory(deleteCategory))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.AUTHORIZATION_FAILED);
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
-    }
-
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            now
-        );
+    private void createFoods(int count, Category category) {
+        List<Food> foods = IntStream.range(0, count)
+            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, category).sample())
+            .toList();
+        foodRepository.saveAll(foods);
     }
 
 }

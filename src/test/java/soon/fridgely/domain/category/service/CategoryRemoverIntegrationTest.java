@@ -1,5 +1,6 @@
 package soon.fridgely.domain.category.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
@@ -7,23 +8,19 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+import soon.fridgely.global.support.fixture.CategoryFixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class CategoryRemoverIntegrationTest extends IntegrationTestSupport {
 
@@ -42,21 +39,36 @@ class CategoryRemoverIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+    }
+
     @Test
     void 카테고리_삭제_시_음식을_이동시키고_카테고리를_삭제한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        Category targetCategory = categoryRepository.save(
+            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+                .set("name", "target")
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
+        Category fallbackCategory = categoryRepository.save(
+            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+                .set("name", "기타")
+                .set("type", CategoryType.DEFAULT)
+                .sample()
+        );
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category targetCategory = Category.register("target", refrigerator, member, CategoryType.CUSTOM);
-        Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
-
-        Food food = createFood(refrigerator, member, targetCategory, LocalDate.now());
-        foodRepository.save(food);
+        Food food = createFood(targetCategory);
 
         var deleteCategory = new DeleteCategory(member.getId(), refrigerator.getId(), targetCategory.getId());
 
@@ -74,15 +86,18 @@ class CategoryRemoverIntegrationTest extends IntegrationTestSupport {
     @Test
     void 카테고리를_중복_삭제해도_예외가_발생하지_않는다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category targetCategory = Category.register("target", refrigerator, member, CategoryType.CUSTOM);
-        Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
+        Category targetCategory = categoryRepository.save(
+            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+                .set("name", "target")
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
+        categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("name", "기타")
+                .set("type", CategoryType.DEFAULT)
+                .sample()
+        );
 
         var deleteCategory = new DeleteCategory(member.getId(), refrigerator.getId(), targetCategory.getId());
 
@@ -95,27 +110,9 @@ class CategoryRemoverIntegrationTest extends IntegrationTestSupport {
         assertThat(deletedCategory.isDeleted()).isTrue();
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
-    }
-
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            now
+    private Food createFood(Category category) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category).sample()
         );
     }
 
