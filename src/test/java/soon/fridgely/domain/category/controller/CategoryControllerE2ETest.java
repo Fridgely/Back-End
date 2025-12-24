@@ -14,30 +14,25 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
-import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.E2ETestSupport;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class CategoryControllerE2ETest extends E2ETestSupport {
 
@@ -58,20 +53,18 @@ class CategoryControllerE2ETest extends E2ETestSupport {
     @Autowired
     private FoodRepository foodRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
 
     @Test
     void 카테고리를_추가한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        setupBasicEnvironment();
+        var request = fixtureMonkey.giveMeBuilder(CategoryAddRequest.class)
+            .set("name", "국수")
+            .sample();
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        var request = new CategoryAddRequest("국수");
         var httpEntity = createAuthEntity(request, member);
 
         // when
@@ -85,12 +78,10 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         );
 
         // then
-        assertThat(response).isNotNull()
-            .extracting("statusCode", "body.result")
-            .containsExactly(HttpStatus.CREATED, ResultType.SUCCESS);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         Category savedCategory = categoryRepository.findByNameAndRefrigeratorIdAndStatus("국수", refrigerator.getId(), EntityStatus.ACTIVE).orElseThrow();
-        assertThat(savedCategory).isNotNull()
+        assertThat(savedCategory)
             .extracting("name", "type")
             .containsExactly("국수", CategoryType.CUSTOM);
     }
@@ -98,17 +89,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
     @Test
     void 카테고리_단건을_조회한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
+        setupBasicEnvironment();
 
         var httpEntity = createAuthEntity(member);
 
@@ -125,24 +106,16 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         // then
         assertThat(response).isNotNull()
             .extracting("statusCode", "body.result", "body.data")
-            .containsExactly(HttpStatus.OK, ResultType.SUCCESS, new CategoryDetailResponse(category.getId(), "과일", false));
+            .containsExactly(HttpStatus.OK, ResultType.SUCCESS, new CategoryDetailResponse(category.getId(), category.getName(), category.isDefaultType()));
     }
 
     @Test
     void 카테고리_전체를_조회한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category1 = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        Category category2 = Category.register("채소", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.saveAll(List.of(category1, category2));
+        setupBasicEnvironment();
+        Category anotherCategory = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member).sample()
+        );
 
         var httpEntity = createAuthEntity(member);
 
@@ -157,34 +130,21 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         );
 
         // then
-        assertThat(response).isNotNull()
-            .extracting("statusCode", "body.result", "body.data")
-            .containsExactly(
-                HttpStatus.OK,
-                ResultType.SUCCESS,
-                List.of(
-                    new CategoryResponse(category1.getId(), "과일", false),
-                    new CategoryResponse(category2.getId(), "채소", false)
-                )
-            );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().data())
+            .hasSize(2) // setupBasicEnvironment의 category + anotherCategory
+            .extracting("id")
+            .contains(category.getId(), anotherCategory.getId());
     }
 
     @Test
     void 카테고리를_수정한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        setupBasicEnvironment();
+        var request = fixtureMonkey.giveMeBuilder(CategoryModifyRequest.class)
+            .set("newName", "채소")
+            .sample();
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        categoryRepository.save(category);
-
-        var request = new CategoryModifyRequest("채소");
         var httpEntity = createAuthEntity(request, member);
 
         // when
@@ -198,34 +158,25 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         );
 
         // then
-        assertThat(response).isNotNull()
-            .extracting("statusCode", "body.result")
-            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         Category updatedCategory = categoryRepository.findById(category.getId()).orElseThrow();
         assertThat(updatedCategory.getName()).isEqualTo("채소");
     }
 
     @Test
-    void 카테고리를_삭제한다() {
+    void 카테고리를_삭제한다_음식은_기타_카테고리로_이동된다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        setupBasicEnvironment();
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
+        Category fallbackCategory = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("name", "기타")
+                .set("type", CategoryType.DEFAULT)
+                .sample()
+        );
 
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category targetCategory = Category.register("과일", refrigerator, member, CategoryType.CUSTOM);
-        Category fallbackCategory = Category.register("기타", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.saveAll(List.of(targetCategory, fallbackCategory));
-
-        List<Food> foods = Stream.generate(() -> createFood(refrigerator, member, targetCategory, LocalDate.now()))
-            .limit(3)
-            .collect(Collectors.toList());
-        foodRepository.saveAll(foods);
+        createFoods(3, category);
 
         var httpEntity = createAuthEntity(member);
 
@@ -233,49 +184,49 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         var responseType = new ParameterizedTypeReference<ApiResponse<Void>>() {
         };
         var response = testRestTemplate.exchange(
-            BASE_URL + "/" + refrigerator.getId() + "/categories/" + targetCategory.getId(),
+            BASE_URL + "/" + refrigerator.getId() + "/categories/" + category.getId(),
             HttpMethod.DELETE,
             httpEntity,
             responseType
         );
 
         // then
-        assertThat(response).isNotNull()
-            .extracting("statusCode", "body.result")
-            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        Category deletedCategory = categoryRepository.findById(targetCategory.getId()).orElseThrow();
+        Category deletedCategory = categoryRepository.findById(category.getId()).orElseThrow();
         assertThat(deletedCategory.isDeleted()).isTrue();
 
-        List<Food> updatedFoods = foodRepository.findAll();
-        assertThat(updatedFoods).hasSize(3)
+        List<Food> foods = foodRepository.findAll();
+        assertThat(foods).hasSize(3)
             .allSatisfy(f -> assertThat(f.getCategory().getId())
                 .isEqualTo(fallbackCategory.getId())
             );
     }
 
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
+    private void setupBasicEnvironment() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member)
+                .set("type", CategoryType.CUSTOM)
+                .sample()
+        );
     }
 
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, LocalDate now) {
-        return Food.register(
-            refrigerator,
-            member,
-            "testFood",
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            LocalDateTime.now().plusDays(2L),
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            now
-        );
+    private void createFoods(int count, Category targetCategory) {
+        List<Food> foods = IntStream.range(0, count)
+            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory)
+                .set("createdAt", LocalDate.now().atStartOfDay())
+                .sample())
+            .toList();
+        foodRepository.saveAll(foods);
     }
 
 }
