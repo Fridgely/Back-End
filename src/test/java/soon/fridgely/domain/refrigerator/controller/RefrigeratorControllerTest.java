@@ -11,7 +11,6 @@ import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -31,8 +30,13 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     void 내_냉장고_목록을_조회한다() throws Exception {
         // given
         var responses = List.of(
-            new RefrigeratorResponse(1L, "Fridge1", RefrigeratorRole.OWNER, true),
-            new RefrigeratorResponse(2L, "Fridge2", RefrigeratorRole.MEMBER, false)
+            fixtureMonkey.giveMeBuilder(RefrigeratorResponse.class)
+                .set("name", "Fridge1")
+                .set("role", RefrigeratorRole.OWNER)
+                .sample(),
+            fixtureMonkey.giveMeBuilder(RefrigeratorResponse.class)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
         );
 
         given(refrigeratorService.findAllMyRefrigerators(anyLong()))
@@ -57,7 +61,11 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
 
-        var response = new RefrigeratorResponse(refrigeratorId, "MyFridge", RefrigeratorRole.OWNER, true);
+        var response = fixtureMonkey.giveMeBuilder(RefrigeratorResponse.class)
+            .set("id", refrigeratorId)
+            .set("name", "MyFridge")
+            .sample();
+
         given(refrigeratorService.findRefrigerator(any(MemberRefrigeratorKey.class)))
             .willReturn(response);
 
@@ -77,7 +85,7 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     @Test
     void 냉장고_이름을_수정한다() throws Exception {
         // given
-        var request = new RefrigeratorUpdateRequest("새로운 이름");
+        var request = fixtureMonkey.giveMeOne(RefrigeratorUpdateRequest.class);
 
         // expected
         mockMvc.perform(
@@ -96,7 +104,10 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
         // given
         String generatedCode = "ABC12345";
 
-        var response = new InvitationCodeResponse(generatedCode, LocalDateTime.now().plusDays(1));
+        var response = fixtureMonkey.giveMeBuilder(InvitationCodeResponse.class)
+            .set("code", generatedCode)
+            .sample();
+
         given(refrigeratorService.generateInvitationCode(any(MemberRefrigeratorKey.class)))
             .willReturn(response);
 
@@ -115,7 +126,7 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     @Test
     void 초대_코드로_냉장고에_참여한다() throws Exception {
         // given
-        var request = new InvitationCodeJoinRequest("ABC12345");
+        var request = fixtureMonkey.giveMeOne(InvitationCodeJoinRequest.class);
 
         // expected
         mockMvc.perform(
@@ -132,7 +143,10 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     @Test
     void 유효하지_않은_초대코드는_예외가_발생한다() throws Exception {
         // given
-        var request = new InvitationCodeJoinRequest("SHORT");
+        var request = fixtureMonkey.giveMeBuilder(InvitationCodeJoinRequest.class)
+            .validOnly(false)
+            .set("code", "SHORT")
+            .sample();
 
         // expected
         mockMvc.perform(
