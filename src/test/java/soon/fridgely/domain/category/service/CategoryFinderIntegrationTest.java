@@ -111,7 +111,6 @@ class CategoryFinderIntegrationTest extends IntegrationTestSupport {
                 .set("status", EntityStatus.DELETED)
                 .sample()
         );
-        categoryRepository.save(category);
 
         // expected
         assertThatThrownBy(() -> categoryFinder.findByRefrigerator(category.getId(), refrigerator.getId()))
