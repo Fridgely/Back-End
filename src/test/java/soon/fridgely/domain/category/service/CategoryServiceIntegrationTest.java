@@ -17,7 +17,6 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-import soon.fridgely.global.support.fixture.CategoryFixture;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -70,13 +69,13 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 커스텀_카테고리를_삭제하고_연결된_음식을_기본_카테고리로_이동한다() {
         // given
         Category customCategory = categoryRepository.save(
-            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+            category(fixtureMonkey, refrigerator, member)
                 .set("name", "category")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
         Category fallbackCategory = categoryRepository.save(
-            CategoryFixture.category(fixtureMonkey, refrigerator, member)
+            category(fixtureMonkey, refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
