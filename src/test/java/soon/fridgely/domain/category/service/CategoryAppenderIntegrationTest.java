@@ -117,8 +117,7 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
             .set("memberId", member.getId())
             .sample();
 
-        // when
-        categoryAppender.appendCustomCategory(addCommand);
+        categoryAppender.appendCustomCategory(addCommand); // 첫번째 카테고리 추가
 
         // expected
         assertThatThrownBy(() -> categoryAppender.appendCustomCategory(addCommand))
