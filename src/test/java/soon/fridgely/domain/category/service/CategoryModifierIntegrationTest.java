@@ -161,7 +161,7 @@ class CategoryModifierIntegrationTest extends IntegrationTestSupport {
         );
 
         var modifyCommand = fixtureMonkey.giveMeBuilder(ModifyCategory.class)
-            .set("name", "수정 시도")
+            .set("newName", "수정 시도")
             .set("memberId", otherMember.getId())
             .set("refrigeratorId", otherRefrigerator.getId())
             .set("categoryId", myCategory.getId())
