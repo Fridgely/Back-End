@@ -103,6 +103,10 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 권한이_없는_냉장고의_카테고리를_삭제하려_하면_예외가_발생한다() {
         // given
+        Member otherMember = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+
         Refrigerator otherRefrigerator = refrigeratorRepository.save(
             refrigerator(fixtureMonkey)
                 .set("name", "남의 냉장고")
@@ -110,7 +114,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
         );
 
         Category category = categoryRepository.save(
-            category(fixtureMonkey, otherRefrigerator, member).sample()
+            category(fixtureMonkey, otherRefrigerator, otherMember).sample()
         );
 
         var deleteCategory = new DeleteCategory(member.getId(), otherRefrigerator.getId(), category.getId());
