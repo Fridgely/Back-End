@@ -1,8 +1,10 @@
 package soon.fridgely.domain.refrigerator.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
 
@@ -23,41 +27,56 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private RefrigeratorRepository refrigeratorRepository;
 
+    @Autowired
+    private MemberRepository memberRepository;
+
+    private Member member;
+    private Refrigerator refrigerator;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+    }
+
     @Test
     void 냉장고를_생성한다() {
         // given
-        Member member = createMember();
+        Member newMember = memberRepository.save(
+            member(fixtureMonkey)
+                .set("nickname", "nickname")
+                .sample()
+        );
 
         // when
-        Refrigerator refrigerator = refrigeratorManager.register(member);
+        Refrigerator savedRefrigerator = refrigeratorManager.register(newMember);
 
         // then
-        Refrigerator savedRefrigerator = refrigeratorRepository.findById(refrigerator.getId()).orElseThrow();
         assertThat(savedRefrigerator)
             .extracting("name")
-            .isEqualTo(member.getNickname() + "의 냉장고");
+            .isEqualTo("nickname의 냉장고");
     }
 
     @Test
     void 냉장고_이름을_수정한다() {
         // given
-        Refrigerator refrigerator = Refrigerator.register("예전 냉장고");
-        refrigeratorRepository.save(refrigerator);
+        String newName = "새로운 이름";
 
         // when
-        refrigeratorManager.update(refrigerator.getId(), "새로운 냉장고");
+        refrigeratorManager.update(refrigerator.getId(), newName);
 
         // then
         Refrigerator updated = refrigeratorRepository.findById(refrigerator.getId()).orElseThrow();
-        assertThat(updated.getName()).isEqualTo("새로운 냉장고");
+        assertThat(updated.getName()).isEqualTo(newName);
     }
 
     @Test
     void 냉장고의_초대_코드를_발급하고_저장한다() {
         // given
-        Refrigerator refrigerator = Refrigerator.register("냉장고");
-        refrigeratorRepository.save(refrigerator);
-
         String newCode = "NEWCODE1";
         LocalDateTime now = LocalDateTime.of(2025, 1, 1, 12, 0);
 
@@ -73,13 +92,8 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 유효한_초대_코드로_냉장고를_조회한다() {
         // given
-        Refrigerator refrigerator = Refrigerator.register("냉장고");
-        refrigeratorRepository.save(refrigerator);
-
         String code = "VALID123";
-        LocalDateTime now = LocalDateTime.now();
-
-        refrigeratorManager.refreshInvitationCode(refrigerator.getId(), code, now);
+        refrigeratorManager.refreshInvitationCode(refrigerator.getId(), code, LocalDateTime.now());
 
         // when
         Refrigerator found = refrigeratorManager.findByInvitationCode(code);
@@ -87,15 +101,12 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(found)
             .extracting("id", "name")
-            .containsExactly(refrigerator.getId(), "냉장고의 냉장고");
+            .containsExactly(refrigerator.getId(), refrigerator.getName());
     }
 
     @Test
     void 존재하지_않는_초대_코드로_조회하면_예외가_발생한다() {
         // given
-        Refrigerator refrigerator = Refrigerator.register("테스트 냉장고");
-        refrigeratorRepository.save(refrigerator);
-
         refrigeratorManager.refreshInvitationCode(refrigerator.getId(), "REALCODE", LocalDateTime.now());
 
         // expected
@@ -108,9 +119,6 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 삭제된_냉장고는_유효한_초대_코드로도_조회되지_않는다() {
         // given
-        Refrigerator refrigerator = Refrigerator.register("삭제될 냉장고");
-        refrigeratorRepository.save(refrigerator);
-
         String code = "DELETED1";
         refrigeratorManager.refreshInvitationCode(refrigerator.getId(), code, LocalDateTime.now());
 
@@ -123,12 +131,6 @@ class RefrigeratorManagerIntegrationTest extends IntegrationTestSupport {
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.INVALID_INVITATION_CODE);
-    }
-
-    private Member createMember() {
-        return Member.builder()
-            .nickname("testNickname")
-            .build();
     }
 
 }

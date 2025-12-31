@@ -1,10 +1,12 @@
 package soon.fridgely.domain.refrigerator.service;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
@@ -12,6 +14,7 @@ import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,9 +26,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 @ExtendWith(MockitoExtension.class)
 class RefrigeratorServiceUnitTest {
+
+    private static final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
     @InjectMocks
     private RefrigeratorService refrigeratorService;
@@ -45,42 +53,44 @@ class RefrigeratorServiceUnitTest {
     @Test
     void 냉장고_정보를_수정한다() {
         // given
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(1L, 1L);
-        RefrigeratorUpdateRequest request = new RefrigeratorUpdateRequest("New Name");
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        var request = fixtureMonkey.giveMeBuilder(RefrigeratorUpdateRequest.class)
+            .set("newName", "New Name")
+            .sample();
 
         // when
         refrigeratorService.updateRefrigeratorName(key, request);
 
         // then
         then(refrigeratorManager).should()
-            .update(eq(1L), eq("New Name"));
+            .update(eq(key.refrigeratorId()), eq("New Name"));
     }
 
     @Test
     void 초대_코드를_생성하고_반환한다() {
         // given
-        long refrigeratorId = 1L;
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(1L, refrigeratorId);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
 
         String generatedCode = "ABC12345";
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime realExpirationAt = now.plusDays(1);
-
         given(codeGenerator.generate()).willReturn(generatedCode);
-        InvitationCode savedCode = new InvitationCode(generatedCode, realExpirationAt);
-        given(refrigeratorManager.refreshInvitationCode(eq(refrigeratorId), eq(generatedCode), any(LocalDateTime.class)))
-            .willReturn(savedCode);
+
+        InvitationCode expectedInvitationCode = fixtureMonkey.giveMeBuilder(InvitationCode.class)
+            .set("code", generatedCode)
+            .sample();
+        given(refrigeratorManager.refreshInvitationCode(eq(key.refrigeratorId()), eq(generatedCode), any(LocalDateTime.class)))
+            .willReturn(expectedInvitationCode);
 
         // when
         InvitationCodeResponse response = refrigeratorService.generateInvitationCode(key);
 
         // then
-        assertThat(response.code()).isEqualTo(generatedCode);
-        assertThat(response.expirationAt()).isEqualTo(realExpirationAt);
+        assertThat(response)
+            .extracting("code", "expirationAt")
+            .containsExactly(generatedCode, expectedInvitationCode.expirationAt());
 
         then(refrigeratorManager).should()
             .refreshInvitationCode(
-                eq(refrigeratorId),
+                eq(key.refrigeratorId()),
                 eq(generatedCode),
                 any(LocalDateTime.class)
             );
@@ -90,12 +100,14 @@ class RefrigeratorServiceUnitTest {
     void 초대_코드를_사용해_냉장고에_참여한다() {
         // given
         long memberId = 100L;
-        String code = "VALIDCODE";
+        String code = "VALID_CODE";
         long refrigeratorId = 50L;
 
         Refrigerator mockRefrigerator = mock(Refrigerator.class);
-        given(refrigeratorManager.findByInvitationCode(code)).willReturn(mockRefrigerator);
         given(mockRefrigerator.getId()).willReturn(refrigeratorId);
+
+        given(refrigeratorManager.findByInvitationCode(code))
+            .willReturn(mockRefrigerator);
 
         // when
         refrigeratorService.joinByInvitationCode(memberId, code);
@@ -104,10 +116,9 @@ class RefrigeratorServiceUnitTest {
         then(mockRefrigerator).should()
             .validateInvitationCode(eq(code), any(LocalDateTime.class));
 
-        MemberRefrigeratorKey expectedKey = new MemberRefrigeratorKey(memberId, refrigeratorId);
         then(memberRefrigeratorLinker).should()
             .linkMemberToRefrigerator(
-                eq(expectedKey),
+                eq(new MemberRefrigeratorKey(memberId, refrigeratorId)),
                 eq(RefrigeratorRole.MEMBER)
             );
     }
@@ -116,11 +127,14 @@ class RefrigeratorServiceUnitTest {
     void 내가_속한_냉장고_목록을_조회한다() {
         // given
         long memberId = 1L;
-        MemberRefrigerator memberRefrigerator1 = createMockMemberRefrigerator(10L, "Fridge1", RefrigeratorRole.OWNER);
-        MemberRefrigerator memberRefrigerator2 = createMockMemberRefrigerator(20L, "Fridge2", RefrigeratorRole.MEMBER);
+
+        List<MemberRefrigerator> memberRefrigerators = List.of(
+            createMemberRefrigerator("Fridge1", RefrigeratorRole.OWNER),
+            createMemberRefrigerator("Fridge2", RefrigeratorRole.MEMBER)
+        );
 
         given(memberRefrigeratorFinder.findAllByMemberId(memberId))
-            .willReturn(List.of(memberRefrigerator1, memberRefrigerator2));
+            .willReturn(memberRefrigerators);
 
         // when
         var responses = refrigeratorService.findAllMyRefrigerators(memberId);
@@ -128,7 +142,7 @@ class RefrigeratorServiceUnitTest {
         // then
         assertThat(responses).hasSize(2)
             .extracting("name", "role", "isOwner")
-            .containsExactly(
+            .containsExactlyInAnyOrder(
                 tuple("Fridge1", RefrigeratorRole.OWNER, true),
                 tuple("Fridge2", RefrigeratorRole.MEMBER, false)
             );
@@ -137,12 +151,10 @@ class RefrigeratorServiceUnitTest {
     @Test
     void 특정_냉장고의_상세_정보를_조회한다() {
         // given
-        long memberId = 1L;
-        long refrigeratorId = 10L;
-        var key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
 
-        MemberRefrigerator memberRefrigerator = createMockMemberRefrigerator(refrigeratorId, "MyFridge", RefrigeratorRole.OWNER);
-        given(memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(memberId, refrigeratorId))
+        MemberRefrigerator memberRefrigerator = createMemberRefrigerator("MyFridge", RefrigeratorRole.OWNER);
+        given(memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId()))
             .willReturn(memberRefrigerator);
 
         // when
@@ -154,17 +166,18 @@ class RefrigeratorServiceUnitTest {
             .containsExactly("MyFridge", RefrigeratorRole.OWNER, true);
     }
 
-    private MemberRefrigerator createMockMemberRefrigerator(long id, String name, RefrigeratorRole role) {
-        MemberRefrigerator memberRefrigerator = mock(MemberRefrigerator.class);
-        Refrigerator refrigerator = mock(Refrigerator.class);
+    private MemberRefrigerator createMemberRefrigerator(String fridgeName, RefrigeratorRole role) {
+        Member member = member(fixtureMonkey)
+            .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .sample();
+        Refrigerator refrigerator = refrigerator(fixtureMonkey)
+            .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .set("name", fridgeName)
+            .sample();
 
-        given(memberRefrigerator.getRole()).willReturn(role);
-        given(memberRefrigerator.isOwner()).willReturn(role == RefrigeratorRole.OWNER);
-        given(memberRefrigerator.getRefrigerator()).willReturn(refrigerator);
-        given(refrigerator.getId()).willReturn(id);
-        given(refrigerator.getName()).willReturn(name);
-
-        return memberRefrigerator;
+        return memberRefrigerator(fixtureMonkey, refrigerator, member)
+            .set("role", role)
+            .sample();
     }
 
 }
