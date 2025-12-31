@@ -12,6 +12,8 @@ import soon.fridgely.global.support.ControllerTestSupport;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -20,13 +22,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class CategoryControllerTest extends ControllerTestSupport {
 
-    public static final String BASE_URL = "/api/v1/refrigerators";
+    private static final String BASE_URL = "/api/v1/refrigerators";
 
     @TestLoginMember
     @Test
     void 카테고리를_추가한다() throws Exception {
         // given
-        var request = new CategoryAddRequest("newCategory");
+        var request = fixtureMonkey.giveMeOne(CategoryAddRequest.class);
         long refrigeratorId = 1L;
 
         // expected
@@ -45,12 +47,15 @@ class CategoryControllerTest extends ControllerTestSupport {
     void 카테고리를_조회한다() throws Exception {
         // given
         long refrigeratorId = 1L;
-        long memberId = 1L;
         long categoryId = 1L;
 
-        var response = new CategoryDetailResponse(1L, "category", true);
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
-        given(categoryService.findCategory(categoryId, key))
+        var response = fixtureMonkey.giveMeBuilder(CategoryDetailResponse.class)
+            .set("id", categoryId)
+            .set("name", "category")
+            .set("isDefaultType", true)
+            .sample();
+
+        given(categoryService.findCategory(eq(categoryId), any(MemberRefrigeratorKey.class)))
             .willReturn(response);
 
         // expected
@@ -60,7 +65,7 @@ class CategoryControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"))
-            .andExpect(jsonPath("$.data.id").value(1L))
+            .andExpect(jsonPath("$.data.id").value(categoryId))
             .andExpect(jsonPath("$.data.name").value("category"))
             .andExpect(jsonPath("$.data.isDefaultType").value(true));
     }
@@ -70,15 +75,17 @@ class CategoryControllerTest extends ControllerTestSupport {
     void 카테고리_목록을_조회한다() throws Exception {
         // given
         long refrigeratorId = 1L;
-        long memberId = 1L;
 
         var response = List.of(
-            new CategoryResponse(1L, "category1", true),
-            new CategoryResponse(2L, "category2", false)
+            fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 1L)
+                .sample(),
+            fixtureMonkey.giveMeBuilder(CategoryResponse.class)
+                .set("id", 2L)
+                .sample()
         );
 
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
-        given(categoryService.findAllCategory(key))
+        given(categoryService.findAllCategory(any(MemberRefrigeratorKey.class)))
             .willReturn(response);
 
         // expected
@@ -89,16 +96,18 @@ class CategoryControllerTest extends ControllerTestSupport {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data").isArray())
-            .andExpect(jsonPath("$.data.length()").value(2));
+            .andExpect(jsonPath("$.data.length()").value(2))
+            .andExpect(jsonPath("$.data[0].id").value(1L))
+            .andExpect(jsonPath("$.data[1].id").value(2L));
     }
 
     @TestLoginMember
     @Test
     void 카테고리를_수정한다() throws Exception {
         // given
-        var request = new CategoryModifyRequest("newCategoryName");
         long refrigeratorId = 1L;
         long categoryId = 1L;
+        var request = fixtureMonkey.giveMeOne(CategoryModifyRequest.class);
 
         // expected
         mockMvc.perform(

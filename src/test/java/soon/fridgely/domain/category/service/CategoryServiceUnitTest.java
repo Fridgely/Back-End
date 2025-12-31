@@ -1,5 +1,6 @@
 package soon.fridgely.domain.category.service;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -9,14 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.category.dto.command.AddCategory;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
-import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceUnitTest {
@@ -36,19 +36,21 @@ class CategoryServiceUnitTest {
     @Mock
     private CategoryRemover categoryRemover;
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
     @Test
     void 커스텀_카테고리를_생성한다() {
         // given
-        var addCategoryDto = new AddCategory("customCategory", 1L, 1L);
+        var addCategory = fixtureMonkey.giveMeOne(AddCategory.class);
 
         // when
-        categoryService.appendCustomCategory(addCategoryDto);
+        categoryService.appendCustomCategory(addCategory);
 
         // then
         InOrder inOrder = inOrder(categoryAppender);
         then(categoryAppender)
             .should(inOrder)
-            .appendCustomCategory(addCategoryDto);
+            .appendCustomCategory(addCategory);
     }
 
     @Test
@@ -56,16 +58,17 @@ class CategoryServiceUnitTest {
         // given
         long categoryId = 1L;
         long refrigeratorId = 1L;
-        long memberId = 1L;
 
-        Category mockCategory = mock(Category.class);
+        Category mockCategory = fixtureMonkey.giveMeOne(Category.class);
         given(categoryFinder.findByRefrigerator(categoryId, refrigeratorId))
             .willReturn(mockCategory);
 
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+        var key = fixtureMonkey.giveMeBuilder(MemberRefrigeratorKey.class)
+            .set("refrigeratorId", refrigeratorId)
+            .sample();
 
         // when
-        CategoryDetailResponse response = categoryService.findCategory(categoryId, key);
+        categoryService.findCategory(categoryId, key);
 
         // then
         then(categoryFinder)
@@ -77,8 +80,9 @@ class CategoryServiceUnitTest {
     void 냉장고에_속한_모든_카테고리를_조회한다() {
         // given
         long refrigeratorId = 1L;
-        long memberId = 1L;
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(memberId, refrigeratorId);
+        var key = fixtureMonkey.giveMeBuilder(MemberRefrigeratorKey.class)
+            .set("refrigeratorId", refrigeratorId)
+            .sample();
 
         // when
         categoryService.findAllCategory(key);
@@ -92,22 +96,22 @@ class CategoryServiceUnitTest {
     @Test
     void 커스텀_카테고리의_이름을_수정한다() {
         // given
-        var modifyCategoryDto = new ModifyCategory("modifiedCategory", 1L, 1L, 1L);
+        var modifyCategory = fixtureMonkey.giveMeOne(ModifyCategory.class);
 
         // when
-        categoryService.modifyCustomCategory(modifyCategoryDto);
+        categoryService.modifyCustomCategory(modifyCategory);
 
         // then
         InOrder inOrder = inOrder(categoryModifier);
         then(categoryModifier)
             .should(inOrder)
-            .modify(modifyCategoryDto);
+            .modify(modifyCategory);
     }
 
     @Test
     void 커스텀_카테고리를_삭제한다() {
         // given
-        var deleteCategory = new DeleteCategory(1L, 1L, 1L);
+        var deleteCategory = fixtureMonkey.giveMeOne(DeleteCategory.class);
 
         // when
         categoryService.removeCustomCategory(deleteCategory);

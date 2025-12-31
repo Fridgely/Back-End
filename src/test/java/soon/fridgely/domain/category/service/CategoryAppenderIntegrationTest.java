@@ -1,5 +1,6 @@
 package soon.fridgely.domain.category.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.EntityStatus;
@@ -8,7 +9,6 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -20,6 +20,8 @@ import soon.fridgely.global.support.exception.ErrorType;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
 
@@ -35,16 +37,23 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    private Member member;
+    private Refrigerator refrigerator;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+    }
+
     @Test
     void 냉장고ID와_멤버ID를_받아_기본_카테고리들을_일괄_생성한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
 
         // when
         categoryAppender.appendDefaultCategories(key);
@@ -70,18 +79,11 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
     @Test
     void 기본_카테고리가_이미_존재하는_경우_중복_생성되지_않는다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
-
-        categoryAppender.appendDefaultCategories(key); // 기본 카테고리 최초 생성
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
 
         // when
-        categoryAppender.appendDefaultCategories(key); // 기본 카테고리 중복 생성 시도
+        categoryAppender.appendDefaultCategories(key); // 최초 생성
+        categoryAppender.appendDefaultCategories(key); // 중복 생성 시도
 
         // then
         List<Category> categories = categoryRepository.findAllByRefrigeratorAndStatus(refrigerator, EntityStatus.ACTIVE);
@@ -91,13 +93,11 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
     @Test
     void 커스텀_카테고리를_추가한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        var newCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
+        var newCategory = fixtureMonkey.giveMeBuilder(AddCategory.class)
+            .set("name", "newCategory")
+            .set("refrigeratorId", refrigerator.getId())
+            .set("memberId", member.getId())
+            .sample();
 
         // when
         categoryAppender.appendCustomCategory(newCategory);
@@ -110,31 +110,20 @@ class CategoryAppenderIntegrationTest extends IntegrationTestSupport {
     @Test
     void 동일한_냉장고에_중복된_이름의_카테고리를_추가하면_예외가_발생한다() {
         // given
-        Member member = createMember();
-        memberRepository.save(member);
+        var categoryName = "duplicateCategory";
+        var addCommand = fixtureMonkey.giveMeBuilder(AddCategory.class)
+            .set("name", categoryName)
+            .set("refrigeratorId", refrigerator.getId())
+            .set("memberId", member.getId())
+            .sample();
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        var newCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
-        categoryAppender.appendCustomCategory(newCategory);
-
-        var duplicatedCategory = new AddCategory("newCategory", refrigerator.getId(), member.getId());
+        categoryAppender.appendCustomCategory(addCommand); // 첫번째 카테고리 추가
 
         // expected
-        assertThatThrownBy(() -> categoryAppender.appendCustomCategory(duplicatedCategory))
+        assertThatThrownBy(() -> categoryAppender.appendCustomCategory(addCommand))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.DUPLICATE_CATEGORY_NAME);
-    }
-
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
     }
 
 }
