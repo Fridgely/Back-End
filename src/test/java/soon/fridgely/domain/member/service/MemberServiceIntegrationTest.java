@@ -39,7 +39,11 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 회원가입_시_회원_기본_냉장고_알림_설정_연결이_모두_생성된다() {
         // given
-        MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
+        var memberInfo = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
 
         // when
         long memberId = memberService.register(memberInfo);
