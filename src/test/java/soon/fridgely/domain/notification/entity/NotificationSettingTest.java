@@ -1,22 +1,31 @@
 package soon.fridgely.domain.notification.entity;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
 class NotificationSettingTest {
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
+    private Member member;
+
+    @BeforeEach
+    void setUp() {
+        this.member = member(fixtureMonkey).sample();
+    }
+
     @Test
     void 기본_알림_설정을_생성한다() {
-        // given
-        Member member = createMember();
-
         // when
         NotificationSetting setting = NotificationSetting.createDefaultSetting(member);
 
@@ -35,9 +44,11 @@ class NotificationSettingTest {
     })
     void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
         // given
-        Member member = createMember();
         NotificationSetting setting = NotificationSetting.createDefaultSetting(member);
-        AlertSchedule newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+        var newSchedule = fixtureMonkey.giveMeBuilder(AlertSchedule.class)
+            .set("notificationTime", LocalTime.of(hour, minute))
+            .set("daysBeforeExpiration", days)
+            .sample();
 
         // when
         setting.updateSettings(enabled, newSchedule);
@@ -46,15 +57,6 @@ class NotificationSettingTest {
         assertThat(setting)
             .extracting("enabled", "alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration")
             .containsExactly(enabled, LocalTime.of(hour, minute), days);
-    }
-
-    private Member createMember() {
-        return Member.builder()
-            .loginId("testId")
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
     }
 
 }
