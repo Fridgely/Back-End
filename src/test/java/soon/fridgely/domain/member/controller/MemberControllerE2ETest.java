@@ -1,5 +1,6 @@
 package soon.fridgely.domain.member.controller;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,6 +19,7 @@ import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
@@ -49,7 +51,11 @@ class MemberControllerE2ETest extends E2ETestSupport {
     @Test
     void 회원가입_성공_시_201_응답과_멤버_냉장고_연결_기본카테고리가_생성된다() {
         // given
-        var request = new MemberRegisterRequest("testId", "testPassword", "testNickname");
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
         var httpEntity = new HttpEntity<>(request);
 
         // when
@@ -103,10 +109,18 @@ class MemberControllerE2ETest extends E2ETestSupport {
     @Test
     void 중복되는_ID로_요청시_예외가_발생한다() {
         // given
-        var setupInfo = new MemberInfo("testId", "testPassword", "testNickname");
+        var setupInfo = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
         memberService.register(setupInfo);
 
-        var request = new MemberRegisterRequest("testId", "testPassword", "testNickname");
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
         var httpEntity = new HttpEntity<>(request);
 
         // when
@@ -125,29 +139,48 @@ class MemberControllerE2ETest extends E2ETestSupport {
     }
 
     private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
         return Stream.of(
             Arguments.of(
-                new MemberRegisterRequest(null, "password", "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", null)
+                    .sample(),
                 "loginId", "ID는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("", "password", "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", "")
+                    .sample(),
                 "loginId", "ID는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", null, "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", null)
+                    .sample(),
                 "password", "비밀번호는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", "", "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", "")
+                    .sample(),
                 "password", "비밀번호는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", "password", null),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", null)
+                    .sample(),
                 "nickname", "닉네임은 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", "password", ""),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", "")
+                    .sample(),
                 "nickname", "닉네임은 필수입니다."
             )
         );

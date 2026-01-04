@@ -19,7 +19,11 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 회원을_생성한다() {
         // given
-        MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
+        var memberInfo = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
 
         // when
         Member member = memberManager.register(memberInfo);
@@ -33,7 +37,11 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 회원을_생성할때_비밀번호는_암호화된다() {
         // given
-        MemberInfo memberInfo = new MemberInfo("testId", "testPassword", "testNickname");
+        var memberInfo = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
 
         // when
         Member member = memberManager.register(memberInfo);
@@ -47,8 +55,16 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 중복된_아이디로_회원_생성을_시도하면_예외가_발생한다() {
         // given
-        MemberInfo memberInfo1 = new MemberInfo("testId", "testPassword1", "testNickname1");
-        MemberInfo memberInfo2 = new MemberInfo("testId", "testPassword2", "testNickname2");
+        var memberInfo1 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword1")
+            .set("nickname", "testNickname1")
+            .sample();
+        var memberInfo2 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword2")
+            .set("nickname", "testNickname2")
+            .sample();
 
         // when
         memberManager.register(memberInfo1);

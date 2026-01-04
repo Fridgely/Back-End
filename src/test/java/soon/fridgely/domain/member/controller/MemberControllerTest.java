@@ -1,5 +1,6 @@
 package soon.fridgely.domain.member.controller;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -9,6 +10,7 @@ import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
@@ -29,7 +31,11 @@ class MemberControllerTest extends ControllerTestSupport {
     @Test
     void 회원을_등록한다() throws Exception {
         // given
-        var request = new MemberRegisterRequest("testId", "testPassword", "testNickname");
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
 
         given(memberService.register(request.toInfo()))
             .willReturn(1L);
@@ -65,7 +71,11 @@ class MemberControllerTest extends ControllerTestSupport {
     @Test
     void 중복된_ID로_회원_등록시_예외가_발생한다() throws Exception {
         // given
-        var request = new MemberRegisterRequest("duplicateId", "password", "nickname");
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "duplicateId")
+            .set("password", "password")
+            .set("nickname", "nickname")
+            .sample();
 
         given(memberService.register(request.toInfo()))
             .willThrow(new CoreException(ErrorType.DUPLICATE_LOGIN_ID));
@@ -85,7 +95,9 @@ class MemberControllerTest extends ControllerTestSupport {
     @Test
     void 디바이스_토큰을_동기화한다() throws Exception {
         // given
-        var request = new DeviceTokenSyncRequest("fcm-token-12345");
+        var request = fixtureMonkey.giveMeBuilder(DeviceTokenSyncRequest.class)
+            .set("token", "fcm-token-12345")
+            .sample();
 
         // expected
         mockMvc.perform(
@@ -120,29 +132,48 @@ class MemberControllerTest extends ControllerTestSupport {
     }
 
     private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
         return Stream.of(
             Arguments.of(
-                new MemberRegisterRequest(null, "password", "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", null)
+                    .sample(),
                 "loginId", "ID는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", null, "nickname"),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", "")
+                    .sample(),
+                "loginId", "ID는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", null)
+                    .sample(),
                 "password", "비밀번호는 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("testId", "password", null),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", "")
+                    .sample(),
+                "password", "비밀번호는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", null)
+                    .sample(),
                 "nickname", "닉네임은 필수입니다."
             ),
             Arguments.of(
-                new MemberRegisterRequest("", "password", "nickname"),
-                "loginId", "ID는 필수입니다."
-            ),
-            Arguments.of(
-                new MemberRegisterRequest("testId", "", "nickname"),
-                "password", "비밀번호는 필수입니다."
-            ),
-            Arguments.of(
-                new MemberRegisterRequest("testId", "password", ""),
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", "")
+                    .sample(),
                 "nickname", "닉네임은 필수입니다."
             )
         );
