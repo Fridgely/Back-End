@@ -22,7 +22,7 @@ public final class MemberDeviceFixture {
         return fixtureMonkey.giveMeBuilder(MemberDevice.class)
             .set("member", member)
             .set("token", Arbitraries.strings().ofMinLength(10).ofMaxLength(512))
-            .set("lastUsedAt", LocalDateTime.now())
+            .set("lastUsedAt", LocalDateTime.of(2024, 1, 1, 0, 0))
             .set("status", EntityStatus.ACTIVE)
             .setNull("id");
     }
