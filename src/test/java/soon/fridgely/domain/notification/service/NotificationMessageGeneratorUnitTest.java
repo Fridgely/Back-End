@@ -1,6 +1,7 @@
 package soon.fridgely.domain.notification.service;
 
 import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.notification.dto.command.NotificationMessage;
@@ -16,8 +17,12 @@ class NotificationMessageGeneratorUnitTest {
 
     private final NotificationMessageGenerator generator = new NotificationMessageGenerator();
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+    private String foodName;
 
-    private String foodName = fixtureMonkey.giveMeOne(String.class);
+    @BeforeEach
+    void setUp() {
+        this.foodName = fixtureMonkey.giveMeOne(String.class);
+    }
 
     @Test
     void 음식이_1개일_때는_해당_음식의_이름으로_메시지를_생성한다() {
