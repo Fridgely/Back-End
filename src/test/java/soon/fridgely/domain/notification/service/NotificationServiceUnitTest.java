@@ -1,5 +1,6 @@
 package soon.fridgely.domain.notification.service;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -11,6 +12,7 @@ import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;
 import java.util.function.Consumer;
@@ -36,10 +38,12 @@ class NotificationServiceUnitTest {
     @Captor
     private ArgumentCaptor<Consumer<NotificationSetting>> taskCaptor;
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
     @Test
     void 유통기한_임박_알림_배치를_실행한다() {
         // given
-        BatchResult mockResult = BatchResult.of(100, 500L);
+        BatchResult mockResult = fixtureMonkey.giveMeOne(BatchResult.class);
         given(notificationBatchExecutor.executeForExpiration(any(LocalTime.class), any(LocalTime.class), any()))
             .willReturn(mockResult);
 
@@ -55,7 +59,7 @@ class NotificationServiceUnitTest {
     @Test
     void 재고_소진_알림_배치를_실행한다() {
         // given
-        BatchResult mockResult = BatchResult.of(50, 300L);
+        var mockResult = fixtureMonkey.giveMeOne(BatchResult.class);
         given(notificationBatchExecutor.executeForStockSummary(any()))
             .willReturn(mockResult);
 

@@ -1,5 +1,6 @@
 package soon.fridgely.domain.notification.controller;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -9,6 +10,7 @@ import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRe
 import soon.fridgely.domain.notification.dto.response.NotificationSettingDetailResponse;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;
 import java.util.stream.Stream;
@@ -29,7 +31,12 @@ class NotificationSettingControllerTest extends ControllerTestSupport {
     @Test
     void 내_알림_설정을_조회한다() throws Exception {
         // given
-        var response = new NotificationSettingDetailResponse(LocalTime.of(9, 0), 3, true);
+        var response = fixtureMonkey.giveMeBuilder(NotificationSettingDetailResponse.class)
+            .set("notificationTime", LocalTime.of(9, 0))
+            .set("daysBeforeExpiration", 3)
+            .set("enabled", true)
+            .sample();
+
         given(notificationSettingService.findNotificationSetting(anyLong())).willReturn(response);
 
         // expected
@@ -49,7 +56,7 @@ class NotificationSettingControllerTest extends ControllerTestSupport {
     @Test
     void 내_알림_설정을_수정한다() throws Exception {
         // given
-        var request = new NotificationSettingUpdateRequest(LocalTime.of(11, 0), 2, true);
+        var request = fixtureMonkey.giveMeOne(NotificationSettingUpdateRequest.class);
 
         // expected
         mockMvc.perform(
@@ -79,21 +86,34 @@ class NotificationSettingControllerTest extends ControllerTestSupport {
     }
 
     private static Stream<Arguments> provideInvalidUpdateRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
         return Stream.of(
             Arguments.of(
-                new NotificationSettingUpdateRequest(null, 3, true),
+                fixtureMonkey.giveMeBuilder(NotificationSettingUpdateRequest.class)
+                    .validOnly(false)
+                    .setNull("notificationTime")
+                    .sample(),
                 "notificationTime", "알림 시간은 필수입니다."
             ),
             Arguments.of(
-                new NotificationSettingUpdateRequest(LocalTime.of(9, 0), 0, true),
+                fixtureMonkey.giveMeBuilder(NotificationSettingUpdateRequest.class)
+                    .validOnly(false)
+                    .set("daysBeforeExpiration", 0)
+                    .sample(),
                 "daysBeforeExpiration", "알림 기준일은 1일 이상이어야 합니다."
             ),
             Arguments.of(
-                new NotificationSettingUpdateRequest(LocalTime.of(9, 0), -1, true),
+                fixtureMonkey.giveMeBuilder(NotificationSettingUpdateRequest.class)
+                    .validOnly(false)
+                    .set("daysBeforeExpiration", -1)
+                    .sample(),
                 "daysBeforeExpiration", "알림 기준일은 1일 이상이어야 합니다."
             ),
             Arguments.of(
-                new NotificationSettingUpdateRequest(LocalTime.of(9, 0), 31, true),
+                fixtureMonkey.giveMeBuilder(NotificationSettingUpdateRequest.class)
+                    .validOnly(false)
+                    .set("daysBeforeExpiration", 31)
+                    .sample(),
                 "daysBeforeExpiration", "알림 기준일은 최대 30일까지 설정 가능합니다."
             )
         );
