@@ -1,11 +1,11 @@
 package soon.fridgely.domain.notification.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
@@ -13,9 +13,10 @@ import soon.fridgely.domain.notification.repository.NotificationSettingRepositor
 import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.NotificationSettingFixture.notificationSetting;
 
 class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
 
@@ -28,12 +29,17 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MemberRepository memberRepository;
 
+    private Member member;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+    }
+
     @Test
     void 기본_알림_설정을_생성한다() {
-        // given
-        Member member = createMember("testId");
-        memberRepository.save(member);
-
         // when
         notificationSettingManager.createDefaultSetting(member);
 
@@ -46,10 +52,6 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void 이미_설정이_존재하면_새로_생성하지_않는다() {
-        // given
-        Member member = createMember("testId");
-        memberRepository.save(member);
-
         // when
         notificationSettingManager.createDefaultSetting(member);
         long countBefore = notificationSettingRepository.count();
@@ -64,16 +66,16 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
     @Test
     void 다른_회원에_대해서는_각각_설정이_생성된다() {
         // given
-        Member member1 = createMember("testId1");
-        Member member2 = createMember("testId2");
-        memberRepository.saveAll(List.of(member1, member2));
+        Member member2 = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
 
         // when
-        notificationSettingManager.createDefaultSetting(member1);
+        notificationSettingManager.createDefaultSetting(member);
         notificationSettingManager.createDefaultSetting(member2);
 
         // then
-        NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member1.getId()).orElseThrow();
+        NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
         assertThat(setting1).isNotNull();
 
         NotificationSetting setting2 = notificationSettingRepository.findByMemberId(member2.getId()).orElseThrow();
@@ -92,13 +94,11 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
     })
     void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
         // given
-        Member member = createMember("testId");
-        memberRepository.save(member);
+        notificationSettingRepository.save(
+            notificationSetting(fixtureMonkey, member).sample()
+        );
 
-        NotificationSetting defaultSetting = NotificationSetting.createDefaultSetting(member);
-        notificationSettingRepository.save(defaultSetting);
-
-        AlertSchedule newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+        var newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
 
         // when
         notificationSettingManager.update(member.getId(), newSchedule, enabled);
@@ -108,15 +108,6 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(setting).isNotNull()
             .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled")
             .containsExactly(LocalTime.of(hour, minute), days, enabled);
-    }
-
-    private Member createMember(String loginId) {
-        return Member.builder()
-            .loginId(loginId)
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
     }
 
 }

@@ -1,5 +1,6 @@
 package soon.fridgely.domain.notification.service;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +11,7 @@ import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRe
 import soon.fridgely.domain.notification.dto.response.NotificationSettingDetailResponse;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;
 
@@ -32,11 +34,13 @@ class NotificationSettingServiceUnitTest {
     @Mock
     private NotificationSettingFinder notificationSettingFinder;
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
     @Test
     void 회원의_알림_설정을_조회한다() {
         // given
         long memberId = 1L;
-        NotificationSetting setting = NotificationSetting.createDefaultSetting(mock(Member.class));
+        var setting = NotificationSetting.createDefaultSetting(mock(Member.class));
 
         given(notificationSettingFinder.findNotificationSetting(memberId)).willReturn(setting);
 
@@ -53,13 +57,14 @@ class NotificationSettingServiceUnitTest {
     void 회원의_알림_설정을_수정한다() {
         // given
         long memberId = 1L;
+        var request = fixtureMonkey.giveMeOne(NotificationSettingUpdateRequest.class);
 
         // when
-        notificationSettingService.updateNotificationSetting(memberId, new NotificationSettingUpdateRequest(LocalTime.of(10, 30), 5, false));
+        notificationSettingService.updateNotificationSetting(memberId, request);
 
         // then
         then(notificationSettingManager).should()
-            .update(eq(memberId), refEq(AlertSchedule.of(LocalTime.of(10, 30), 5)), eq(false));
+            .update(eq(memberId), refEq(AlertSchedule.of(request.notificationTime(), request.daysBeforeExpiration())), eq(request.enabled()));
     }
 
 }

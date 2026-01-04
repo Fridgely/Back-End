@@ -1,5 +1,6 @@
 package soon.fridgely.domain.notification.batch;
 
+import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.service.NotificationSettingFinder;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -25,6 +27,8 @@ import static org.mockito.Mockito.times;
 @ExtendWith(MockitoExtension.class)
 class NotificationBatchExecutorUnitTest {
 
+    private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+
     @InjectMocks
     private NotificationBatchExecutor executor;
 
@@ -38,9 +42,11 @@ class NotificationBatchExecutorUnitTest {
             .willReturn(new SliceImpl<>(List.of()));
 
         Consumer<NotificationSetting> task = mockTask();
+        LocalTime startTime = fixtureMonkey.giveMeOne(LocalTime.class);
+        LocalTime endTime = startTime.plusMinutes(59);
 
         // when
-        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
+        BatchResult result = executor.executeForExpiration(startTime, endTime, task);
 
         // then
         assertThat(result.submittedCount()).isZero();
@@ -65,9 +71,11 @@ class NotificationBatchExecutorUnitTest {
             .willReturn(secondPage);
 
         Consumer<NotificationSetting> task = mockTask();
+        LocalTime startTime = fixtureMonkey.giveMeOne(LocalTime.class);
+        LocalTime endTime = startTime.plusMinutes(59);
 
         // when
-        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), task);
+        BatchResult result = executor.executeForExpiration(startTime, endTime, task);
 
         // then
         then(finder).should()
@@ -109,8 +117,11 @@ class NotificationBatchExecutorUnitTest {
         given(finder.findAllActiveByTime(any(), any(), anyLong(), any()))
             .willReturn(new SliceImpl<>(List.of()));
 
+        LocalTime startTime = fixtureMonkey.giveMeOne(LocalTime.class);
+        LocalTime endTime = startTime.plusMinutes(59);
+
         // when
-        BatchResult result = executor.executeForExpiration(LocalTime.of(9, 0), LocalTime.of(9, 59), mockTask());
+        BatchResult result = executor.executeForExpiration(startTime, endTime, mockTask());
 
         // then
         assertThat(result.durationMillis()).isNotNegative();

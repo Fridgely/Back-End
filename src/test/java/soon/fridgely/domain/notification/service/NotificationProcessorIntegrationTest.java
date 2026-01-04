@@ -1,22 +1,18 @@
 package soon.fridgely.domain.notification.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
-import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -27,7 +23,6 @@ import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.notification.NotificationSender;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -35,6 +30,11 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.food;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.NotificationSettingFixture.notificationSetting;
+import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
 
@@ -62,26 +62,38 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @MockitoBean
     private NotificationSender notificationSender;
 
+    private Member member;
+    private Refrigerator refrigerator;
+    private Category category;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        this.refrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+        memberRefrigeratorRepository.save(
+            MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER)
+        );
+        this.category = categoryRepository.save(
+            category(fixtureMonkey, refrigerator, member).sample()
+        );
+    }
+
     @Test
     void 만료_예정_음식이_있으면_알림을_발송한다() {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
+        foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", LocalDateTime.now().plusDays(3L))
+                .sample()
+        );
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, "사과", LocalDateTime.now().plusDays(3L));
-        foodRepository.save(food);
-
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
+        var setting = notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+            .sample();
         notificationSettingRepository.save(setting);
 
         // when
@@ -95,12 +107,10 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 만료_예정_음식이_없으면_알림을_발송하지_않는다() throws InterruptedException {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
-
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
-        notificationSettingRepository.save(setting);
+        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+            .sample()
+        );
 
         // when
         notificationProcessor.processExpiration(member.getId());
@@ -114,25 +124,20 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 알림_스케줄의_일수에_따라_정확한_날짜의_음식을_조회한다() {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
+        foodRepository.saveAll(List.of(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", "사과")
+                .set("expirationDate", LocalDateTime.now().plusDays(7L))
+                .sample(),
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", "바나나")
+                .set("expirationDate", LocalDateTime.now().plusDays(3L))
+                .sample()
+        ));
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("과일", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
-        Food food1 = createFood(refrigerator, member, category, "사과", LocalDateTime.now().plusDays(7L));
-        Food food2 = createFood(refrigerator, member, category, "바나나", LocalDateTime.now().plusDays(3L));
-        foodRepository.saveAll(List.of(food1, food2));
-
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 7);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
-        notificationSettingRepository.save(setting);
+        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 7))
+            .sample());
 
         // when
         notificationProcessor.processExpiration(member.getId());
@@ -147,26 +152,22 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 여러_음식이_만료_예정일_때_모든_음식을_포함한_알림을_발송한다() {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("유제품", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
         LocalDateTime expiryDateTime = LocalDateTime.now().plusDays(1L);
-        Food food1 = createFood(refrigerator, member, category, "우유", expiryDateTime);
-        Food food2 = createFood(refrigerator, member, category, "비요뜨", expiryDateTime);
-        Food food3 = createFood(refrigerator, member, category, "요구르트", expiryDateTime);
-        foodRepository.saveAll(List.of(food1, food2, food3));
+        foodRepository.saveAll(List.of(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", expiryDateTime)
+                .sample(),
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", expiryDateTime)
+                .sample(),
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", expiryDateTime)
+                .sample()
+        ));
 
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 1);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
+        var setting = notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 1))
+            .sample();
         notificationSettingRepository.save(setting);
 
         // when
@@ -180,63 +181,64 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 다른_회원의_음식은_알림에_포함되지_않는다() {
         // given
-        Member member1 = createMember("user1");
-        Member member2 = createMember("user2");
-        memberRepository.saveAll(List.of(member1, member2));
+        Member otherMember = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
 
-        Refrigerator refrigerator1 = Refrigerator.register(member1.getNickname());
-        Refrigerator refrigerator2 = Refrigerator.register(member2.getNickname());
-        refrigeratorRepository.saveAll(List.of(refrigerator1, refrigerator2));
+        Refrigerator otherRefrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
 
-        MemberRefrigerator memberRefrigerator1 = MemberRefrigerator.link(member1, refrigerator1, RefrigeratorRole.OWNER);
-        MemberRefrigerator memberRefrigerator2 = MemberRefrigerator.link(member2, refrigerator2, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.saveAll(List.of(memberRefrigerator1, memberRefrigerator2));
-
-        Category category1 = Category.register("과일", refrigerator1, member1, CategoryType.DEFAULT);
-        Category category2 = Category.register("과일", refrigerator2, member2, CategoryType.DEFAULT);
-        categoryRepository.saveAll(List.of(category1, category2));
+        Category otherCategory = categoryRepository.save(
+            category(fixtureMonkey, otherRefrigerator, otherMember).sample()
+        );
 
         LocalDateTime expiryDateTime = LocalDateTime.now().plusDays(3L);
-        Food food1 = createFood(refrigerator1, member1, category1, "바나나", expiryDateTime);
-        Food food2 = createFood(refrigerator2, member2, category2, "사과", expiryDateTime);
-        foodRepository.saveAll(List.of(food1, food2));
+        foodRepository.saveAll(List.of(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", expiryDateTime)
+                .sample(),
+            food(fixtureMonkey, otherRefrigerator, otherMember, otherCategory)
+                .set("expirationDate", expiryDateTime)
+                .sample()
+        ));
 
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member1, schedule, true);
+        var setting = notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+            .sample();
         notificationSettingRepository.save(setting);
 
         // when
-        notificationProcessor.processExpiration(member1.getId());
+        notificationProcessor.processExpiration(member.getId());
 
         // then
         verify(notificationSender, timeout(2000))
-            .send(eq(member1.getId()), anyString(), anyString());
+            .send(eq(member.getId()), anyString(), anyString());
         verify(notificationSender, never())
-            .send(eq(member2.getId()), anyString(), anyString());
+            .send(eq(otherMember.getId()), anyString(), anyString());
     }
 
     @Test
     void 정확히_N일_후_만료되는_음식만_조회한다() {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
+        foodRepository.saveAll(List.of(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", "우유")
+                .set("expirationDate", LocalDateTime.now().plusDays(3L))
+                .sample(),
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", "계란")
+                .set("expirationDate", LocalDateTime.now().plusDays(2L))
+                .sample(),
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", "치즈")
+                .set("expirationDate", LocalDateTime.now().plusDays(4L))
+                .sample()
+        ));
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("유제품", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
-        Food food1 = createFood(refrigerator, member, category, "우유", LocalDateTime.now().plusDays(3L));
-        Food food2 = createFood(refrigerator, member, category, "계란", LocalDateTime.now().plusDays(2L));
-        Food food3 = createFood(refrigerator, member, category, "치즈", LocalDateTime.now().plusDays(4L));
-        foodRepository.saveAll(List.of(food1, food2, food3));
-
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
+        var setting = notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+            .sample();
         notificationSettingRepository.save(setting);
 
         // when
@@ -255,25 +257,17 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 재고_소진_알림이_켜져있으면_알림을_발송한다() {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
+        foodRepository.save(food(fixtureMonkey, refrigerator, member, category)
+            .set("name", "우유")
+            .set("expirationDate", LocalDateTime.now())
+            .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.G))
+            .sample());
 
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
-        memberRefrigeratorRepository.save(memberRefrigerator);
-
-        Category category = Category.register("재고", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
-        Food exhaustedFood = createFood(refrigerator, member, category, "우유", LocalDateTime.now());
-        exhaustedFood.consume(exhaustedFood.getQuantity());
-        foodRepository.save(exhaustedFood);
-
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule, true);
-        notificationSettingRepository.save(setting);
+        notificationSettingRepository.save(
+            notificationSetting(fixtureMonkey, member)
+                .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+                .sample()
+        );
 
         // when
         notificationProcessor.processStockSummary(member.getId());
@@ -289,21 +283,15 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 재고_소진_알림이_꺼져있으면_알림을_발송하지_않는다() throws InterruptedException {
         // given
-        Member member = createMember("user1");
-        memberRepository.save(member);
+        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+            .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
+            .set("enabled", false)
+            .sample());
 
-        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
-        NotificationSetting setting = createNotificationSetting(member, schedule, false);
-        notificationSettingRepository.save(setting);
-
-        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
-        refrigeratorRepository.save(refrigerator);
-
-        Category category = Category.register("재고", refrigerator, member, CategoryType.DEFAULT);
-        categoryRepository.save(category);
-
-        Food food = createFood(refrigerator, member, category, "음식", LocalDateTime.now());
-        foodRepository.save(food);
+        foodRepository.save(food(fixtureMonkey, refrigerator, member, category)
+            .set("name", "음식")
+            .set("expirationDate", LocalDateTime.now())
+            .sample());
 
         // when
         notificationProcessor.processStockSummary(member.getId());
@@ -311,38 +299,6 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         // then
         Thread.sleep(500);
         verify(notificationSender, never()).send(anyLong(), anyString(), anyString());
-    }
-
-    private Member createMember(String loginId) {
-        return Member.builder()
-            .loginId(loginId)
-            .password("testPassword")
-            .nickname("testNickname")
-            .role(MemberRole.MEMBER)
-            .build();
-    }
-
-    private Food createFood(Refrigerator refrigerator, Member member, Category category, String name, LocalDateTime expirationDate) {
-        return Food.register(
-            refrigerator,
-            member,
-            name,
-            category,
-            new Quantity(new BigDecimal("1.0"), Unit.KG),
-            expirationDate,
-            StorageType.FROZEN,
-            "testDescription",
-            "http://example.com/image.jpg",
-            LocalDate.now()
-        );
-    }
-
-    private NotificationSetting createNotificationSetting(Member member, AlertSchedule schedule, boolean enabled) {
-        return NotificationSetting.builder()
-            .member(member)
-            .alertSchedule(schedule)
-            .enabled(enabled)
-            .build();
     }
 
 }
