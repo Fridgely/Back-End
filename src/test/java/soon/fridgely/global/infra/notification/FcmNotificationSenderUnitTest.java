@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,7 +22,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
+import static soon.fridgely.global.support.fixture.MemberDeviceFixture.memberDevice;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
 @ExtendWith(MockitoExtension.class)
 class FcmNotificationSenderUnitTest {
@@ -37,23 +41,33 @@ class FcmNotificationSenderUnitTest {
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
+    private Member member;
+    private MemberDevice memberDevice;
+
+    @BeforeEach
+    void setUp() {
+        this.member = member(fixtureMonkey)
+            .set("id", 1L)
+            .sample();
+        this.memberDevice = memberDevice(fixtureMonkey, member)
+            .sample();
+    }
+
     @Test
     void 회원의_모든_디바이스에_알림을_전송한다() throws FirebaseMessagingException {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
+        MemberDevice device2 = memberDevice(fixtureMonkey, member).sample();
 
-        Member member = createMember(1L);
-        MemberDevice device1 = createMemberDevice(fixtureMonkey.giveMeOne(String.class));
-        MemberDevice device2 = createMemberDevice(fixtureMonkey.giveMeOne(String.class));
-        given(memberDeviceRepository.findAllByMemberId(1L)).willReturn(List.of(device1, device2));
+        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
 
         // when
         fcmNotificationSender.send(member.getId(), title, body);
 
         // then
-        verify(firebaseMessaging, times(2)).send(any(Message.class));
+        then(firebaseMessaging).should(times(2)).send(any(Message.class));
     }
 
     @Test
@@ -61,14 +75,15 @@ class FcmNotificationSenderUnitTest {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
-        long memberId = 1L;
+        var memberId = 1L;
+
         given(memberDeviceRepository.findAllByMemberId(memberId)).willReturn(Collections.emptyList());
 
         // when
         fcmNotificationSender.send(memberId, title, body);
 
         // then
-        verify(firebaseMessaging, never()).send(any(Message.class));
+        then(firebaseMessaging).should(never()).send(any(Message.class));
     }
 
     @Test
@@ -77,9 +92,7 @@ class FcmNotificationSenderUnitTest {
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
 
-        Member member = createMember(1L);
-        MemberDevice device = createMemberDevice(fixtureMonkey.giveMeOne(String.class));
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(device));
+        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice));
         given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
 
         // when
@@ -87,7 +100,7 @@ class FcmNotificationSenderUnitTest {
 
         // then
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        verify(firebaseMessaging).send(messageCaptor.capture());
+        then(firebaseMessaging).should().send(messageCaptor.capture());
         assertThat(messageCaptor.getValue()).isNotNull();
     }
 
@@ -96,11 +109,9 @@ class FcmNotificationSenderUnitTest {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
+        var device2 = memberDevice(fixtureMonkey, member).sample();
 
-        Member member = createMember(1L);
-        MemberDevice device1 = createMemberDeviceWithMember(member, fixtureMonkey.giveMeOne(String.class));
-        MemberDevice device2 = createMemberDevice(fixtureMonkey.giveMeOne(String.class));
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(device1, device2));
+        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class)))
             .willThrow(mock(FirebaseMessagingException.class))
             .willReturn("messageId");
@@ -109,7 +120,7 @@ class FcmNotificationSenderUnitTest {
         fcmNotificationSender.send(member.getId(), title, body);
 
         // then
-        verify(firebaseMessaging, times(2)).send(any(Message.class));
+        then(firebaseMessaging).should(times(2)).send(any(Message.class));
     }
 
     @Test
@@ -118,34 +129,14 @@ class FcmNotificationSenderUnitTest {
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
 
-        Member member = createMember(1L);
-        MemberDevice device = createMemberDevice(fixtureMonkey.giveMeOne(String.class));
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(device));
+        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice));
         given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
 
         // when
         fcmNotificationSender.send(member.getId(), title, body);
 
         // then
-        verify(firebaseMessaging, times(1)).send(any(Message.class));
-    }
-
-    private Member createMember(long id) {
-        Member member = mock(Member.class);
-        given(member.getId()).willReturn(id);
-        return member;
-    }
-
-    private MemberDevice createMemberDevice(String token) {
-        MemberDevice device = mock(MemberDevice.class);
-        given(device.getToken()).willReturn(token);
-        return device;
-    }
-
-    private MemberDevice createMemberDeviceWithMember(Member member, String token) {
-        MemberDevice device = createMemberDevice(token);
-        given(device.getMember()).willReturn(member);
-        return device;
+        then(firebaseMessaging).should(times(1)).send(any(Message.class));
     }
 
 }
