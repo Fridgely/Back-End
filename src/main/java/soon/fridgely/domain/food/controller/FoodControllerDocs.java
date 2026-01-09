@@ -40,7 +40,7 @@ public interface FoodControllerDocs {
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> createFood(
         @Parameter(description = "식재료 정보") FoodCreateRequest request,
-        @Parameter(description = "식재료 이미지 파일 (최대 10MB, jpg/png/gif)") MultipartFile file,
+        @Parameter(description = "식재료 이미지 파일 (최대 10MB, jpg/png/gif)") MultipartFile image,
         @Parameter(hidden = true) Long memberId,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
     );

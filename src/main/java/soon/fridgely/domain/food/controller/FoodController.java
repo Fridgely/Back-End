@@ -30,11 +30,11 @@ public class FoodController implements FoodControllerDocs {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> createFood(
         @RequestPart(value = "request") @Valid FoodCreateRequest request,
-        @RequestPart(value = "image", required = false) MultipartFile file,
+        @RequestPart(value = "image", required = false) MultipartFile image,
         @LoginMember Long memberId,
         @PathVariable long refrigeratorId
     ) {
-        foodService.createFood(request, file, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        foodService.createFood(request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 
