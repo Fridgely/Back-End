@@ -18,10 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/refrigerators")
 @RestController
-public class RefrigeratorController {
+public class RefrigeratorController implements RefrigeratorControllerDocs {
 
     private final RefrigeratorService refrigeratorService;
 
+    @Override
     @GetMapping("/{refrigeratorId}")
     public ResponseEntity<ApiResponse<RefrigeratorResponse>> findRefrigerator(
         @LoginMember Long memberId,
@@ -31,6 +32,7 @@ public class RefrigeratorController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<ApiResponse<List<RefrigeratorResponse>>> findAllMyRefrigerators(
         @LoginMember Long memberId
@@ -39,6 +41,7 @@ public class RefrigeratorController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @Override
     @PatchMapping("/{refrigeratorId}")
     public ResponseEntity<ApiResponse<?>> updateRefrigerator(
         @RequestBody @Valid RefrigeratorUpdateRequest request,
@@ -49,6 +52,7 @@ public class RefrigeratorController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @Override
     @PostMapping("/{refrigeratorId}/invitation-codes")
     public ResponseEntity<ApiResponse<InvitationCodeResponse>> generateInvitationCode(
         @LoginMember Long memberId,
@@ -58,6 +62,7 @@ public class RefrigeratorController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @PostMapping("/invitation-codes/join")
     public ResponseEntity<ApiResponse<?>> joinByInvitationCode(
         @RequestBody @Valid InvitationCodeJoinRequest request,
