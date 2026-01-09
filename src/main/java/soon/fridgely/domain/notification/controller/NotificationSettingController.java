@@ -13,10 +13,11 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/notifications/settings")
 @RestController
-public class NotificationSettingController {
+public class NotificationSettingController implements NotificationSettingControllerDocs {
 
     private final NotificationSettingService notificationSettingService;
 
+    @Override
     @GetMapping
     public ResponseEntity<ApiResponse<NotificationSettingDetailResponse>> findNotificationSetting(
         @LoginMember Long memberId
@@ -25,6 +26,7 @@ public class NotificationSettingController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @PatchMapping
     public ResponseEntity<ApiResponse<?>> updateNotificationSetting(
         @RequestBody @Valid NotificationSettingUpdateRequest request,

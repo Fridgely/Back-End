@@ -20,10 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/refrigerators")
 @RestController
-public class CategoryController {
+public class CategoryController implements CategoryControllerDocs {
 
     private final CategoryService categoryService;
 
+    @Override
     @PostMapping("/{refrigeratorId}/categories")
     public ResponseEntity<ApiResponse<?>> append(
         @RequestBody @Valid CategoryAddRequest request,
@@ -34,6 +35,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 
+    @Override
     @GetMapping("/{refrigeratorId}/categories/{categoryId}")
     public ResponseEntity<ApiResponse<CategoryDetailResponse>> find(
         @LoginMember Long memberId,
@@ -44,6 +46,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @GetMapping("/{refrigeratorId}/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> findAll(
         @LoginMember Long memberId,
@@ -53,6 +56,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
+    @Override
     @PatchMapping("/{refrigeratorId}/categories/{categoryId}")
     public ResponseEntity<ApiResponse<?>> modify(
         @RequestBody @Valid CategoryModifyRequest request,
@@ -64,6 +68,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @Override
     @DeleteMapping("/{refrigeratorId}/categories/{categoryId}")
     public ResponseEntity<ApiResponse<?>> remove(
         @LoginMember Long memberId,

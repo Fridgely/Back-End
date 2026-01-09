@@ -16,10 +16,11 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/foods")
 @RestController
-public class MyFoodController {
+public class MyFoodController implements MyFoodControllerDocs {
 
     private final FoodService foodService;
 
+    @Override
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<FoodStatusResponse>> findAllMyFoodsGroupedByStatus(
         @LoginMember Long memberId
