@@ -14,10 +14,11 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/members")
 @RestController
-public class MemberController {
+public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
 
+    @Override
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> register(
         @RequestBody @Valid MemberRegisterRequest request
@@ -28,6 +29,7 @@ public class MemberController {
             .body(ApiResponse.success(memberId));
     }
 
+    @Override
     @PutMapping("/me/devices")
     public ResponseEntity<ApiResponse<?>> syncToken(
         @RequestBody @Valid DeviceTokenSyncRequest request,
