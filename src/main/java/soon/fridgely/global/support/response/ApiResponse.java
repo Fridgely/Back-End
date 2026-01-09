@@ -1,12 +1,21 @@
 package soon.fridgely.global.support.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import soon.fridgely.global.support.exception.ErrorMessage;
 import soon.fridgely.global.support.exception.ErrorType;
 
+@Schema(description = "API 공통 응답")
 public record ApiResponse<T>(
+
+    @Schema(description = "응답 결과 타입", example = "SUCCESS")
     ResultType result,
+
+    @Schema(description = "응답 데이터")
     T data,
+
+    @Schema(description = "에러 정보 (에러 발생 시)")
     ErrorMessage error
+
 ) {
 
     public static ApiResponse<?> success() {
