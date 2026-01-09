@@ -22,10 +22,11 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/refrigerators/{refrigeratorId}/foods")
 @RestController
-public class FoodController {
+public class FoodController implements FoodControllerDocs {
 
     private final FoodService foodService;
 
+    @Override
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> createFood(
         @RequestPart(value = "request") @Valid FoodCreateRequest request,
@@ -37,6 +38,7 @@ public class FoodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 
+    @Override
     @PatchMapping(value = "/{foodId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> updateFood(
         @RequestPart(value = "request") @Valid FoodUpdateRequest request,
@@ -49,6 +51,7 @@ public class FoodController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @Override
     @PatchMapping("/{foodId}/stock")
     public ResponseEntity<ApiResponse<?>> updateFoodStock(
         @RequestBody @Valid FoodStockUpdateRequest request,
@@ -60,6 +63,7 @@ public class FoodController {
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @Override
     @GetMapping("/{foodId}")
     public ResponseEntity<ApiResponse<FoodDetailResponse>> findFood(
         @LoginMember Long memberId,
@@ -70,6 +74,7 @@ public class FoodController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @GetMapping
     public ResponseEntity<ApiResponse<Slice<FoodResponse>>> findAllFoods(
         @LoginMember Long memberId,
@@ -80,6 +85,7 @@ public class FoodController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
+    @Override
     @DeleteMapping("/{foodId}")
     public ResponseEntity<ApiResponse<?>> deleteFood(
         @LoginMember Long memberId,
