@@ -17,10 +17,11 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 @RestController
-public class AuthController {
+public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
 
+    @Override
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
         @RequestBody @Valid LoginRequest request
@@ -29,6 +30,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<TokenResponse>> reissue(
         @RequestBody @Valid ReissueTokenRequest request
@@ -37,6 +39,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @Override
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<?>> logout(
         @LoginMember Long memberId
