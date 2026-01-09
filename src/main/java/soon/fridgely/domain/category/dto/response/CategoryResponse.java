@@ -5,7 +5,7 @@ import soon.fridgely.domain.category.entity.Category;
 
 import java.util.List;
 
-@Schema(description = "카테고리 목록 응답")
+@Schema(description = "카테고리 응답")
 public record CategoryResponse(
 
     @Schema(description = "카테고리 ID", example = "1")
