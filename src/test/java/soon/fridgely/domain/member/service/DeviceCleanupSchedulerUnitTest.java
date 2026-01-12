@@ -14,6 +14,7 @@ import soon.fridgely.domain.notification.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,9 @@ class DeviceCleanupSchedulerUnitTest {
 
     @Captor
     private ArgumentCaptor<LocalDateTime> thresholdCaptor;
+
+    @Captor
+    private ArgumentCaptor<List<Long>> deviceIdsCaptor;
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
@@ -80,8 +84,9 @@ class DeviceCleanupSchedulerUnitTest {
         // when
         deviceCleanupScheduler.cleanupInactiveDevices();
 
-        // then - 500개 처리 후 최종 flush에서 1번 호출
-        then(deviceCleanupProcessor).should().bulkDelete(anyList());
+        // then - 500개 처리 후 최종 flush에서 1번 호출되며 모든 ID가 포함
+        then(deviceCleanupProcessor).should().bulkDelete(deviceIdsCaptor.capture());
+        assertThat(deviceIdsCaptor.getValue()).hasSize(500);
     }
 
     @Test

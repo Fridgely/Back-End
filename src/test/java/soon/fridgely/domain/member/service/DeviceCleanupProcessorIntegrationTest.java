@@ -72,7 +72,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 대량의_디바이스를_청크_단위로_벌크_삭제할_수_있다() {
+    void 대량의_디바이스를_벌크_삭제할_수_있다() {
         // given 1000개의 디바이스 생성
         List<MemberDevice> devices = IntStream.range(0, 1000)
             .mapToObj(i -> memberDeviceRepository.save(
@@ -93,7 +93,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         // then
         List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberId(member.getId());
         assertThat(deletedDevices).hasSize(1000)
-            .allMatch(device -> device.getStatus() == EntityStatus.DELETED);
+            .allMatch(device -> device.isDeleted());
     }
 
     @Test
