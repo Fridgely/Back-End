@@ -118,7 +118,7 @@ class DeviceCleanupBatchExecutorIntegrationTest extends IntegrationTestSupport {
         // when
         BatchResult result = deviceCleanupBatchExecutor.executeCleanup(
             threshold,
-            device -> {
+            device -> { // 결과 통계만 검증
             }
         );
 
