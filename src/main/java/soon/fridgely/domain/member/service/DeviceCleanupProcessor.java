@@ -36,16 +36,14 @@ public class DeviceCleanupProcessor {
      */
     @Transactional
     public void deleteDevice(MemberDevice device) {
-        MemberDevice managedDevice = memberDeviceRepository.findById(device.getId())
-            .orElseGet(() -> {
-                log.warn("[DeviceCleanup] 디바이스를 찾을 수 없음. (DeviceId={})", device.getId());
-                return null;
-            });
-
-        if (managedDevice != null) {
-            managedDevice.delete();
-            log.debug("[DeviceCleanup] 디바이스 토큰 삭제 완료. (DeviceId={}, Token={})", managedDevice.getId(), managedDevice.getToken());
-        }
+        memberDeviceRepository.findById(device.getId())
+            .ifPresentOrElse(
+                managedDevice -> {
+                    managedDevice.delete();
+                    log.debug("[DeviceCleanup] 디바이스 토큰 삭제 완료. (DeviceId={}, Token={})", managedDevice.getId(), managedDevice.getToken());
+                },
+                () -> log.warn("[DeviceCleanup] 디바이스를 찾을 수 없음. (DeviceId={})", device.getId())
+            );
     }
 
 }
