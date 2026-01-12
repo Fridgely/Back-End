@@ -40,7 +40,7 @@ public interface MemberDeviceRepository extends JpaRepository<MemberDevice, Long
      * 여러 디바이스를 한 번의 쿼리로 삭제 상태로 변경
      */
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE MemberDevice md SET md.status = 'DELETED' WHERE md.id IN :ids")
+    @Query("UPDATE MemberDevice md SET md.status = soon.fridgely.domain.EntityStatus.DELETED WHERE md.id IN :ids")
     int bulkUpdateStatusToDeleted(@Param("ids") List<Long> ids);
 
 }
