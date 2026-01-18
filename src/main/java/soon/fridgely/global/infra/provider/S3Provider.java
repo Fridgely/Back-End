@@ -1,7 +1,6 @@
 package soon.fridgely.global.infra.provider;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -17,7 +16,6 @@ import java.io.InputStream;
 import java.time.Duration;
 
 @Slf4j
-@Profile("live")
 public class S3Provider implements StorageProvider {
 
     private final S3Client s3Client;
