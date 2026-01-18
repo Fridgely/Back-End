@@ -20,7 +20,7 @@ import java.util.Base64;
 
 @Slf4j
 @RequiredArgsConstructor
-@Profile("!test")
+@Profile("live")
 @EnableConfigurationProperties(FcmProperties.class)
 @Configuration
 public class FcmConfig {

@@ -2,6 +2,7 @@ package soon.fridgely.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "scheduling.enabled", havingValue = "true", matchIfMissing = true)
 @Service
 public class DeviceCleanupScheduler {
 

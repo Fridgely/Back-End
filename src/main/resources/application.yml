@@ -27,5 +27,9 @@ spring.config.activate.on-profile: test
 spring.config.import: application-test.yml
 
 ---
+spring.config.activate.on-profile: performance
+spring.config.import: application-performance.yml
+
+---
 spring.config.activate.on-profile: live
 spring.config.import: application-db.yml

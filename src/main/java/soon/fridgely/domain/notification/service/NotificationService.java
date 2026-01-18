@@ -1,6 +1,7 @@
 package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.notification.batch.BatchResult;
@@ -10,6 +11,7 @@ import soon.fridgely.global.support.utils.TimeRangeUtils;
 import java.time.LocalTime;
 
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "scheduling.enabled", havingValue = "true", matchIfMissing = true)
 @Service
 public class NotificationService {
 
