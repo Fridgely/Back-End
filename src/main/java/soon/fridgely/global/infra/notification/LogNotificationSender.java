@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import soon.fridgely.global.support.notification.NotificationSender;
 
 @Slf4j
-@Profile({"local", "test"})
+@Profile({"local", "test", "performance"})
 @Component
 public class LogNotificationSender implements NotificationSender {
 

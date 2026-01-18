@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@Profile("!local & !test")
+@Profile("live")
 @Component
 public class FcmNotificationSender implements NotificationSender {
 
