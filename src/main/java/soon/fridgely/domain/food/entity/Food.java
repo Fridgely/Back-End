@@ -17,7 +17,12 @@ import static java.util.Objects.requireNonNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "foods")
+@Table(
+    name = "foods",
+    indexes = {
+        @Index(name = "idx_food_refri_status_expire", columnList = "refrigerator_id, status, expiration_date")
+    }
+)
 @Entity
 public class Food extends BaseEntity {
 
