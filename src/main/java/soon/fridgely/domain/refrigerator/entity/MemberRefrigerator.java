@@ -11,7 +11,11 @@ import soon.fridgely.domain.member.entity.Member;
 @Getter
 @Table(
     name = "member_refrigerators",
-    uniqueConstraints = @UniqueConstraint(name = "uk_member_refrigerators_member_id_refrigerator_id", columnNames = {"member_id", "refrigerator_id"})
+    uniqueConstraints = @UniqueConstraint(name = "uk_member_refrigerators_member_id_refrigerator_id", columnNames = {"member_id", "refrigerator_id"}),
+    indexes = {
+        @Index(name = "idx_member_refri_member_status", columnList = "member_id, status"),
+        @Index(name = "idx_member_refri_refri_status", columnList = "refrigerator_id, status")
+    }
 )
 @Entity
 public class MemberRefrigerator extends BaseEntity {
