@@ -1,6 +1,7 @@
 package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
@@ -19,6 +20,7 @@ public class CategoryRemover {
     private final FoodModifier foodModifier;
     private final CategoryRepository categoryRepository;
 
+    @CacheEvict(value = "categories", key = "#deleteCategory.refrigeratorId()")
     @Transactional
     public void remove(DeleteCategory deleteCategory) {
         Category category = categoryRepository.findByIdAndRefrigeratorId(deleteCategory.categoryId(), deleteCategory.refrigeratorId())

@@ -1,6 +1,7 @@
 package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
@@ -34,6 +35,7 @@ public class CategoryFinder {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 
+    @Cacheable(value = "categories", key = "#refrigeratorId")
     public List<Category> findAll(long refrigeratorId) {
         return categoryRepository.findAllByRefrigeratorIdAndStatus(
             refrigeratorId,

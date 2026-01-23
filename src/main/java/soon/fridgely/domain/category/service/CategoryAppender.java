@@ -1,6 +1,7 @@
 package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class CategoryAppender {
     private final RefrigeratorRepository refrigeratorRepository;
     private final MemberRepository memberRepository;
 
+    @CacheEvict(value = "categories", key = "#key.refrigeratorId()")
     public void appendDefaultCategories(MemberRefrigeratorKey key) {
         CategoryContext context = getContext(key);
         if (categoryRepository.existsByRefrigeratorAndStatus(context.refrigerator(), EntityStatus.ACTIVE)) {
@@ -45,6 +47,7 @@ public class CategoryAppender {
         categoryRepository.saveAll(categories);
     }
 
+    @CacheEvict(value = "categories", key = "#addCategory.refrigeratorId()")
     @Transactional
     public void appendCustomCategory(AddCategory addCategory) {
         CategoryContext context = getContext(addCategory.toKey());
