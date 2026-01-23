@@ -11,11 +11,16 @@ import soon.fridgely.global.infra.properties.S3Properties;
 import soon.fridgely.global.infra.provider.S3Provider;
 import soon.fridgely.global.infra.provider.StorageProvider;
 
-@Profile("live")
+/**
+ * S3 설정
+ * - S3Properties: 모든 프로파일에서 활성화 (프로퍼티 검증용)
+ * - S3 빈(S3Client, S3Presigner, StorageProvider): live 프로파일에서만 생성
+ */
 @Configuration
 @EnableConfigurationProperties(S3Properties.class)
 public class S3Config {
 
+    @Profile("live")
     @Bean(destroyMethod = "close")
     public S3Client s3Client(S3Properties s3Properties) {
         Region region = Region.of(s3Properties.region().staticRegion());
@@ -24,6 +29,7 @@ public class S3Config {
             .build();
     }
 
+    @Profile("live")
     @Bean(destroyMethod = "close")
     public S3Presigner s3Presigner(S3Properties s3Properties) {
         Region region = Region.of(s3Properties.region().staticRegion());
@@ -32,6 +38,7 @@ public class S3Config {
             .build();
     }
 
+    @Profile("live")
     @Bean
     public StorageProvider storageProvider(
         S3Client s3Client,
