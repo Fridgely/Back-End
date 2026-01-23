@@ -1,6 +1,7 @@
 package soon.fridgely.domain.refrigerator.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -24,6 +25,7 @@ public class RefrigeratorManager {
         return refrigeratorRepository.save(register);
     }
 
+    @CacheEvict(value = "myRefrigerators", allEntries = true)
     @Transactional
     public void update(long refrigeratorId, String newName) {
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)

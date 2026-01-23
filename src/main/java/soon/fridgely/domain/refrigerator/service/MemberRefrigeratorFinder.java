@@ -1,6 +1,7 @@
 package soon.fridgely.domain.refrigerator.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -17,6 +18,7 @@ public class MemberRefrigeratorFinder {
 
     private final MemberRefrigeratorRepository memberRefrigeratorRepository;
 
+    @Cacheable(value = "myRefrigerators", key = "#memberId")
     @Transactional(readOnly = true)
     public List<MemberRefrigerator> findAllByMemberId(long memberId) {
         return memberRefrigeratorRepository.findAllMyRefrigerators(memberId, EntityStatus.ACTIVE);
