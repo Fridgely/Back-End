@@ -152,8 +152,12 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         CachedMemberRefrigerators member1Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
         CachedMemberRefrigerators member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
 
-        assertThat(member1Refrigerators.refrigerators().get(0).name()).isEqualTo(newName);
-        assertThat(member2Refrigerators.refrigerators().get(0).name()).isEqualTo(newName);
+        assertThat(member1Refrigerators.refrigerators())
+            .extracting(CachedRefrigeratorInfo::name)
+            .containsExactly(newName);
+        assertThat(member2Refrigerators.refrigerators())
+            .extracting(CachedRefrigeratorInfo::name)
+            .containsExactly(newName);
     }
 
     @Test
