@@ -78,7 +78,7 @@ public class FoodController implements FoodControllerDocs {
     @GetMapping
     public ResponseEntity<ApiResponse<Slice<FoodResponse>>> findAllFoods(
         @LoginMember Long memberId,
-        CursorPageRequest cursorRequest,
+        @ModelAttribute CursorPageRequest cursorRequest,
         @PathVariable long refrigeratorId
     ) {
         Slice<FoodResponse> responses = foodService.findAllFoods(new MemberRefrigeratorKey(memberId, refrigeratorId), cursorRequest);
