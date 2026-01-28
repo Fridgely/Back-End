@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.TestPropertySource;
-import soon.fridgely.domain.category.dto.command.AddCategory;
-import soon.fridgely.domain.category.dto.command.DeleteCategory;
-import soon.fridgely.domain.category.dto.command.ModifyCategory;
+import soon.fridgely.domain.category.dto.command.*;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -76,17 +74,16 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         categoryAppender.appendDefaultCategories(key);
 
         // when
-        List<Category> firstResult = categoryFinder.findAll(refrigerator.getId());
-        assertThat(firstResult).hasSize(8);
+        CachedCategories firstResult = categoryFinder.findAll(refrigerator.getId());
 
+        // then
+        assertThat(firstResult.categories()).hasSize(8);
         Cache cache = cacheManager.getCache("categories");
         assertThat(cache).isNotNull();
         assertThat(cache.get(refrigerator.getId())).isNotNull();
 
-
-        List<Category> secondResult = categoryFinder.findAll(refrigerator.getId()); // 같은 인스턴스 반환
-        // then
-        assertThat(secondResult).hasSize(8);
+        CachedCategories secondResult = categoryFinder.findAll(refrigerator.getId());
+        assertThat(secondResult.categories()).hasSize(8);
         assertThat(firstResult).isEqualTo(secondResult);
     }
 
@@ -96,17 +93,17 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         MemberRefrigeratorKey key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
         categoryAppender.appendDefaultCategories(key);
 
-        List<Category> cachedResult = categoryFinder.findAll(refrigerator.getId());
-        assertThat(cachedResult).hasSize(8);
+        CachedCategories cachedResult = categoryFinder.findAll(refrigerator.getId());
+        assertThat(cachedResult.categories()).hasSize(8);
 
         // when
         AddCategory addCategory = new AddCategory("새 카테고리", refrigerator.getId(), member.getId());
         categoryAppender.appendCustomCategory(addCategory);
 
         // then
-        List<Category> updatedResult = categoryFinder.findAll(refrigerator.getId());
-        assertThat(updatedResult).hasSize(9)
-            .extracting(Category::getName)
+        CachedCategories updatedResult = categoryFinder.findAll(refrigerator.getId());
+        assertThat(updatedResult.categories()).hasSize(9)
+            .extracting(CachedCategoryInfo::name)
             .contains("새 카테고리");
     }
 
@@ -118,14 +115,13 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         // when
         categoryAppender.appendDefaultCategories(key);
 
+        // then
         Cache cache = cacheManager.getCache("categories");
         assertThat(cache.get(refrigerator.getId())).isNull();
 
-        List<Category> categories = categoryFinder.findAll(refrigerator.getId());
-
-        // then
-        assertThat(categories).hasSize(8)
-            .extracting(Category::getName)
+        CachedCategories categories = categoryFinder.findAll(refrigerator.getId());
+        assertThat(categories.categories()).hasSize(8)
+            .extracting(CachedCategoryInfo::name)
             .containsExactlyInAnyOrder("야채", "과일", "육류", "해산물", "유제품", "음료", "간식", "기타");
     }
 
@@ -138,9 +134,9 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         AddCategory addCategory = new AddCategory("수정될 카테고리", refrigerator.getId(), member.getId());
         categoryAppender.appendCustomCategory(addCategory);
 
-        List<Category> cachedCategories = categoryFinder.findAll(refrigerator.getId());
-        Category targetCategory = cachedCategories.stream()
-            .filter(c -> c.getName().equals("수정될 카테고리"))
+        CachedCategories cachedCategories = categoryFinder.findAll(refrigerator.getId());
+        CachedCategoryInfo targetCategory = cachedCategories.categories().stream()
+            .filter(c -> c.name().equals("수정될 카테고리"))
             .findFirst()
             .orElseThrow();
 
@@ -149,14 +145,14 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
             "수정된 카테고리",
             member.getId(),
             refrigerator.getId(),
-            targetCategory.getId()
+            targetCategory.id()
         );
         categoryModifier.modify(modifyCategory);
 
         // then
-        List<Category> updatedCategories = categoryFinder.findAll(refrigerator.getId());
-        assertThat(updatedCategories)
-            .extracting(Category::getName)
+        CachedCategories updatedCategories = categoryFinder.findAll(refrigerator.getId());
+        assertThat(updatedCategories.categories())
+            .extracting(CachedCategoryInfo::name)
             .contains("수정된 카테고리")
             .doesNotContain("수정될 카테고리");
     }
@@ -169,26 +165,26 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         AddCategory addCategory = new AddCategory("삭제될 카테고리", refrigerator.getId(), member.getId());
         categoryAppender.appendCustomCategory(addCategory);
 
-        List<Category> cachedCategories = categoryFinder.findAll(refrigerator.getId());
-        Category targetCategory = cachedCategories.stream()
-            .filter(c -> c.getName().equals("삭제될 카테고리"))
+        CachedCategories cachedCategories = categoryFinder.findAll(refrigerator.getId());
+        CachedCategoryInfo targetCategory = cachedCategories.categories().stream()
+            .filter(c -> c.name().equals("삭제될 카테고리"))
             .findFirst()
             .orElseThrow();
 
-        assertThat(cachedCategories).hasSize(9);
+        assertThat(cachedCategories.categories()).hasSize(9);
 
-        // when - 카테고리 삭제
+        // when
         DeleteCategory deleteCategory = new DeleteCategory(
             member.getId(),
             refrigerator.getId(),
-            targetCategory.getId()
+            targetCategory.id()
         );
         categoryRemover.remove(deleteCategory);
 
-        // then - 캐시가 무효화되어 DB에서 최신 데이터 조회
-        List<Category> updatedCategories = categoryFinder.findAll(refrigerator.getId());
-        assertThat(updatedCategories)
-            .extracting(Category::getName)
+        // then
+        CachedCategories updatedCategories = categoryFinder.findAll(refrigerator.getId());
+        assertThat(updatedCategories.categories())
+            .extracting(CachedCategoryInfo::name)
             .doesNotContain("삭제될 카테고리");
     }
 
@@ -219,11 +215,11 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         assertThat(cache.get(refrigerator.getId())).isNull();
         assertThat(cache.get(refrigerator2.getId())).isNotNull();
 
-        List<Category> refrigerator1Categories = categoryFinder.findAll(refrigerator.getId());
-        List<Category> refrigerator2Categories = categoryFinder.findAll(refrigerator2.getId());
+        CachedCategories refrigerator1Categories = categoryFinder.findAll(refrigerator.getId());
+        CachedCategories refrigerator2Categories = categoryFinder.findAll(refrigerator2.getId());
 
-        assertThat(refrigerator1Categories).hasSize(9);
-        assertThat(refrigerator2Categories).hasSize(8);
+        assertThat(refrigerator1Categories.categories()).hasSize(9);
+        assertThat(refrigerator2Categories.categories()).hasSize(8);
     }
 
     @Test
@@ -240,7 +236,7 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         Cache cache = cacheManager.getCache("categories");
         assertThat(cache).isNotNull();
         assertThat(cache.get(refrigerator.getId())).isNotNull();
-        assertThat(cache.get(refrigerator.getId()).get()).isInstanceOf(List.class);
+        assertThat(cache.get(refrigerator.getId()).get()).isInstanceOf(CachedCategories.class);
     }
 
     @Test
@@ -251,16 +247,16 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        List<Category> cachedResult = categoryFinder.findAll(refrigerator.getId());
+        CachedCategories cachedResult = categoryFinder.findAll(refrigerator.getId());
 
         // then
         List<Category> dbResult = categoryRepository.findAllByRefrigeratorIdAndStatus(
             refrigerator.getId(),
             soon.fridgely.domain.EntityStatus.ACTIVE
         );
-        assertThat(cachedResult).hasSize(dbResult.size());
-        assertThat(cachedResult)
-            .extracting(Category::getName)
+        assertThat(cachedResult.categories()).hasSize(dbResult.size());
+        assertThat(cachedResult.categories())
+            .extracting(CachedCategoryInfo::name)
             .containsExactlyInAnyOrderElementsOf(
                 dbResult.stream().map(Category::getName).toList()
             );
@@ -269,22 +265,17 @@ class CategoryCacheIntegrationTest extends IntegrationTestSupport {
     @Test
     void 캐시_무효화_후_재조회_시_최신_데이터를_가져온다() {
         // given
-        categoryAppender.appendDefaultCategories(
-            new MemberRefrigeratorKey(member.getId(), refrigerator.getId())
-        );
+        categoryAppender.appendDefaultCategories(new MemberRefrigeratorKey(member.getId(), refrigerator.getId()));
         categoryFinder.findAll(refrigerator.getId());
 
         // when
-        categoryAppender.appendCustomCategory(
-            new AddCategory("테스트 카테고리", refrigerator.getId(), member.getId())
-        );
+        categoryAppender.appendCustomCategory(new AddCategory("테스트 카테고리", refrigerator.getId(), member.getId()));
 
         // then
-        List<Category> firstResult = categoryFinder.findAll(refrigerator.getId());
-        List<Category> secondResult = categoryFinder.findAll(refrigerator.getId());
-
-        assertThat(firstResult).hasSize(9);
-        assertThat(secondResult).hasSize(9);
+        CachedCategories firstResult = categoryFinder.findAll(refrigerator.getId());
+        CachedCategories secondResult = categoryFinder.findAll(refrigerator.getId());
+        assertThat(firstResult.categories()).hasSize(9);
+        assertThat(secondResult.categories()).hasSize(9);
         assertThat(firstResult).isEqualTo(secondResult);
     }
 

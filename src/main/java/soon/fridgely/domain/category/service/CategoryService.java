@@ -33,7 +33,11 @@ public class CategoryService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     public List<CategoryResponse> findAllCategory(MemberRefrigeratorKey key) {
-        return CategoryResponse.from(categoryFinder.findAll(key.refrigeratorId()));
+        return categoryFinder.findAll(key.refrigeratorId())
+            .categories()
+            .stream()
+            .map(info -> new CategoryResponse(info.id(), info.name(), info.isDefaultType()))
+            .toList();
     }
 
     @ValidateRefrigeratorAccess(key = "#modifyCategory.toKey()")

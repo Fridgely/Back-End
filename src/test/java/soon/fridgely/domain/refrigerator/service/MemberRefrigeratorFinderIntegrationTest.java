@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
+import soon.fridgely.domain.refrigerator.dto.command.CachedRefrigeratorInfo;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
@@ -74,11 +76,11 @@ class MemberRefrigeratorFinderIntegrationTest extends IntegrationTestSupport {
         ));
 
         // when
-        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        CachedMemberRefrigerators result = memberRefrigeratorFinder.findAllByMemberId(member.getId());
 
         // then
-        assertThat(result).hasSize(2)
-            .extracting("refrigerator.id", "role")
+        assertThat(result.refrigerators()).hasSize(2)
+            .extracting(CachedRefrigeratorInfo::id, CachedRefrigeratorInfo::role)
             .containsExactlyInAnyOrder(
                 tuple(refrigerator.getId(), RefrigeratorRole.OWNER),
                 tuple(myRefrigerator2.getId(), RefrigeratorRole.MEMBER)

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import soon.fridgely.domain.EntityStatus;
+import soon.fridgely.domain.category.dto.command.CachedCategories;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.global.support.exception.CoreException;
@@ -36,11 +37,12 @@ public class CategoryFinder {
     }
 
     @Cacheable(value = "categories", key = "#refrigeratorId")
-    public List<Category> findAll(long refrigeratorId) {
-        return categoryRepository.findAllByRefrigeratorIdAndStatus(
+    public CachedCategories findAll(long refrigeratorId) {
+        List<Category> categories = categoryRepository.findAllByRefrigeratorIdAndStatus(
             refrigeratorId,
             EntityStatus.ACTIVE
         );
+        return CachedCategories.from(refrigeratorId, categories);
     }
 
 }

@@ -8,6 +8,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.test.context.TestPropertySource;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
+import soon.fridgely.domain.refrigerator.dto.command.CachedRefrigeratorInfo;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -66,16 +68,16 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         memberRefrigeratorLinker.linkToOwner(member, refrigerator);
 
         // when
-        List<MemberRefrigerator> firstResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        CachedMemberRefrigerators firstResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
 
         // then
-        assertThat(firstResult).hasSize(1);
+        assertThat(firstResult.refrigerators()).hasSize(1);
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache).isNotNull();
         assertThat(cache.get(member.getId())).isNotNull();
 
-        List<MemberRefrigerator> secondResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(secondResult).hasSize(1);
+        CachedMemberRefrigerators secondResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        assertThat(secondResult.refrigerators()).hasSize(1);
         assertThat(firstResult).isEqualTo(secondResult);
     }
 
@@ -83,17 +85,17 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
     void 냉장고_생성시_캐시가_무효화된다() {
         // given
         memberRefrigeratorLinker.linkToOwner(member, refrigerator);
-        List<MemberRefrigerator> cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(cachedResult).hasSize(1);
+        CachedMemberRefrigerators cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        assertThat(cachedResult.refrigerators()).hasSize(1);
 
         // when
         Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
         memberRefrigeratorLinker.linkToOwner(member, refrigerator2);
 
         // then
-        List<MemberRefrigerator> updatedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(updatedResult).hasSize(2)
-            .extracting(mr -> mr.getRefrigerator().getId())
+        CachedMemberRefrigerators updatedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        assertThat(updatedResult.refrigerators()).hasSize(2)
+            .extracting(CachedRefrigeratorInfo::id)
             .containsExactlyInAnyOrder(refrigerator.getId(), refrigerator2.getId());
     }
 
@@ -118,9 +120,9 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         assertThat(cache.get(member.getId())).isNotNull();
         assertThat(cache.get(member2.getId())).isNull();
 
-        List<MemberRefrigerator> member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
-        assertThat(member2Refrigerators).hasSize(1)
-            .extracting(mr -> mr.getRefrigerator().getId())
+        CachedMemberRefrigerators member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        assertThat(member2Refrigerators.refrigerators()).hasSize(1)
+            .extracting(CachedRefrigeratorInfo::id)
             .containsExactly(refrigerator.getId());
     }
 
@@ -147,11 +149,11 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         assertThat(cache.get(member.getId())).isNull();
         assertThat(cache.get(member2.getId())).isNull();
 
-        List<MemberRefrigerator> member1Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        List<MemberRefrigerator> member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        CachedMemberRefrigerators member1Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        CachedMemberRefrigerators member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
 
-        assertThat(member1Refrigerators.get(0).getRefrigerator().getName()).isEqualTo(newName);
-        assertThat(member2Refrigerators.get(0).getRefrigerator().getName()).isEqualTo(newName);
+        assertThat(member1Refrigerators.refrigerators().get(0).name()).isEqualTo(newName);
+        assertThat(member2Refrigerators.refrigerators().get(0).name()).isEqualTo(newName);
     }
 
     @Test
@@ -178,9 +180,9 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         assertThat(cache.get(member.getId())).isNull();
         assertThat(cache.get(member2.getId())).isNotNull();
 
-        List<MemberRefrigerator> memberRefrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(memberRefrigerators).hasSize(2)
-            .extracting(mr -> mr.getRefrigerator().getId())
+        CachedMemberRefrigerators memberRefrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        assertThat(memberRefrigerators.refrigerators()).hasSize(2)
+            .extracting(CachedRefrigeratorInfo::id)
             .containsExactlyInAnyOrder(refrigerator.getId(), refrigerator3.getId());
     }
 
@@ -196,7 +198,7 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache).isNotNull();
         assertThat(cache.get(member.getId())).isNotNull();
-        assertThat(cache.get(member.getId()).get()).isInstanceOf(List.class);
+        assertThat(cache.get(member.getId()).get()).isInstanceOf(CachedMemberRefrigerators.class);
     }
 
     @Test
@@ -234,16 +236,16 @@ class RefrigeratorCacheIntegrationTest extends IntegrationTestSupport {
         memberRefrigeratorLinker.linkToOwner(member, refrigerator);
 
         // when
-        List<MemberRefrigerator> cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        CachedMemberRefrigerators cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
         List<MemberRefrigerator> dbResult = memberRefrigeratorRepository.findAllMyRefrigerators(
             member.getId(),
             soon.fridgely.domain.EntityStatus.ACTIVE
         );
 
         // then
-        assertThat(cachedResult).hasSize(dbResult.size());
-        assertThat(cachedResult)
-            .extracting(mr -> mr.getRefrigerator().getId())
+        assertThat(cachedResult.refrigerators()).hasSize(dbResult.size());
+        assertThat(cachedResult.refrigerators())
+            .extracting(CachedRefrigeratorInfo::id)
             .containsExactlyInAnyOrderElementsOf(
                 dbResult.stream().map(mr -> mr.getRefrigerator().getId()).toList()
             );

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.EntityStatus;
+import soon.fridgely.domain.category.dto.command.CachedCategories;
+import soon.fridgely.domain.category.dto.command.CachedCategoryInfo;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
@@ -148,11 +150,11 @@ class CategoryFinderIntegrationTest extends IntegrationTestSupport {
         ));
 
         // when
-        List<Category> categories = categoryFinder.findAll(refrigerator.getId());
+        CachedCategories result = categoryFinder.findAll(refrigerator.getId());
 
         // then
-        assertThat(categories).hasSize(3)
-            .extracting("name")
+        assertThat(result.categories()).hasSize(3)
+            .extracting(CachedCategoryInfo::name)
             .containsExactlyInAnyOrder("카테고리1", "카테고리2", "카테고리3");
     }
 

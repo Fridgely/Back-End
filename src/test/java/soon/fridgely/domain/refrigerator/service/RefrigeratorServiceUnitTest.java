@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
@@ -133,8 +134,10 @@ class RefrigeratorServiceUnitTest {
             createMemberRefrigerator("Fridge2", RefrigeratorRole.MEMBER)
         );
 
+        CachedMemberRefrigerators cachedRefrigerators = CachedMemberRefrigerators.from(memberId, memberRefrigerators);
+
         given(memberRefrigeratorFinder.findAllByMemberId(memberId))
-            .willReturn(memberRefrigerators);
+            .willReturn(cachedRefrigerators);
 
         // when
         var responses = refrigeratorService.findAllMyRefrigerators(memberId);
