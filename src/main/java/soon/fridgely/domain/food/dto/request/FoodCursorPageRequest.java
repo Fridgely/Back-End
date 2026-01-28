@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Positive;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,9 +18,11 @@ public record FoodCursorPageRequest(
     Long cursorId,
 
     @Schema(description = "페이지 크기", example = "10")
+    @Positive
     Integer size,
 
     @Schema(description = "정렬 기준 (EXPIRATION: 유통기한 임박순, CREATED: 등록순, NAME: 이름순)", example = "EXPIRATION")
+    @Positive
     FoodSortType sortBy
 
 ) {
