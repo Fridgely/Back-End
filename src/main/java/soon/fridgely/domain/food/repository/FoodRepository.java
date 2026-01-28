@@ -116,6 +116,60 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
         Pageable pageable
     );
 
+    /**
+     * 특정 냉장고의 Food를 유통기한 임박순으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.expirationDate ASC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorOrderByExpiration(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
+    /**
+     * 특정 냉장고의 Food를 등록순(최신순)으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.createdAt DESC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorOrderByCreated(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
+    /**
+     * 특정 냉장고의 Food를 이름순으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.name ASC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorOrderByName(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 
     Optional<Food> findByIdAndRefrigeratorId(long foodId, long refrigeratorId);

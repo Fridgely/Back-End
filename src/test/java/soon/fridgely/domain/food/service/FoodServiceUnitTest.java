@@ -175,14 +175,14 @@ class FoodServiceUnitTest {
     void 음식_목록을_조회한다() {
         // given
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = new CursorPageRequest(null, 10);
+        var request = new CursorPageRequest(null, 10, null);
         long expectedCursorId = request.getCursorId();
         Pageable expectedPageable = request.toPageable();
 
         List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
         Slice<Food> foodSlice = new SliceImpl<>(foods, expectedPageable, true);
 
-        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable))
+        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, request.getSortBy()))
             .willReturn(foodSlice);
 
         // when
@@ -191,7 +191,7 @@ class FoodServiceUnitTest {
         // then
         InOrder inOrder = inOrder(foodFinder);
         then(foodFinder).should(inOrder)
-            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable);
+            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, request.getSortBy());
 
         assertThat(responseSlice).isNotNull();
         assertThat(responseSlice.hasNext()).isTrue();

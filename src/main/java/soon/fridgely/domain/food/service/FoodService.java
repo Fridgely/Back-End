@@ -70,7 +70,12 @@ public class FoodService {
     @Transactional(readOnly = true)
     public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
         LocalDate now = LocalDate.now();
-        return foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
+        return foodFinder.findAll(
+                key.refrigeratorId(),
+                request.getCursorId(),
+                request.toPageable(),
+                request.getSortBy()
+            )
             .map(food -> FoodResponse.of(food, now));
     }
 

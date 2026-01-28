@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import soon.fridgely.domain.food.entity.FoodSortType;
 
 @Schema(description = "커서 기반 페이징 요청")
 public record CursorPageRequest(
@@ -12,7 +13,10 @@ public record CursorPageRequest(
     Long cursorId,
 
     @Schema(description = "페이지 크기", example = "10")
-    Integer size
+    Integer size,
+
+    @Schema(description = "정렬 기준 (EXPIRATION: 유통기한 임박순, CREATED: 등록순, NAME: 이름순)", example = "EXPIRATION")
+    FoodSortType sortBy
 
 ) {
 
@@ -31,6 +35,10 @@ public record CursorPageRequest(
 
     public Pageable toPageable() {
         return PageRequest.of(0, this.size, Sort.by(Sort.Direction.DESC, "id"));
+    }
+
+    public FoodSortType getSortBy() {
+        return sortBy != null ? sortBy : FoodSortType.EXPIRATION;
     }
 
 }
