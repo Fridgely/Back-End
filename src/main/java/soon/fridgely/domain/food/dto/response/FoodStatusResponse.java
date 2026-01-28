@@ -12,22 +12,43 @@ public record FoodStatusResponse(
     @Schema(description = "유통기한 만료 식재료 목록")
     List<FoodResponse> black,
 
+    @Schema(description = "유통기한 만료 식재료 개수", example = "3")
+    int blackCount,
+
     @Schema(description = "유통기한 임박 (10일 이내) 식재료 목록")
     List<FoodResponse> red,
+
+    @Schema(description = "유통기한 임박 식재료 개수", example = "5")
+    int redCount,
 
     @Schema(description = "유통기한 주의 (20일 이내) 식재료 목록")
     List<FoodResponse> yellow,
 
+    @Schema(description = "유통기한 주의 식재료 개수", example = "2")
+    int yellowCount,
+
     @Schema(description = "유통기한 양호 식재료 목록")
-    List<FoodResponse> green
+    List<FoodResponse> green,
+
+    @Schema(description = "유통기한 양호 식재료 개수", example = "10")
+    int greenCount
 
 ) {
     public static FoodStatusResponse from(Map<FoodStatus, List<FoodResponse>> map) {
+        List<FoodResponse> blackList = map.getOrDefault(FoodStatus.BLACK, List.of());
+        List<FoodResponse> redList = map.getOrDefault(FoodStatus.RED, List.of());
+        List<FoodResponse> yellowList = map.getOrDefault(FoodStatus.YELLOW, List.of());
+        List<FoodResponse> greenList = map.getOrDefault(FoodStatus.GREEN, List.of());
+
         return new FoodStatusResponse(
-            map.getOrDefault(FoodStatus.BLACK, List.of()),
-            map.getOrDefault(FoodStatus.RED, List.of()),
-            map.getOrDefault(FoodStatus.YELLOW, List.of()),
-            map.getOrDefault(FoodStatus.GREEN, List.of())
+            blackList,
+            blackList.size(),
+            redList,
+            redList.size(),
+            yellowList,
+            yellowList.size(),
+            greenList,
+            greenList.size()
         );
     }
 }

@@ -22,6 +22,9 @@ public interface MyFoodControllerDocs {
             - RED: 유통기한 10일 이내
             - YELLOW: 유통기한 20일 이내
             - GREEN: 유통기한 양호
+            
+            **응답 정보:**
+            - 각 상태별 식재료 목록과 함께 개수(blackCount, redCount, yellowCount, greenCount)를 제공합니다.
             """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
