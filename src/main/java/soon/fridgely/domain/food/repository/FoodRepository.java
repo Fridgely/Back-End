@@ -118,6 +118,9 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 유통기한 임박순으로 조회
+     *
+     * NOTE: 현재 커서 조건이 id만 사용하여, id 순서와 expirationDate 순서가 다를 경우
+     * 페이지네이션이 정확하지 않을 수 있음. 향후 복합 키셋 조건으로 개선 필요.
      */
     @Query("""
             SELECT f FROM Food f
@@ -136,6 +139,9 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 등록순(최신순)으로 조회
+     *
+     * NOTE: createdAt은 id와 상관관계가 높아 페이지네이션 문제 발생 확률이 낮음.
+     * 가장 안정적인 정렬 옵션.
      */
     @Query("""
             SELECT f FROM Food f
@@ -154,6 +160,9 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 이름순으로 조회
+     *
+     * NOTE: 현재 커서 조건이 id만 사용하여, id 순서와 name 순서가 다를 경우
+     * 페이지네이션이 정확하지 않을 수 있음. 향후 복합 키셋 조건으로 개선 필요.
      */
     @Query("""
             SELECT f FROM Food f
