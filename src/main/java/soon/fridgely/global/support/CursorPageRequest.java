@@ -4,10 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import soon.fridgely.domain.food.entity.FoodSortType;
 
+/**
+ * 커서 기반 페이징 요청
+ *
+ * @param <S> 정렬 타입 (Enum)
+ */
 @Schema(description = "커서 기반 페이징 요청")
-public record CursorPageRequest(
+public record CursorPageRequest<S extends Enum<S>>(
 
     @Schema(description = "커서 ID (마지막으로 조회한 항목의 ID)", example = "10")
     Long cursorId,
@@ -15,8 +19,8 @@ public record CursorPageRequest(
     @Schema(description = "페이지 크기", example = "10")
     Integer size,
 
-    @Schema(description = "정렬 기준 (EXPIRATION: 유통기한 임박순, CREATED: 등록순, NAME: 이름순)", example = "EXPIRATION")
-    FoodSortType sortBy
+    @Schema(description = "정렬 기준")
+    S sortBy
 
 ) {
 
@@ -33,22 +37,16 @@ public record CursorPageRequest(
         return (cursorId == null) ? FIRST_PAGE_CURSOR_ID : cursorId;
     }
 
+    /**
+     * 기본 정렬(id DESC)로 Pageable 생성
+     * 실제 정렬은 Repository 쿼리에서 처리
+     */
     public Pageable toPageable() {
-        if (sortBy == null) {
-            // sortBy가 없으면 기본 정렬 (id DESC)
-            return PageRequest.of(0, this.size, Sort.by(Sort.Direction.DESC, "id"));
-        }
-
-        Sort sort = switch (sortBy) {
-            case EXPIRATION -> Sort.by(Sort.Direction.ASC, "expirationDate").and(Sort.by(Sort.Direction.DESC, "id"));
-            case CREATED -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
-            case NAME -> Sort.by(Sort.Direction.ASC, "name").and(Sort.by(Sort.Direction.DESC, "id"));
-        };
-        return PageRequest.of(0, this.size, sort);
+        return PageRequest.of(0, this.size, Sort.by(Sort.Direction.DESC, "id"));
     }
 
-    public FoodSortType getSortBy() {
-        return sortBy != null ? sortBy : FoodSortType.EXPIRATION;
+    public S getSortBy() {
+        return sortBy;
     }
 
 }

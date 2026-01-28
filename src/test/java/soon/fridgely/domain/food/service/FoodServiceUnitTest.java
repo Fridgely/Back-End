@@ -15,14 +15,12 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
-import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.FoodStatus;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StockActionType;
+import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
@@ -175,14 +173,15 @@ class FoodServiceUnitTest {
     void 음식_목록을_조회한다() {
         // given
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = new CursorPageRequest(null, 10, null);
+        var request = new FoodCursorPageRequest(null, 10, null);
         long expectedCursorId = request.getCursorId();
         Pageable expectedPageable = request.toPageable();
+        FoodSortType expectedSortBy = request.getSortBy();
 
         List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
         Slice<Food> foodSlice = new SliceImpl<>(foods, expectedPageable, true);
 
-        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, request.getSortBy()))
+        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy))
             .willReturn(foodSlice);
 
         // when
@@ -191,7 +190,7 @@ class FoodServiceUnitTest {
         // then
         InOrder inOrder = inOrder(foodFinder);
         then(foodFinder).should(inOrder)
-            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, request.getSortBy());
+            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy);
 
         assertThat(responseSlice).isNotNull();
         assertThat(responseSlice.hasNext()).isTrue();

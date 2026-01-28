@@ -12,11 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.global.support.CursorPageRequest;
 
 @Tag(name = "식재료 API", description = "냉장고 내 식재료 관리 API")
 public interface FoodControllerDocs {
@@ -131,7 +131,7 @@ public interface FoodControllerDocs {
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Slice<FoodResponse>>> findAllFoods(
         @Parameter(hidden = true) Long memberId,
-        @ModelAttribute @Parameter(description = "커서 기반 페이징 정보") CursorPageRequest cursorRequest,
+        @ModelAttribute @Parameter(description = "커서 기반 페이징 정보") FoodCursorPageRequest cursorRequest,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
     );
 
@@ -152,4 +152,3 @@ public interface FoodControllerDocs {
     );
 
 }
-
