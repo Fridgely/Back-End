@@ -34,7 +34,13 @@ public record CursorPageRequest(
     }
 
     public Pageable toPageable() {
-        return PageRequest.of(0, this.size, Sort.by(Sort.Direction.DESC, "id"));
+        FoodSortType sortType = getSortBy();
+        Sort sort = switch (sortType) {
+            case EXPIRATION -> Sort.by(Sort.Direction.ASC, "expirationDate").and(Sort.by(Sort.Direction.DESC, "id"));
+            case CREATED -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
+            case NAME -> Sort.by(Sort.Direction.ASC, "name").and(Sort.by(Sort.Direction.DESC, "id"));
+        };
+        return PageRequest.of(0, this.size, sort);
     }
 
     public FoodSortType getSortBy() {

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -30,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -37,6 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static soon.fridgely.domain.food.entity.FoodSortType.*;
 
 class FoodControllerTest extends ControllerTestSupport {
 
@@ -227,10 +230,11 @@ class FoodControllerTest extends ControllerTestSupport {
         List<FoodResponse> content = List.of(foodResponse);
         Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
-        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(CursorPageRequest.class)))
+        ArgumentCaptor<CursorPageRequest> requestCaptor = ArgumentCaptor.forClass(CursorPageRequest.class);
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), requestCaptor.capture()))
             .willReturn(mockSlice);
 
-        // expected
+        // when
         mockMvc.perform(
                 get(BASE_URL, refrigeratorId)
                     .param("size", String.valueOf(size))
@@ -240,6 +244,11 @@ class FoodControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        // then
+        CursorPageRequest capturedRequest = requestCaptor.getValue();
+        assertThat(capturedRequest).isNotNull();
+        assertThat(capturedRequest.getSortBy()).isEqualTo(NAME);
     }
 
     @TestLoginMember
