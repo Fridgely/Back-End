@@ -108,7 +108,15 @@ public interface FoodControllerDocs {
         @Parameter(description = "식재료 ID", example = "1") long foodId
     );
 
-    @Operation(summary = "식재료 목록 조회", description = "냉장고 내 모든 식재료를 커서 기반 페이지네이션으로 조회합니다.")
+    @Operation(summary = "식재료 목록 조회",
+        description = """
+            냉장고 내 모든 식재료를 커서 기반 페이지네이션으로 조회합니다.
+            
+            **정렬 기준:**
+            - EXPIRATION: 유통기한 임박순 (기본값)
+            - CREATED: 등록순 (최신순)
+            - NAME: 이름순 (가나다순)
+            """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
         @ApiResponse(responseCode = "400", description = "유효하지 않은 냉장고 접근 키",

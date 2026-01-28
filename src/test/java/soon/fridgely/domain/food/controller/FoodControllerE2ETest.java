@@ -33,6 +33,7 @@ import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -268,6 +269,71 @@ class FoodControllerE2ETest extends E2ETestSupport {
             .isEqualByComparingTo(new BigDecimal("3.00"));
     }
 
+    @Test
+    void 식재료_목록을_유통기한_임박순으로_조회한다() {
+        // given
+        setupBasicEnvironment();
+        LocalDate now = LocalDate.now();
+
+        createFoodWithExpiration("음식1", now.plusDays(30));
+        createFoodWithExpiration("음식2", now.plusDays(5));
+        createFoodWithExpiration("음식3", now.plusDays(15));
+
+        var httpEntity = createAuthEntity(member);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL + "/" + refrigerator.getId() + "/foods?size=10&sortBy=EXPIRATION",
+            HttpMethod.GET,
+            httpEntity,
+            responseType
+        );
+
+        // then
+        assertThat(response).isNotNull()
+            .extracting("statusCode", "body.result")
+            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+
+        var content = response.getBody().data().content();
+        assertThat(content)
+            .extracting("name")
+            .containsExactly("음식2", "음식3", "음식1");
+    }
+
+    @Test
+    void 식재료_목록을_이름순으로_조회한다() {
+        // given
+        setupBasicEnvironment();
+
+        createFoodWithName("토마토");
+        createFoodWithName("감자");
+        createFoodWithName("당근");
+
+        var httpEntity = createAuthEntity(member);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL + "/" + refrigerator.getId() + "/foods?size=10&sortBy=NAME",
+            HttpMethod.GET,
+            httpEntity,
+            responseType
+        );
+
+        // then
+        assertThat(response).isNotNull()
+            .extracting("statusCode", "body.result")
+            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+
+        var content = response.getBody().data().content();
+        assertThat(content)
+            .extracting("name")
+            .containsExactly("감자", "당근", "토마토");
+    }
+
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
             member(fixtureMonkey).sample()
@@ -288,6 +354,23 @@ class FoodControllerE2ETest extends E2ETestSupport {
     private Food createFood() {
         return foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category).sample()
+        );
+    }
+
+    private Food createFoodWithName(String name) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", name)
+                .sample()
+        );
+    }
+
+    private Food createFoodWithExpiration(String name, LocalDate expirationDate) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", name)
+                .set("expirationDate", expirationDate.atStartOfDay())
+                .sample()
         );
     }
 
