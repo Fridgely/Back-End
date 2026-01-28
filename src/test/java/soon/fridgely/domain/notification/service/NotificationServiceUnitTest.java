@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.global.support.FixtureMonkeyFactory;

@@ -11,7 +11,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.MemberDevice;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 

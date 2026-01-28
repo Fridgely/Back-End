@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

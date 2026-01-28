@@ -7,7 +7,7 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 

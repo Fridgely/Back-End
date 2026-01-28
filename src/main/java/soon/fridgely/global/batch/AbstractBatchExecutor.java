@@ -3,7 +3,6 @@ package soon.fridgely.global.batch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.util.StopWatch;
-import soon.fridgely.domain.notification.batch.BatchResult;
 import soon.fridgely.global.support.CursorPageRequest;
 
 import java.util.function.Consumer;
