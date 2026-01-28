@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
@@ -16,7 +17,6 @@ import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
-import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.image.ImageManager;
 
 import java.time.LocalDate;
@@ -68,9 +68,14 @@ public class FoodService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
-    public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest request) {
+    public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, FoodCursorPageRequest request) {
         LocalDate now = LocalDate.now();
-        return foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable())
+        return foodFinder.findAll(
+                key.refrigeratorId(),
+                request.getCursorId(),
+                request.toPageable(),
+                request.getSortBy()
+            )
             .map(food -> FoodResponse.of(food, now));
     }
 

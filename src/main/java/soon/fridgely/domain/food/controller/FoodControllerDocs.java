@@ -9,13 +9,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.global.support.CursorPageRequest;
 
 @Tag(name = "식재료 API", description = "냉장고 내 식재료 관리 API")
 public interface FoodControllerDocs {
@@ -108,7 +109,19 @@ public interface FoodControllerDocs {
         @Parameter(description = "식재료 ID", example = "1") long foodId
     );
 
-    @Operation(summary = "식재료 목록 조회", description = "냉장고 내 모든 식재료를 커서 기반 페이지네이션으로 조회합니다.")
+    @Operation(summary = "식재료 목록 조회",
+        description = """
+            냉장고 내 모든 식재료를 커서 기반 페이지네이션으로 조회합니다.
+            
+            **정렬 기준:**
+            - EXPIRATION: 유통기한 임박순 (기본값)
+            - CREATED: 등록순 (최신순) - 가장 안정적인 정렬
+            - NAME: 이름순 (가나다순)
+            
+            **주의사항:**
+            - 정렬 조건 변경 시 cursorId를 null로 설정하여 첫 페이지부터 다시 요청해주세요.
+            - 안정적인 페이지네이션을 위해서는 CREATED(등록순) 정렬을 권장합니다.
+            """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
         @ApiResponse(responseCode = "400", description = "유효하지 않은 냉장고 접근 키",
@@ -118,7 +131,7 @@ public interface FoodControllerDocs {
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Slice<FoodResponse>>> findAllFoods(
         @Parameter(hidden = true) Long memberId,
-        @Parameter(description = "커서 기반 페이징 정보") CursorPageRequest cursorRequest,
+        @ModelAttribute @Parameter(description = "커서 기반 페이징 정보") FoodCursorPageRequest cursorRequest,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
     );
 
@@ -139,4 +152,3 @@ public interface FoodControllerDocs {
     );
 
 }
-

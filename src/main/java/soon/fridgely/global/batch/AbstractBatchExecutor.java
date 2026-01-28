@@ -43,7 +43,7 @@ public abstract class AbstractBatchExecutor<T> {
         int totalProcessed = 0;
 
         while (true) {
-            CursorPageRequest cursorRequest = new CursorPageRequest(cursorId, batchSize);
+            CursorPageRequest cursorRequest = new CursorPageRequest(cursorId, batchSize, null);
             Slice<T> slice = fetcher.apply(cursorRequest);
 
             if (slice.isEmpty()) {

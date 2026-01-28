@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -12,15 +13,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.entity.FoodSortType;
 import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
-import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ResultType;
@@ -30,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -197,7 +200,7 @@ class FoodControllerTest extends ControllerTestSupport {
         List<FoodResponse> content = List.of(foodResponse);
         Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
-        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(CursorPageRequest.class)))
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
             .willReturn(mockSlice);
 
         // expected
@@ -214,6 +217,38 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.content[0].id").value(foodResponse.id()))
             .andExpect(jsonPath("$.data.content[0].name").value(foodResponse.name()))
             .andExpect(jsonPath("$.data.content[0].imageURL").value(foodResponse.imageURL()));
+    }
+
+    @TestLoginMember
+    @Test
+    void 음식_목록을_정렬_조건과_함께_조회한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        int size = 10;
+        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
+
+        List<FoodResponse> content = List.of(foodResponse);
+        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
+
+        ArgumentCaptor<FoodCursorPageRequest> requestCaptor = ArgumentCaptor.forClass(FoodCursorPageRequest.class);
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), requestCaptor.capture()))
+            .willReturn(mockSlice);
+
+        // when
+        mockMvc.perform(
+                get(BASE_URL, refrigeratorId)
+                    .param("size", String.valueOf(size))
+                    .param("sortBy", "NAME")
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        // then
+        FoodCursorPageRequest capturedRequest = requestCaptor.getValue();
+        assertThat(capturedRequest).isNotNull();
+        assertThat(capturedRequest.getSortBy()).isEqualTo(FoodSortType.NAME);
     }
 
     @TestLoginMember
