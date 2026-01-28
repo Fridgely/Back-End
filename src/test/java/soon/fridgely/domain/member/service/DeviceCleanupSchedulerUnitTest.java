@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
 import soon.fridgely.domain.member.entity.MemberDevice;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalDateTime;

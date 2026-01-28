@@ -11,6 +11,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.service.NotificationSettingFinder;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalTime;

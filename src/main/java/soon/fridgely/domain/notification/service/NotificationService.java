@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import soon.fridgely.domain.notification.batch.BatchResult;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
 import soon.fridgely.global.support.utils.TimeRangeUtils;
 

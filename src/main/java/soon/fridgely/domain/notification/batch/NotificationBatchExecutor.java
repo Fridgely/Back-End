@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.service.NotificationSettingFinder;
 import soon.fridgely.global.batch.AbstractBatchExecutor;
+import soon.fridgely.global.batch.BatchResult;
 
 import java.time.LocalTime;
 import java.util.function.Consumer;

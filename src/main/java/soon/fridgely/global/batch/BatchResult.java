@@ -1,4 +1,4 @@
-package soon.fridgely.domain.notification.batch;
+package soon.fridgely.global.batch;
 
 import org.jetbrains.annotations.NotNull;
 
