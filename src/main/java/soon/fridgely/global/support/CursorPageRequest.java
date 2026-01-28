@@ -34,8 +34,12 @@ public record CursorPageRequest(
     }
 
     public Pageable toPageable() {
-        FoodSortType sortType = getSortBy();
-        Sort sort = switch (sortType) {
+        if (sortBy == null) {
+            // sortBy가 없으면 기본 정렬 (id DESC)
+            return PageRequest.of(0, this.size, Sort.by(Sort.Direction.DESC, "id"));
+        }
+
+        Sort sort = switch (sortBy) {
             case EXPIRATION -> Sort.by(Sort.Direction.ASC, "expirationDate").and(Sort.by(Sort.Direction.DESC, "id"));
             case CREATED -> Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
             case NAME -> Sort.by(Sort.Direction.ASC, "name").and(Sort.by(Sort.Direction.DESC, "id"));
