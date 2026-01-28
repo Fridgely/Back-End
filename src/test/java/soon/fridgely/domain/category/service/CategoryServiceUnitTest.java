@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.category.dto.command.AddCategory;
+import soon.fridgely.domain.category.dto.command.CachedCategories;
 import soon.fridgely.domain.category.dto.command.DeleteCategory;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
 import soon.fridgely.domain.category.entity.Category;
@@ -83,6 +84,10 @@ class CategoryServiceUnitTest {
         var key = fixtureMonkey.giveMeBuilder(MemberRefrigeratorKey.class)
             .set("refrigeratorId", refrigeratorId)
             .sample();
+
+        var mockCachedCategories = fixtureMonkey.giveMeOne(CachedCategories.class);
+        given(categoryFinder.findAll(refrigeratorId))
+            .willReturn(mockCachedCategories);
 
         // when
         categoryService.findAllCategory(key);

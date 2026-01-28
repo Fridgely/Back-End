@@ -1,6 +1,7 @@
 package soon.fridgely.domain.category.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.category.dto.command.ModifyCategory;
@@ -14,6 +15,7 @@ public class CategoryModifier {
     private final CategoryFinder categoryFinder;
     private final CategoryValidator categoryValidator;
 
+    @CacheEvict(value = "categories", key = "#modifyCategory.refrigeratorId()")
     @Transactional
     public void modify(ModifyCategory modifyCategory) {
         Category category = categoryFinder.findByRefrigerator(modifyCategory.categoryId(), modifyCategory.refrigeratorId());

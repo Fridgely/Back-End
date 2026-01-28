@@ -1,6 +1,7 @@
 package soon.fridgely.domain.refrigerator.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -23,11 +24,13 @@ public class MemberRefrigeratorLinker {
     private final RefrigeratorRepository refrigeratorRepository;
     private final MemberRepository memberRepository;
 
+    @CacheEvict(value = "myRefrigerators", key = "#member.id")
     public void linkToOwner(Member member, Refrigerator refrigerator) {
         MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
         memberRefrigeratorRepository.save(memberRefrigerator);
     }
 
+    @CacheEvict(value = "myRefrigerators", key = "#key.memberId()")
     @Transactional
     public void linkMemberToRefrigerator(MemberRefrigeratorKey key, RefrigeratorRole role) {
         if (memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(key.refrigeratorId(), key.memberId(), EntityStatus.ACTIVE)) {

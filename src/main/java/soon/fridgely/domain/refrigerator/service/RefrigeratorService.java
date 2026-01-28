@@ -59,6 +59,7 @@ public class RefrigeratorService {
     @Transactional(readOnly = true)
     public List<RefrigeratorResponse> findAllMyRefrigerators(Long memberId) {
         return memberRefrigeratorFinder.findAllByMemberId(memberId)
+            .refrigerators()
             .stream()
             .map(RefrigeratorResponse::from)
             .toList();

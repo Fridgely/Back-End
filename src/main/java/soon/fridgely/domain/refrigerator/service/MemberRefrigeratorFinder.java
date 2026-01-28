@@ -1,9 +1,11 @@
 package soon.fridgely.domain.refrigerator.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
+import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
@@ -17,9 +19,11 @@ public class MemberRefrigeratorFinder {
 
     private final MemberRefrigeratorRepository memberRefrigeratorRepository;
 
+    @Cacheable(value = "myRefrigerators", key = "#memberId")
     @Transactional(readOnly = true)
-    public List<MemberRefrigerator> findAllByMemberId(long memberId) {
-        return memberRefrigeratorRepository.findAllMyRefrigerators(memberId, EntityStatus.ACTIVE);
+    public CachedMemberRefrigerators findAllByMemberId(long memberId) {
+        List<MemberRefrigerator> refrigerators = memberRefrigeratorRepository.findAllMyRefrigerators(memberId, EntityStatus.ACTIVE);
+        return CachedMemberRefrigerators.from(memberId, refrigerators);
     }
 
     @Transactional(readOnly = true)
