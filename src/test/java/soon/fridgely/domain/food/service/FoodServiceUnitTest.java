@@ -244,10 +244,17 @@ class FoodServiceUnitTest {
 
         // then
         assertThat(response.red()).hasSize(1);
+        assertThat(response.redCount()).isEqualTo(1);
+
         assertThat(response.green()).hasSize(2);
+        assertThat(response.greenCount()).isEqualTo(2);
+
         assertThat(response.black()).hasSize(1);
+        assertThat(response.blackCount()).isEqualTo(1);
+
         assertThat(response.yellow()).isNotNull()
             .isEmpty();
+        assertThat(response.yellowCount()).isZero();
     }
 
     @Test

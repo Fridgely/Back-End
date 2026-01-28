@@ -78,15 +78,24 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
         );
 
         // then
+        System.out.println("response = " + response);
+        
         assertThat(response).isNotNull()
             .extracting("statusCode", "body.result")
             .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
 
         var result = response.getBody().data();
         assertGroup(result.black(), blackFood);
+        assertThat(result.blackCount()).isEqualTo(1);
+
         assertGroup(result.red(), redFood);
+        assertThat(result.redCount()).isEqualTo(1);
+
         assertGroup(result.green(), greenFood);
+        assertThat(result.greenCount()).isEqualTo(1);
+
         assertThat(result.yellow()).isEmpty();
+        assertThat(result.yellowCount()).isZero();
     }
 
     private void setupBasicEnvironment() {
