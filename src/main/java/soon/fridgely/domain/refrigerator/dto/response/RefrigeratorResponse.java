@@ -1,6 +1,7 @@
 package soon.fridgely.domain.refrigerator.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import soon.fridgely.domain.refrigerator.dto.command.CachedRefrigeratorInfo;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
@@ -29,6 +30,15 @@ public record RefrigeratorResponse(
             refrigerator.getName(),
             memberRefrigerator.getRole(),
             memberRefrigerator.isOwner()
+        );
+    }
+
+    public static RefrigeratorResponse from(CachedRefrigeratorInfo info) {
+        return new RefrigeratorResponse(
+            info.id(),
+            info.name(),
+            info.role(),
+            info.isOwner()
         );
     }
 

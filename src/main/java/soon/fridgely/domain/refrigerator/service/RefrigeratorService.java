@@ -61,7 +61,7 @@ public class RefrigeratorService {
         return memberRefrigeratorFinder.findAllByMemberId(memberId)
             .refrigerators()
             .stream()
-            .map(info -> new RefrigeratorResponse(info.id(), info.name(), info.role(), info.isOwner()))
+            .map(RefrigeratorResponse::from)
             .toList();
     }
 
