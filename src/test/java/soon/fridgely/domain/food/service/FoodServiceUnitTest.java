@@ -256,6 +256,34 @@ class FoodServiceUnitTest {
     }
 
     @Test
+    void 저장_위치로_필터링하여_음식_목록을_조회한다() {
+        // given
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        var storageType = StorageType.REFRIGERATION;
+        var request = fixtureMonkey.giveMeBuilder(FoodCursorPageRequest.class)
+            .set("size", 10)
+            .set("storageType", storageType)
+            .sample();
+
+        List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
+        Slice<Food> foodSlice = new SliceImpl<>(foods, request.toPageable(), true);
+
+        given(foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable(), request.getSortBy(), storageType))
+            .willReturn(foodSlice);
+
+        // when
+        Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
+
+        // then
+        InOrder inOrder = inOrder(foodFinder);
+        then(foodFinder).should(inOrder)
+            .findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable(), request.getSortBy(), storageType);
+
+        assertThat(responseSlice).isNotNull();
+        assertThat(responseSlice.hasNext()).isTrue();
+    }
+
+    @Test
     void 음식의_재고를_추가한다() {
         // given
         long foodId = 1L;

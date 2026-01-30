@@ -10,6 +10,7 @@ import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.FoodSortType;
 import soon.fridgely.domain.food.entity.FoodStatus;
+import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -113,9 +114,9 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
     void 유통기한_임박순으로_음식을_조회한다() {
         // given
         LocalDate now = LocalDate.now();
-        Food food1 = createFoodWithExpiration("음식1", now.plusDays(30));
-        Food food2 = createFoodWithExpiration("음식2", now.plusDays(5));
-        Food food3 = createFoodWithExpiration("음식3", now.plusDays(15));
+        createFoodWithExpiration("음식1", now.plusDays(30));
+        createFoodWithExpiration("음식2", now.plusDays(5));
+        createFoodWithExpiration("음식3", now.plusDays(15));
 
         // when
         Slice<Food> result = foodFinder.findAll(
@@ -136,9 +137,9 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
     @Test
     void 등록순으로_음식을_조회한다() {
         // given
-        Food food1 = createFoodWithName("음식1");
-        Food food2 = createFoodWithName("음식2");
-        Food food3 = createFoodWithName("음식3");
+        createFoodWithName("음식1");
+        createFoodWithName("음식2");
+        createFoodWithName("음식3");
 
         // when
         Slice<Food> result = foodFinder.findAll(
@@ -159,9 +160,9 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
     @Test
     void 이름순으로_음식을_조회한다() {
         // given
-        Food food1 = createFoodWithName("토마토");
-        Food food2 = createFoodWithName("감자");
-        Food food3 = createFoodWithName("당근");
+        createFoodWithName("토마토");
+        createFoodWithName("감자");
+        createFoodWithName("당근");
 
         // when
         Slice<Food> result = foodFinder.findAll(
@@ -177,6 +178,27 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
             .hasSize(3)
             .extracting("name")
             .containsExactly("감자", "당근", "토마토");
+    }
+
+    @Test
+    void 저장_위치로_필터링하여_음식을_조회한다() {
+        // given
+        createFoodWithStorageType("냉장음식", StorageType.REFRIGERATION);
+        createFoodWithStorageType("냉동음식", StorageType.FROZEN);
+
+        // when
+        Slice<Food> result = foodFinder.findAll(
+            refrigerator.getId(),
+            Long.MAX_VALUE,
+            PageRequest.of(0, 10),
+            FoodSortType.EXPIRATION,
+            StorageType.REFRIGERATION
+        );
+
+        // then
+        assertThat(result.getContent()).hasSize(1)
+            .extracting("name")
+            .containsExactly("냉장음식");
     }
 
     private void createFood(FoodStatus status) {
@@ -200,6 +222,15 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
             food(fixtureMonkey, refrigerator, member, category)
                 .set("name", name)
                 .set("expirationDate", expirationDate.atStartOfDay())
+                .sample()
+        );
+    }
+
+    private Food createFoodWithStorageType(String name, StorageType storageType) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", name)
+                .set("storageType", storageType)
                 .sample()
         );
     }
