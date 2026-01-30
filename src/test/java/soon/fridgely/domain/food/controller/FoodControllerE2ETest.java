@@ -17,10 +17,7 @@ import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
-import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.StockActionType;
-import soon.fridgely.domain.food.entity.Unit;
+import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -161,6 +158,40 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
         assertThat(response.getBody().data().content()).hasSize(2);
         assertThat(response.getBody().data().last()).isTrue();
+    }
+
+    @Test
+    void 음식_목록을_저장_위치로_필터링하여_조회한다() {
+        // given
+        setupBasicEnvironment();
+        createFoodWithStorageType("우유", StorageType.REFRIGERATION);
+        createFoodWithStorageType("아이스크림", StorageType.FROZEN);
+        createFoodWithStorageType("라면", StorageType.ROOM_TEMPERATURE);
+        createFoodWithStorageType("치즈", StorageType.REFRIGERATION);
+
+        var httpEntity = createAuthEntity(member);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        };
+
+        var response = testRestTemplate.exchange(
+            BASE_URL + "/" + refrigerator.getId() + "/foods?storageType=REFRIGERATION",
+            HttpMethod.GET,
+            httpEntity,
+            responseType
+        );
+
+        // then
+        assertThat(response).isNotNull()
+            .extracting("statusCode", "body.result")
+            .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
+
+        List<FoodResponse> content = response.getBody().data().content();
+        assertThat(content).hasSize(2);
+        assertThat(content)
+            .extracting(FoodResponse::name)
+            .containsExactlyInAnyOrder("우유", "치즈");
     }
 
     @Test
@@ -370,6 +401,15 @@ class FoodControllerE2ETest extends E2ETestSupport {
             food(fixtureMonkey, refrigerator, member, category)
                 .set("name", name)
                 .set("expirationDate", expirationDate.atStartOfDay())
+                .sample()
+        );
+    }
+
+    private Food createFoodWithStorageType(String name, StorageType storageType) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("name", name)
+                .set("storageType", storageType)
                 .sample()
         );
     }

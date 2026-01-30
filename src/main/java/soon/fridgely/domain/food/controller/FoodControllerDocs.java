@@ -118,6 +118,12 @@ public interface FoodControllerDocs {
             - CREATED: 등록순 (최신순) - 가장 안정적인 정렬
             - NAME: 이름순 (가나다순)
             
+            **저장 위치 필터:**
+            - FROZEN: 냉동 보관 식재료만 조회
+            - REFRIGERATION: 냉장 보관 식재료만 조회
+            - ROOM_TEMPERATURE: 상온 보관 식재료만 조회
+            - 지정하지 않으면 모든 저장 위치의 식재료를 조회
+            
             **주의사항:**
             - 정렬 조건 변경 시 cursorId를 null로 설정하여 첫 페이지부터 다시 요청해주세요.
             - 안정적인 페이지네이션을 위해서는 CREATED(등록순) 정렬을 권장합니다.

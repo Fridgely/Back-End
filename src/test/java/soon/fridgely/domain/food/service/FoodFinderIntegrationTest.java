@@ -122,7 +122,8 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
             refrigerator.getId(),
             Long.MAX_VALUE,
             PageRequest.of(0, 10),
-            FoodSortType.EXPIRATION
+            FoodSortType.EXPIRATION,
+            null
         );
 
         // then
@@ -144,7 +145,8 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
             refrigerator.getId(),
             Long.MAX_VALUE,
             PageRequest.of(0, 10),
-            FoodSortType.CREATED
+            FoodSortType.CREATED,
+            null
         );
 
         // then
@@ -166,7 +168,8 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
             refrigerator.getId(),
             Long.MAX_VALUE,
             PageRequest.of(0, 10),
-            FoodSortType.NAME
+            FoodSortType.NAME,
+            null
         );
 
         // then
