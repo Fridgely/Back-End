@@ -22,7 +22,6 @@ import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.image.ImageManager;
 
@@ -173,7 +172,7 @@ class FoodServiceUnitTest {
     void 음식_목록을_조회한다() {
         // given
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = new FoodCursorPageRequest(null, 10, null);
+        var request = new FoodCursorPageRequest(null, 10, null, null);
         long expectedCursorId = request.getCursorId();
         Pageable expectedPageable = request.toPageable();
         FoodSortType expectedSortBy = request.getSortBy();
@@ -181,7 +180,7 @@ class FoodServiceUnitTest {
         List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
         Slice<Food> foodSlice = new SliceImpl<>(foods, expectedPageable, true);
 
-        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy))
+        given(foodFinder.findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy, null))
             .willReturn(foodSlice);
 
         // when
@@ -190,7 +189,7 @@ class FoodServiceUnitTest {
         // then
         InOrder inOrder = inOrder(foodFinder);
         then(foodFinder).should(inOrder)
-            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy);
+            .findAll(key.refrigeratorId(), expectedCursorId, expectedPageable, expectedSortBy, null);
 
         assertThat(responseSlice).isNotNull();
         assertThat(responseSlice.hasNext()).isTrue();
@@ -254,6 +253,34 @@ class FoodServiceUnitTest {
         assertThat(response.yellow()).isNotNull()
             .isEmpty();
         assertThat(response.yellowCount()).isZero();
+    }
+
+    @Test
+    void 저장_위치로_필터링하여_음식_목록을_조회한다() {
+        // given
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+        var storageType = StorageType.REFRIGERATION;
+        var request = fixtureMonkey.giveMeBuilder(FoodCursorPageRequest.class)
+            .set("size", 10)
+            .set("storageType", storageType)
+            .sample();
+
+        List<Food> foods = fixtureMonkey.giveMe(Food.class, 2);
+        Slice<Food> foodSlice = new SliceImpl<>(foods, request.toPageable(), true);
+
+        given(foodFinder.findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable(), request.getSortBy(), storageType))
+            .willReturn(foodSlice);
+
+        // when
+        Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
+
+        // then
+        InOrder inOrder = inOrder(foodFinder);
+        then(foodFinder).should(inOrder)
+            .findAll(key.refrigeratorId(), request.getCursorId(), request.toPageable(), request.getSortBy(), storageType);
+
+        assertThat(responseSlice).isNotNull();
+        assertThat(responseSlice.hasNext()).isTrue();
     }
 
     @Test

@@ -253,6 +253,34 @@ class FoodControllerTest extends ControllerTestSupport {
 
     @TestLoginMember
     @Test
+    void 음식_목록을_저장_위치로_필터링하여_조회한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        int size = 10;
+        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
+
+        List<FoodResponse> content = List.of(foodResponse);
+        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), false);
+
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
+            .willReturn(mockSlice);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL, refrigeratorId)
+                    .param("size", String.valueOf(size))
+                    .param("storageType", "REFRIGERATION")
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.last").value(true))
+            .andExpect(jsonPath("$.data.numberOfElements").value(1));
+    }
+
+    @TestLoginMember
+    @Test
     void 음식을_삭제한다() throws Exception {
         // given
         long refrigeratorId = 1L;

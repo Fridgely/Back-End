@@ -74,7 +74,8 @@ public class FoodService {
                 key.refrigeratorId(),
                 request.getCursorId(),
                 request.toPageable(),
-                request.getSortBy()
+                request.getSortBy(),
+                request.storageType()
             )
             .map(food -> FoodResponse.of(food, now));
     }

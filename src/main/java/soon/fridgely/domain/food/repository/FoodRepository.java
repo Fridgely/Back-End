@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.StorageType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -118,7 +119,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 유통기한 임박순으로 조회
-     *
+     * <p>
      * NOTE: 현재 커서 조건이 id만 사용하여, id 순서와 expirationDate 순서가 다를 경우
      * 페이지네이션이 정확하지 않을 수 있음. 향후 복합 키셋 조건으로 개선 필요.
      */
@@ -139,7 +140,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 등록순(최신순)으로 조회
-     *
+     * <p>
      * NOTE: createdAt은 id와 상관관계가 높아 페이지네이션 문제 발생 확률이 낮음.
      * 가장 안정적인 정렬 옵션.
      */
@@ -160,7 +161,7 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
 
     /**
      * 특정 냉장고의 Food를 이름순으로 조회
-     *
+     * <p>
      * NOTE: 현재 커서 조건이 id만 사용하여, id 순서와 name 순서가 다를 경우
      * 페이지네이션이 정확하지 않을 수 있음. 향후 복합 키셋 조건으로 개선 필요.
      */
@@ -175,6 +176,66 @@ public interface FoodRepository extends JpaRepository<Food, Long> {
     Slice<Food> findAllByRefrigeratorOrderByName(
         @Param("refrigeratorId") long refrigeratorId,
         @Param("cursorId") long cursorId,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
+    /**
+     * 특정 냉장고의 Food를 저장 위치로 필터링하여 유통기한 임박순으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.storageType = :storageType
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.expirationDate ASC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorAndStorageTypeOrderByExpiration(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("storageType") StorageType storageType,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
+    /**
+     * 특정 냉장고의 Food를 저장 위치로 필터링하여 등록순으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.storageType = :storageType
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.createdAt DESC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorAndStorageTypeOrderByCreated(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("storageType") StorageType storageType,
+        @Param("status") EntityStatus status,
+        Pageable pageable
+    );
+
+    /**
+     * 특정 냉장고의 Food를 저장 위치로 필터링하여 이름순으로 조회
+     */
+    @Query("""
+            SELECT f FROM Food f
+            JOIN FETCH f.category c
+            WHERE f.refrigerator.id = :refrigeratorId
+            AND f.storageType = :storageType
+            AND f.id < :cursorId
+            AND f.status = :status
+            ORDER BY f.name ASC, f.id DESC
+        """)
+    Slice<Food> findAllByRefrigeratorAndStorageTypeOrderByName(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("cursorId") long cursorId,
+        @Param("storageType") StorageType storageType,
         @Param("status") EntityStatus status,
         Pageable pageable
     );

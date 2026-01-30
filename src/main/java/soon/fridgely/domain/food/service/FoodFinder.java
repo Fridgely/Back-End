@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.FoodSortType;
+import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
@@ -29,7 +30,39 @@ public class FoodFinder {
     }
 
     @Transactional(readOnly = true)
-    public Slice<Food> findAll(long refrigeratorId, long cursorId, Pageable pageable, FoodSortType sortType) {
+    public Slice<Food> findAll(
+        long refrigeratorId,
+        long cursorId,
+        Pageable pageable,
+        FoodSortType sortType,
+        StorageType storageType
+    ) {
+        if (storageType != null) {
+            return switch (sortType) {
+                case EXPIRATION -> foodRepository.findAllByRefrigeratorAndStorageTypeOrderByExpiration(
+                    refrigeratorId,
+                    cursorId,
+                    storageType,
+                    EntityStatus.ACTIVE,
+                    pageable
+                );
+                case CREATED -> foodRepository.findAllByRefrigeratorAndStorageTypeOrderByCreated(
+                    refrigeratorId,
+                    cursorId,
+                    storageType,
+                    EntityStatus.ACTIVE,
+                    pageable
+                );
+                case NAME -> foodRepository.findAllByRefrigeratorAndStorageTypeOrderByName(
+                    refrigeratorId,
+                    cursorId,
+                    storageType,
+                    EntityStatus.ACTIVE,
+                    pageable
+                );
+            };
+        }
+
         return switch (sortType) {
             case EXPIRATION -> foodRepository.findAllByRefrigeratorOrderByExpiration(
                 refrigeratorId,

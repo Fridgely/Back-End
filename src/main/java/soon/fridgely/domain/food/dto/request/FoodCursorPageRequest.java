@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import soon.fridgely.domain.food.entity.FoodSortType;
+import soon.fridgely.domain.food.entity.StorageType;
 
 /**
  * Food 도메인 전용 커서 기반 페이징 요청
@@ -22,8 +23,10 @@ public record FoodCursorPageRequest(
     Integer size,
 
     @Schema(description = "정렬 기준 (EXPIRATION: 유통기한 임박순, CREATED: 등록순, NAME: 이름순)", example = "EXPIRATION")
-    @Positive
-    FoodSortType sortBy
+    FoodSortType sortBy,
+
+    @Schema(description = "저장 위치 필터 (FROZEN: 냉동, REFRIGERATION: 냉장, ROOM_TEMPERATURE: 상온)", example = "REFRIGERATION")
+    StorageType storageType
 
 ) {
 
