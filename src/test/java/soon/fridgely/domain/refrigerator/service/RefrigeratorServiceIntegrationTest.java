@@ -79,7 +79,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
         InvitationCodeResponse response = refrigeratorService.generateInvitationCode(key);
 
         // then
-        assertThat(response.code()).isEqualTo(succeedCode.code());
+        assertThat(response.code()).isEqualTo(succeedCode.getCode());
         verify(refrigeratorManager, times(3)).refreshInvitationCode(anyLong(), anyString(), any());
     }
 

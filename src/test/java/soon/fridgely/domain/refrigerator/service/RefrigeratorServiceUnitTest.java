@@ -87,7 +87,7 @@ class RefrigeratorServiceUnitTest {
         // then
         assertThat(response)
             .extracting("code", "expirationAt")
-            .containsExactly(generatedCode, expectedInvitationCode.expirationAt());
+            .containsExactly(generatedCode, expectedInvitationCode.getExpirationAt());
 
         then(refrigeratorManager).should()
             .refreshInvitationCode(
