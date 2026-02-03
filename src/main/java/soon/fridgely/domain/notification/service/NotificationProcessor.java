@@ -37,7 +37,7 @@ public class NotificationProcessor {
                 return;
             }
 
-            int daysBefore = setting.getAlertSchedule().daysBeforeExpiration();
+            int daysBefore = setting.getAlertSchedule().getDaysBeforeExpiration();
             LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
 
             List<Food> expiringFoods = foodFinder.findMyFoodsExpiringOnDate(memberId, targetDate);
