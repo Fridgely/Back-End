@@ -4,6 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -11,18 +15,19 @@ import java.math.RoundingMode;
 import static java.util.Objects.requireNonNull;
 
 @Embeddable
-public record Quantity(
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Quantity {
 
     @Column(name = "quantity_amount", precision = 10, scale = 2)
-    BigDecimal amount,
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "quantity_unit", nullable = false, length = 10)
-    Unit unit
+    private Unit unit;
 
-) {
-
-    public Quantity {
+    private Quantity(BigDecimal amount, Unit unit) {
         requireNonNull(unit, "unit은 필수입니다.");
 
         if (amount == null) {
@@ -33,6 +38,9 @@ public record Quantity(
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("수량은 음수일 수 없습니다.");
         }
+
+        this.amount = amount;
+        this.unit = unit;
     }
 
     public static Quantity register(BigDecimal amount, Unit unit) {
