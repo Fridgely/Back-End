@@ -109,10 +109,11 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         );
 
         // when
-        Slice<Food> result = foodRepository.findAllByRefrigeratorWithCategory(
+        Slice<Food> result = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            EntityStatus.ACTIVE,
+            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            null,
             PageRequest.ofSize(10)
         );
 
@@ -131,10 +132,11 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         createFoods(5, category);
 
         // when
-        Slice<Food> result = foodRepository.findAllByRefrigeratorWithCategory(
+        Slice<Food> result = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            EntityStatus.ACTIVE,
+            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            null,
             PageRequest.ofSize(10)
         );
 
@@ -153,10 +155,11 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Pageable pageable = PageRequest.ofSize(3);
 
         // when
-        Slice<Food> firstSlice = foodRepository.findAllByRefrigeratorWithCategory(
+        Slice<Food> firstSlice = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            EntityStatus.ACTIVE,
+            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            null,
             pageable
         );
 
@@ -181,10 +184,11 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         long cursorId = foods.get(2).getId();
 
         // when
-        Slice<Food> secondSlice = foodRepository.findAllByRefrigeratorWithCategory(
+        Slice<Food> secondSlice = foodRepository.findAllDynamic(
             refrigerator.getId(),
             cursorId,
-            EntityStatus.ACTIVE,
+            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            null,
             pageable
         );
 
@@ -245,7 +249,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         ));
 
         // when
-        List<Food> result = foodRepository.findAllMyFoods(me.getId(), EntityStatus.ACTIVE);
+        List<Food> result = foodRepository.findAllMyFoods(me.getId());
 
         // then
         assertThat(result).hasSize(2)
@@ -273,8 +277,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         List<Food> results = foodRepository.findMyFoodsExpiringBetween(
             member.getId(),
             targetDate.atStartOfDay(),
-            targetDate.atTime(23, 59, 59),
-            EntityStatus.ACTIVE
+            targetDate.atTime(23, 59, 59)
         );
 
         // then
@@ -291,32 +294,32 @@ class FoodRepositoryTest extends IntegrationTestSupport {
 
         Food outOfStock = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
-                .set("quantity", new Quantity(BigDecimal.ZERO, Unit.PIECE))
+                .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.PIECE))
                 .sample()
         );
         // 재고 있음
         foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
-                .set("quantity", new Quantity(BigDecimal.ONE, Unit.PIECE))
+                .set("quantity", Quantity.register(BigDecimal.ONE, Unit.PIECE))
                 .sample()
         );
         // 재고는 0이지만 삭제된 음식
         foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
-                .set("quantity", new Quantity(BigDecimal.ZERO, Unit.PIECE))
+                .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.PIECE))
                 .set("status", EntityStatus.DELETED)
                 .sample()
         );
 
         // when
-        List<Food> results = foodRepository.findAllOutOfStock(member.getId(), EntityStatus.ACTIVE);
+        List<Food> results = foodRepository.findAllOutOfStock(member.getId());
 
         // then
         assertThat(results).hasSize(1)
             .extracting("id", Long.class)
             .containsExactly(outOfStock.getId());
 
-        assertThat(results.get(0).getQuantity().amount())
+        assertThat(results.get(0).getQuantity().getAmount())
             .isEqualByComparingTo(BigDecimal.ZERO);
     }
 
