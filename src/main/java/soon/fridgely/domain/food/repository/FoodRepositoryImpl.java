@@ -15,6 +15,7 @@ import soon.fridgely.domain.food.entity.StorageType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -162,11 +163,11 @@ public class FoodRepositoryImpl implements FoodRepositoryCustom {
     private Slice<Food> toSlice(List<Food> content, Pageable pageable) {
         boolean hasNext = content.size() > pageable.getPageSize();
 
-        if (hasNext) {
-            content = content.subList(0, pageable.getPageSize());
-        }
+        List<Food> result = hasNext
+            ? new ArrayList<>(content.subList(0, pageable.getPageSize()))
+            : content;
 
-        return new SliceImpl<>(content, pageable, hasNext);
+        return new SliceImpl<>(result, pageable, hasNext);
     }
 
 }
