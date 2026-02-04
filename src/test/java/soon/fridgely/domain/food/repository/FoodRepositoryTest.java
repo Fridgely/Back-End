@@ -12,6 +12,7 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.FoodSortType;
 import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.member.entity.Member;
@@ -112,7 +113,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Slice<Food> result = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            FoodSortType.CREATED,
             null,
             PageRequest.ofSize(10)
         );
@@ -135,7 +136,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Slice<Food> result = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            FoodSortType.CREATED,
             null,
             PageRequest.ofSize(10)
         );
@@ -158,7 +159,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Slice<Food> firstSlice = foodRepository.findAllDynamic(
             refrigerator.getId(),
             Long.MAX_VALUE,
-            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            FoodSortType.CREATED,
             null,
             pageable
         );
@@ -187,7 +188,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         Slice<Food> secondSlice = foodRepository.findAllDynamic(
             refrigerator.getId(),
             cursorId,
-            soon.fridgely.domain.food.entity.FoodSortType.CREATED,
+            FoodSortType.CREATED,
             null,
             pageable
         );
