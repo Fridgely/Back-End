@@ -266,7 +266,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         // given
         setupBasicEnvironment();
 
-        Quantity initialQuantity = new Quantity(new BigDecimal("5.0"), Unit.PIECE);
+        Quantity initialQuantity = Quantity.register(new BigDecimal("5.0"), Unit.PIECE);
         Food food = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
                 .set("quantity", initialQuantity)
@@ -296,7 +296,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
             .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
 
         Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
-        assertThat(updatedFood.getQuantity().amount())
+        assertThat(updatedFood.getQuantity().getAmount())
             .isEqualByComparingTo(new BigDecimal("3.00"));
     }
 

@@ -42,7 +42,7 @@ public class RefrigeratorService {
         LocalDateTime now = LocalDateTime.now();
 
         InvitationCode savedCode = refrigeratorManager.refreshInvitationCode(key.refrigeratorId(), newCode, now);
-        return new InvitationCodeResponse(savedCode.code(), savedCode.expirationAt());
+        return new InvitationCodeResponse(savedCode.getCode(), savedCode.getExpirationAt());
     }
 
     @Transactional

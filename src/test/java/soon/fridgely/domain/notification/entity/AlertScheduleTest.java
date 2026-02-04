@@ -20,8 +20,8 @@ class AlertScheduleTest {
         AlertSchedule schedule = AlertSchedule.createDefault();
 
         // expected
-        assertThat(schedule.notificationTime()).isEqualTo(LocalTime.of(9, 0));
-        assertThat(schedule.daysBeforeExpiration()).isEqualTo(3);
+        assertThat(schedule.getNotificationTime()).isEqualTo(LocalTime.of(9, 0));
+        assertThat(schedule.getDaysBeforeExpiration()).isEqualTo(3);
     }
 
     @ParameterizedTest
@@ -39,8 +39,8 @@ class AlertScheduleTest {
         AlertSchedule schedule = AlertSchedule.of(time, days);
 
         // then
-        assertThat(schedule.notificationTime()).isEqualTo(time);
-        assertThat(schedule.daysBeforeExpiration()).isEqualTo(days);
+        assertThat(schedule.getNotificationTime()).isEqualTo(time);
+        assertThat(schedule.getDaysBeforeExpiration()).isEqualTo(days);
     }
 
     @Test

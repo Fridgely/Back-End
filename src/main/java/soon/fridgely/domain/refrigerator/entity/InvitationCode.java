@@ -2,6 +2,10 @@ package soon.fridgely.domain.refrigerator.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
@@ -10,22 +14,25 @@ import java.time.LocalDateTime;
 import static java.util.Objects.requireNonNull;
 
 @Embeddable
-public record InvitationCode(
-
-    @Column(name = "invitation_code", length = 8)
-    String code,
-
-    @Column
-    LocalDateTime expirationAt
-
-) {
-
-    public InvitationCode {
-        requireNonNull(code, "초대 코드는 필수입니다.");
-        requireNonNull(expirationAt, "만료 시간은 필수입니다.");
-    }
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class InvitationCode {
 
     private static final long DEFAULT_EXPIRATION_DAYS = 1L;
+
+    @Column(name = "invitation_code", length = 8)
+    private String code;
+
+    @Column
+    private LocalDateTime expirationAt;
+
+    private InvitationCode(String code, LocalDateTime expirationAt) {
+        requireNonNull(code, "초대 코드는 필수입니다.");
+        requireNonNull(expirationAt, "만료 시간은 필수입니다.");
+        this.code = code;
+        this.expirationAt = expirationAt;
+    }
 
     public static InvitationCode generate(String invitationCode, LocalDateTime now) {
         requireNonNull(now, "기준 시간은 필수입니다.");

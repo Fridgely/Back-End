@@ -143,7 +143,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
     @Test
     void 음식을_추가하면_변경된_재고가_반영된다() {
         // given
-        Quantity initialQuantity = new Quantity(new BigDecimal("10.0"), Unit.L);
+        Quantity initialQuantity = Quantity.register(new BigDecimal("10.0"), Unit.L);
         Food food = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
                 .set("quantity", initialQuantity)
@@ -151,19 +151,19 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        Quantity addAmount = new Quantity(new BigDecimal("2.5"), Unit.L);
+        Quantity addAmount = Quantity.register(new BigDecimal("2.5"), Unit.L);
         foodModifier.add(food.getId(), refrigerator.getId(), addAmount);
 
         // then
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
-        assertThat(savedFood.getQuantity().amount())
+        assertThat(savedFood.getQuantity().getAmount())
             .isEqualByComparingTo(BigDecimal.valueOf(12.5));
     }
 
     @Test
     void 음식을_소비하면_변경된_재고가_반영된다() {
         // given
-        Quantity initialQuantity = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
+        Quantity initialQuantity = Quantity.register(new BigDecimal("5.00"), Unit.PIECE);
         Food food = foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
                 .set("quantity", initialQuantity)
@@ -171,12 +171,12 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        Quantity consumeAmount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+        Quantity consumeAmount = Quantity.register(new BigDecimal("2.00"), Unit.PIECE);
         foodModifier.consume(food.getId(), refrigerator.getId(), consumeAmount);
 
         // then
         Food savedFood = foodRepository.findById(food.getId()).orElseThrow();
-        assertThat(savedFood.getQuantity().amount())
+        assertThat(savedFood.getQuantity().getAmount())
             .isEqualByComparingTo(BigDecimal.valueOf(3.0));
     }
 

@@ -28,7 +28,7 @@ public record FoodStockUpdateRequest(
 ) {
 
     public Quantity toQuantity() {
-        return new Quantity(amount, unit);
+        return Quantity.register(amount, unit);
     }
 
 }

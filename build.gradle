@@ -31,48 +31,71 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // h2
-    runtimeOnly 'com.h2database:h2'
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
 
-    // mysql
+    // Database
+    runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // jwt
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // aws
+    // AWS
     implementation 'software.amazon.awssdk:s3:2.38.4'
-
-    // test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.15'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // Resilience4j
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
 
-    // Firebase Admin SDK
+    // Firebase
     implementation 'com.google.firebase:firebase-admin:9.7.0'
 
-    // SpringDoc Swagger
+    // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-    // monitoring
+    // Monitoring
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
-    // cache(caffeine)
+    // Cache
     implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.15'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// QueryDSL 설정
+def querydslDir = layout.buildDirectory.dir("generated/querydsl")
+
+sourceSets {
+    main {
+        java {
+            srcDir querydslDir
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.generatedSourceOutputDirectory = querydslDir
+}
+
+clean {
+    delete querydslDir
 }
 
 tasks.named('test') {

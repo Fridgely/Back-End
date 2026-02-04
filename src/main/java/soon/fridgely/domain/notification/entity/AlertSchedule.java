@@ -2,28 +2,35 @@ package soon.fridgely.domain.notification.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalTime;
 
 @Embeddable
-public record AlertSchedule(
-
-    @Column(nullable = false)
-    LocalTime notificationTime,
-
-    @Column(nullable = false)
-    int daysBeforeExpiration
-
-) {
+@Getter
+@EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class AlertSchedule {
 
     private static final LocalTime DEFAULT_NOTIFICATION_TIME = LocalTime.of(9, 0);
     private static final int DEFAULT_DAYS_BEFORE_EXPIRATION = 3;
     private static final int MAX_DAYS = 30;
 
-    public AlertSchedule {
+    @Column(nullable = false)
+    private LocalTime notificationTime;
+
+    @Column(nullable = false)
+    private int daysBeforeExpiration;
+
+    private AlertSchedule(LocalTime notificationTime, int daysBeforeExpiration) {
         validate(notificationTime, daysBeforeExpiration);
+        this.notificationTime = notificationTime;
+        this.daysBeforeExpiration = daysBeforeExpiration;
     }
 
     public static AlertSchedule of(LocalTime time, int days) {

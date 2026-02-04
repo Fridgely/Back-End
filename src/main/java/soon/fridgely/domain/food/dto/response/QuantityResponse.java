@@ -18,7 +18,7 @@ public record QuantityResponse(
 ) {
 
     public static QuantityResponse from(Quantity quantity) {
-        return new QuantityResponse(quantity.amount(), quantity.unit());
+        return new QuantityResponse(quantity.getAmount(), quantity.getUnit());
     }
 
 }

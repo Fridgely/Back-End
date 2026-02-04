@@ -31,14 +31,14 @@ public class QuantityUnitTest {
         Quantity quantity = Quantity.register(null, Unit.PIECE);
 
         // expected
-        assertThat(quantity.amount()).isEqualTo(new BigDecimal("0.00"));
+        assertThat(quantity.getAmount()).isEqualTo(new BigDecimal("0.00"));
     }
 
     @Test
     void 동일한_단위의_수량을_더하면_합산된_수량이_반환된다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("1.50"), Unit.KG);
-        Quantity quantity2 = new Quantity(new BigDecimal("2.30"), Unit.KG);
+        Quantity quantity1 = Quantity.register(new BigDecimal("1.50"), Unit.KG);
+        Quantity quantity2 = Quantity.register(new BigDecimal("2.30"), Unit.KG);
 
         // when
         Quantity result = quantity1.plus(quantity2);
@@ -52,8 +52,8 @@ public class QuantityUnitTest {
     @Test
     void 다른_단위의_수량을_더하면_예외가_발생한다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("1.00"), Unit.KG);
-        Quantity quantity2 = new Quantity(new BigDecimal("500.00"), Unit.ML);
+        Quantity quantity1 = Quantity.register(new BigDecimal("1.00"), Unit.KG);
+        Quantity quantity2 = Quantity.register(new BigDecimal("500.00"), Unit.ML);
 
         // expected
         assertThatThrownBy(() -> quantity1.plus(quantity2))
@@ -64,8 +64,8 @@ public class QuantityUnitTest {
     @Test
     void 동일한_단위의_수량을_빼면_차감된_수량이_반환된다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("5.00"), Unit.KG);
-        Quantity quantity2 = new Quantity(new BigDecimal("2.30"), Unit.KG);
+        Quantity quantity1 = Quantity.register(new BigDecimal("5.00"), Unit.KG);
+        Quantity quantity2 = Quantity.register(new BigDecimal("2.30"), Unit.KG);
 
         // when
         Quantity result = quantity1.minus(quantity2);
@@ -79,8 +79,8 @@ public class QuantityUnitTest {
     @Test
     void 다른_단위의_수량을_빼면_예외가_발생한다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("1.00"), Unit.KG);
-        Quantity quantity2 = new Quantity(new BigDecimal("500.00"), Unit.ML);
+        Quantity quantity1 = Quantity.register(new BigDecimal("1.00"), Unit.KG);
+        Quantity quantity2 = Quantity.register(new BigDecimal("500.00"), Unit.ML);
 
         // expected
         assertThatThrownBy(() -> quantity1.minus(quantity2))
@@ -91,8 +91,8 @@ public class QuantityUnitTest {
     @Test
     void 재고보다_많은_양을_빼면_예외가_발생한다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("1.00"), Unit.KG);
-        Quantity quantity2 = new Quantity(new BigDecimal("2.00"), Unit.KG);
+        Quantity quantity1 = Quantity.register(new BigDecimal("1.00"), Unit.KG);
+        Quantity quantity2 = Quantity.register(new BigDecimal("2.00"), Unit.KG);
 
         // expected
         assertThatThrownBy(() -> quantity1.minus(quantity2))
@@ -103,14 +103,14 @@ public class QuantityUnitTest {
     @Test
     void 동일한_수량을_빼면_0이_반환된다() {
         // given
-        Quantity quantity1 = new Quantity(new BigDecimal("3.50"), Unit.PIECE);
-        Quantity quantity2 = new Quantity(new BigDecimal("3.50"), Unit.PIECE);
+        Quantity quantity1 = Quantity.register(new BigDecimal("3.50"), Unit.PIECE);
+        Quantity quantity2 = Quantity.register(new BigDecimal("3.50"), Unit.PIECE);
 
         // when
         Quantity result = quantity1.minus(quantity2);
 
         // then
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(result.getAmount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(result.isZero()).isTrue();
     }
 
@@ -124,7 +124,7 @@ public class QuantityUnitTest {
     })
     void 수량이_0인지_판단한다(String amountStr, boolean expectedZero) {
         // given
-        Quantity quantity = new Quantity(new BigDecimal(amountStr), Unit.KG);
+        Quantity quantity = Quantity.register(new BigDecimal(amountStr), Unit.KG);
 
         // expected
         assertThat(quantity.isZero()).isEqualTo(expectedZero);

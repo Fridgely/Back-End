@@ -71,7 +71,7 @@ class FoodUnitTest {
             member,
             "이름",
             category,
-            new Quantity(BigDecimal.ONE, Unit.PIECE),
+            Quantity.register(BigDecimal.ONE, Unit.PIECE),
             null,
             StorageType.REFRIGERATION,
             "설명",
@@ -207,43 +207,43 @@ class FoodUnitTest {
     @Test
     void 음식을_소비하면_재고가_차감된다() {
         // given
-        Quantity initial = new Quantity(new BigDecimal("5.00"), Unit.PIECE);
+        Quantity initial = Quantity.register(new BigDecimal("5.00"), Unit.PIECE);
         Food food = food(fixtureMonkey, refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
-        Quantity amount = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+        Quantity amount = Quantity.register(new BigDecimal("2.00"), Unit.PIECE);
 
         // when
         food.consume(amount);
 
         // then
-        assertThat(food.getQuantity().amount())
+        assertThat(food.getQuantity().getAmount())
             .isEqualTo(new BigDecimal("3.00"));
     }
 
     @Test
     void 음식을_추가하면_재고가_증가한다() {
         // given
-        Quantity initial = new Quantity(new BigDecimal("1.0"), Unit.PIECE);
+        Quantity initial = Quantity.register(new BigDecimal("1.0"), Unit.PIECE);
         Food food = food(fixtureMonkey, refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
-        Quantity addAmount = new Quantity(new BigDecimal("2.0"), Unit.PIECE);
+        Quantity addAmount = Quantity.register(new BigDecimal("2.0"), Unit.PIECE);
 
         // when
         food.add(addAmount);
 
         // then
-        assertThat(food.getQuantity().amount())
+        assertThat(food.getQuantity().getAmount())
             .isEqualByComparingTo(new BigDecimal("3.0"));
     }
 
     @Test
     void 재고가_0이면_소진_상태로_판단한다() {
         // given
-        Quantity initial = new Quantity(new BigDecimal("1.0"), Unit.PIECE);
+        Quantity initial = Quantity.register(new BigDecimal("1.0"), Unit.PIECE);
         Food food = food(fixtureMonkey, refrigerator, member, category)
             .set("quantity", initial)
             .sample();
@@ -258,12 +258,12 @@ class FoodUnitTest {
     @Test
     void 재고가_남아있으면_소진_상태가_아니다() {
         // given
-        Quantity initial = new Quantity(new BigDecimal("2.00"), Unit.PIECE);
+        Quantity initial = Quantity.register(new BigDecimal("2.00"), Unit.PIECE);
         Food food = food(fixtureMonkey, refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
-        Quantity amount = new Quantity(new BigDecimal("1.00"), Unit.PIECE);
+        Quantity amount = Quantity.register(new BigDecimal("1.00"), Unit.PIECE);
 
         // when
         food.consume(amount);
