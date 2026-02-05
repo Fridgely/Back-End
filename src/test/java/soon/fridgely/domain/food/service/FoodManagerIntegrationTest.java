@@ -119,7 +119,9 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
 
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", "https://s3.example.com/images/uuid-test.jpg")
+                .sample()
         );
     }
 

@@ -74,7 +74,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
                 .sample()
         );
 
-        createFoods(3, category); // 기존 카테고리에 음식 3개 생성
+        createFoods(category); // 기존 카테고리에 음식 3개 생성
 
         // when
         foodModifier.moveAllFoodsToFallback(refrigerator.getId(), category.getId());
@@ -182,12 +182,14 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
 
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", "https://s3.example.com/images/uuid-test.jpg")
+                .sample()
         );
     }
 
-    private void createFoods(int count, Category targetCategory) {
-        List<Food> foods = IntStream.range(0, count)
+    private void createFoods(Category targetCategory) {
+        List<Food> foods = IntStream.range(0, 3)
             .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory).sample())
             .toList();
         foodRepository.saveAll(foods);

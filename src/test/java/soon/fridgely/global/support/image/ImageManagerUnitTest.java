@@ -154,10 +154,12 @@ class ImageManagerUnitTest {
         // given
         String invalidUrl = "https://s3.amazonaws.com/bucket/no-images-prefix.jpg";
 
-        // when
-        imageManager.delete(invalidUrl);
+        // expected
+        assertThatThrownBy(() -> imageManager.delete(invalidUrl))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.INVALID_IMAGE_URL);
 
-        // then
         then(storageProvider).should(never()).delete(any());
     }
 
