@@ -16,6 +16,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.ImageManager;
 
 import java.time.LocalDate;
 
@@ -27,6 +28,7 @@ public class FoodManager {
     private final MemberRepository memberRepository;
     private final RefrigeratorRepository refrigeratorRepository;
     private final CategoryFinder categoryFinder;
+    private final ImageManager imageManager;
 
     @Transactional
     public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
@@ -49,6 +51,8 @@ public class FoodManager {
             return;
         }
 
+        // 음식 삭제 시 이미지도 함께 삭제
+        imageManager.delete(food.getImageURL());
         food.delete();
     }
 

@@ -13,8 +13,10 @@ import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.ImageManager;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Component
@@ -24,6 +26,7 @@ public class FoodModifier {
 
     private final FoodRepository foodRepository;
     private final CategoryFinder categoryFinder;
+    private final ImageManager imageManager;
 
     @Transactional
     public void moveAllFoodsToFallback(long refrigeratorId, long categoryId) {
@@ -34,16 +37,15 @@ public class FoodModifier {
 
     /**
      * 음식 정보 수정
-     * 수량이 0으로 변경되어도 소진 알림을 발송하지 않음
      */
     @Transactional
     public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
-        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, key.refrigeratorId(), EntityStatus.ACTIVE)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = null;
-        if (hasCategoryChanged(food, categoryId)) {
-            category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
-        }
+        Food food = findFood(foodId, key.refrigeratorId());
+        Category category = hasCategoryChanged(food, categoryId)
+            ? categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId())
+            : null;
+
+        deleteOldImageIfChanged(food.getImageURL(), updateInfo.imageURL());
 
         LocalDate now = LocalDate.now();
         food.update(
@@ -63,9 +65,7 @@ public class FoodModifier {
      */
     @Transactional
     public void add(long foodId, long refrigeratorId, Quantity amount) {
-        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-
+        Food food = findFood(foodId, refrigeratorId);
         food.add(amount);
     }
 
@@ -74,10 +74,19 @@ public class FoodModifier {
      */
     @Transactional
     public void consume(long foodId, long refrigeratorId, Quantity amount) {
-        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-
+        Food food = findFood(foodId, refrigeratorId);
         food.consume(amount);
+    }
+
+    private Food findFood(long foodId, long refrigeratorId) {
+        return foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    private void deleteOldImageIfChanged(String oldImageUrl, String newImageUrl) {
+        if (!Objects.equals(oldImageUrl, newImageUrl) && oldImageUrl != null) {
+            imageManager.delete(oldImageUrl);
+        }
     }
 
     private boolean hasCategoryChanged(Food food, long newCategoryId) {
