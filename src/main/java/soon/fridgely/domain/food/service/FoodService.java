@@ -36,26 +36,27 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
         String uploadedUrl = imageManager.upload(file);
-        foodManager.createFood(
-            request.toFoodInfo(uploadedUrl),
-            key,
-            request.categoryId()
-        );
+
+        try {
+            foodManager.createFood(request.toFoodInfo(uploadedUrl), key, request.categoryId());
+        } catch (Exception e) {
+            rollbackImageUpload(uploadedUrl);
+            throw e;
+        }
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
     public void updateFood(long foodId, FoodUpdateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        String uploadedUrl = null;
-        if (file != null && !file.isEmpty()) {
-            uploadedUrl = imageManager.upload(file);
-        }
+        String uploadedUrl = file != null && !file.isEmpty()
+            ? imageManager.upload(file)
+            : null;
 
-        foodModifier.update(
-            foodId,
-            request.toFoodInfo(uploadedUrl),
-            key,
-            request.categoryId()
-        );
+        try {
+            foodModifier.update(foodId, request.toFoodInfo(uploadedUrl), key, request.categoryId());
+        } catch (Exception e) {
+            rollbackImageUpload(uploadedUrl);
+            throw e;
+        }
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -106,6 +107,12 @@ public class FoodService {
         switch (request.action()) {
             case ADD -> foodModifier.add(foodId, key.refrigeratorId(), quantity);
             case CONSUME -> foodModifier.consume(foodId, key.refrigeratorId(), quantity);
+        }
+    }
+
+    private void rollbackImageUpload(String imageUrl) {
+        if (imageUrl != null) {
+            imageManager.delete(imageUrl);
         }
     }
 
