@@ -46,7 +46,10 @@ public class FoodModifier {
             ? categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId())
             : null;
 
-        deleteOldImageIfChanged(food.getImageURL(), updateInfo.imageURL());
+        String newImageUrl = updateInfo.imageURL();
+        if (newImageUrl != null) {
+            deleteOldImageIfChanged(food.getImageURL(), newImageUrl);
+        }
 
         LocalDate now = LocalDate.now();
         food.update(
@@ -56,7 +59,7 @@ public class FoodModifier {
             updateInfo.condition().expirationDate(),
             updateInfo.condition().storageType(),
             updateInfo.description(),
-            updateInfo.imageURL(),
+            (newImageUrl != null) ? newImageUrl : food.getImageURL(),
             now
         );
     }

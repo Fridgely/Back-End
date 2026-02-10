@@ -237,6 +237,37 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
         assertThat(updatedFood.getImageURL()).isEqualTo(sameImageUrl);
     }
 
+    @Test
+    void 음식_수정_시_이미지_URL이_null이면_기존_이미지가_유지된다() {
+        // given
+        String existingImageUrl = "https://s3.example.com/images/existing-image.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", existingImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", null)  // 이미지 수정 없음
+            .set("name", "이름만 수정")
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood).isNotNull()
+            .extracting("imageURL", "name")
+            .containsExactly(existingImageUrl, "이름만 수정");
+    }
+
     private Food createFood() {
         return foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
