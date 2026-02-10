@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -16,7 +17,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-import soon.fridgely.global.support.image.ImageManager;
+import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDate;
 
@@ -28,7 +29,7 @@ public class FoodManager {
     private final MemberRepository memberRepository;
     private final RefrigeratorRepository refrigeratorRepository;
     private final CategoryFinder categoryFinder;
-    private final ImageManager imageManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
@@ -51,8 +52,12 @@ public class FoodManager {
             return;
         }
 
-        // 음식 삭제 시 이미지도 함께 삭제
-        imageManager.delete(food.getImageURL());
+        // 음식 삭제 시 이미지도 함께 삭제 (트랜잭션 커밋 후 이벤트로 처리)
+        String imageUrl = food.getImageURL();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
+        }
+
         food.delete();
     }
 
