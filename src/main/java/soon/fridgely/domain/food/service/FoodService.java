@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FoodService {
@@ -112,7 +114,11 @@ public class FoodService {
 
     private void rollbackImageUpload(String imageUrl) {
         if (imageUrl != null) {
-            imageManager.delete(imageUrl);
+            try {
+                imageManager.delete(imageUrl);
+            } catch (Exception e) {
+                log.warn("[FoodService] 이미지 롤백 실패 - 원본 예외 전파 계속. (ImageUrl={})", imageUrl, e);
+            }
         }
     }
 
