@@ -38,31 +38,30 @@ class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 이미지_URL이_변경되었을_때만_삭제_이벤트가_발행된다() {
+    void 이미지_삭제_이벤트가_발행되면_이미지가_삭제된다() {
         // given
-        String oldImageUrl = "https://s3.amazonaws.com/bucket/images/old-image.jpg";
-        String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-image.jpg";
+        String imageUrl = "https://s3.amazonaws.com/bucket/images/old-image.jpg";
 
         // when
         transactionTemplate.execute(status -> {
-            // 이미지 URL이 변경된 경우
-            if (!oldImageUrl.equals(newImageUrl)) {
-                eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
-            }
+            eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
             return null;
         });
 
         // then
-        then(imageManager).should(times(1)).delete(oldImageUrl);
+        then(imageManager).should(times(1)).delete(imageUrl);
     }
 
     @Test
-    void null_이미지_URL은_이벤트가_발행되지_않는다() {
+    void null_이미지_URL_이벤트가_발행되면_삭제가_호출되지_않는다() {
         // given
         String imageUrl = null;
 
         // when
-        transactionTemplate.execute(status -> null);
+        transactionTemplate.execute(status -> {
+            eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
+            return null;
+        });
 
         // then
         then(imageManager).should(times(0)).delete(imageUrl);
