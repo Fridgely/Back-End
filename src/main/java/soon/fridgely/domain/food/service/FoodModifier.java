@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -13,7 +14,7 @@ import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-import soon.fridgely.global.support.image.ImageManager;
+import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -26,7 +27,7 @@ public class FoodModifier {
 
     private final FoodRepository foodRepository;
     private final CategoryFinder categoryFinder;
-    private final ImageManager imageManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void moveAllFoodsToFallback(long refrigeratorId, long categoryId) {
@@ -85,7 +86,7 @@ public class FoodModifier {
 
     private void deleteOldImageIfChanged(String oldImageUrl, String newImageUrl) {
         if (!Objects.equals(oldImageUrl, newImageUrl) && oldImageUrl != null) {
-            imageManager.delete(oldImageUrl);
+            eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
         }
     }
 

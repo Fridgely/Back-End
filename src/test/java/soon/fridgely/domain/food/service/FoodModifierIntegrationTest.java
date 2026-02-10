@@ -180,6 +180,63 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
             .isEqualByComparingTo(BigDecimal.valueOf(3.0));
     }
 
+    @Test
+    void 음식_수정_시_이미지_URL이_변경되면_새로운_이미지로_교체된다() {
+        // given
+        String oldImageUrl = "https://s3.example.com/images/old-uuid-test.jpg";
+        String newImageUrl = "https://s3.example.com/images/new-uuid-test.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", oldImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", newImageUrl)
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getImageURL()).isEqualTo(newImageUrl);
+    }
+
+    @Test
+    void 음식_수정_시_이미지_URL이_같으면_이미지가_유지된다() {
+        // given
+        String sameImageUrl = "https://s3.example.com/images/same-uuid-test.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", sameImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", sameImageUrl)
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getImageURL()).isEqualTo(sameImageUrl);
+    }
+
     private Food createFood() {
         return foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
