@@ -20,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Component
 public class ImageManager {
+    private static final String IMAGE_KEY_PREFIX = "images/";
 
     private final StorageProvider storageProvider;
     private final ImageValidator imageValidator;
@@ -72,7 +73,7 @@ public class ImageManager {
         String fileName = (originalName == null || originalName.isBlank())
             ? "unknown"
             : originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
-        return "images/" + UUID.randomUUID() + "-" + fileName;
+        return IMAGE_KEY_PREFIX + UUID.randomUUID() + "-" + fileName;
     }
 
     /**
@@ -80,7 +81,7 @@ public class ImageManager {
      * (imageUrl의 null/empty 검증은 호출자에서 완료됨)
      */
     private String extractKeyFromUrl(String imageUrl) {
-        int imagesIndex = imageUrl.indexOf("images/");
+        int imagesIndex = imageUrl.indexOf(IMAGE_KEY_PREFIX);
         if (imagesIndex == -1) {
             log.warn("[ImageManager] URL에서 키 추출 실패. URL: {}", imageUrl);
             return null;
