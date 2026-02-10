@@ -23,7 +23,7 @@ class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
     private ImageManager imageManager;
 
     @Test
-    void 트랜잭션_커밋_후_이미지_삭제_이벤트가_처리된다() throws InterruptedException {
+    void 트랜잭션_커밋_후_이미지_삭제_이벤트가_처리된다() {
         // given
         String imageUrl = "https://s3.amazonaws.com/bucket/images/test-image.jpg";
 
@@ -33,14 +33,12 @@ class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
             return null;
         });
 
-        Thread.sleep(100); // 비동기 이벤트 처리 대기
-
         // then
         then(imageManager).should(times(1)).delete(imageUrl);
     }
 
     @Test
-    void 이미지_URL이_변경되었을_때만_삭제_이벤트가_발행된다() throws InterruptedException {
+    void 이미지_URL이_변경되었을_때만_삭제_이벤트가_발행된다() {
         // given
         String oldImageUrl = "https://s3.amazonaws.com/bucket/images/old-image.jpg";
         String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-image.jpg";
@@ -54,21 +52,17 @@ class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
             return null;
         });
 
-        Thread.sleep(100);
-
         // then
         then(imageManager).should(times(1)).delete(oldImageUrl);
     }
 
     @Test
-    void null_이미지_URL은_이벤트가_발행되지_않는다() throws InterruptedException {
+    void null_이미지_URL은_이벤트가_발행되지_않는다() {
         // given
         String imageUrl = null;
 
         // when
         transactionTemplate.execute(status -> null);
-
-        Thread.sleep(100);
 
         // then
         then(imageManager).should(times(0)).delete(imageUrl);
