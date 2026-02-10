@@ -75,11 +75,11 @@ public class ImageManager {
         return "images/" + UUID.randomUUID() + "-" + fileName;
     }
 
+    /**
+     * URL에서 S3 키를 추출
+     * (imageUrl의 null/empty 검증은 호출자에서 완료됨)
+     */
     private String extractKeyFromUrl(String imageUrl) {
-        if (!StringUtils.hasText(imageUrl)) {
-            return null;
-        }
-
         int imagesIndex = imageUrl.indexOf("images/");
         if (imagesIndex == -1) {
             log.warn("[ImageManager] URL에서 키 추출 실패. URL: {}", imageUrl);
