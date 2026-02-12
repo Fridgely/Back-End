@@ -79,6 +79,7 @@ public class ImageManager {
     /**
      * URL에서 S3 키를 추출
      * (imageUrl의 null/empty 검증은 호출자에서 완료됨)
+     * 쿼리 파라미터(?)와 프래그먼트(#)는 제거하고 순수 키만 반환
      */
     private String extractKeyFromUrl(String imageUrl) {
         int imagesIndex = imageUrl.indexOf(IMAGE_KEY_PREFIX);
@@ -86,7 +87,24 @@ public class ImageManager {
             log.warn("[ImageManager] URL에서 키 추출 실패. URL: {}", imageUrl);
             return null;
         }
-        return imageUrl.substring(imagesIndex);
+
+        // ? 또는 # 위치 찾기
+        int queryIndex = imageUrl.indexOf('?', imagesIndex);
+        int fragmentIndex = imageUrl.indexOf('#', imagesIndex);
+
+        // 둘 중 먼저 나오는 위치를 endIndex로 사용 (없으면 -1)
+        int endIndex = -1;
+        if (queryIndex != -1 && fragmentIndex != -1) {
+            endIndex = Math.min(queryIndex, fragmentIndex);
+        } else if (queryIndex != -1) {
+            endIndex = queryIndex;
+        } else if (fragmentIndex != -1) {
+            endIndex = fragmentIndex;
+        }
+
+        return endIndex != -1
+            ? imageUrl.substring(imagesIndex, endIndex)
+            : imageUrl.substring(imagesIndex);
     }
 
 }
