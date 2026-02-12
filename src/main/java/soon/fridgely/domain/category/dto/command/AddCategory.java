@@ -9,7 +9,7 @@ public record AddCategory(
 ) {
 
     public MemberRefrigeratorKey toKey() {
-        return new MemberRefrigeratorKey(refrigeratorId, memberId);
+        return new MemberRefrigeratorKey(memberId, refrigeratorId);
     }
 
 }
