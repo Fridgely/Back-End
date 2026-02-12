@@ -9,6 +9,7 @@ import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.image.ImageManager;
 
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.times;
 
 class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
@@ -38,17 +39,19 @@ class ImageEventListenerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 이미지_삭제_이벤트가_발행되면_이미지가_삭제된다() {
+    void 이미지_삭제_실패_시_예외가_전파되지_않는다() {
         // given
         String imageUrl = "https://s3.amazonaws.com/bucket/images/old-image.jpg";
+        willThrow(new RuntimeException("S3 삭제 실패"))
+            .given(imageManager).delete(imageUrl);
 
-        // when
+        // when - 예외가 발생해도 트랜잭션은 정상 처리됨
         transactionTemplate.execute(status -> {
             eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
             return null;
         });
 
-        // then
+        // then - imageManager.delete가 호출되었지만 예외는 전파되지 않음
         then(imageManager).should(times(1)).delete(imageUrl);
     }
 
