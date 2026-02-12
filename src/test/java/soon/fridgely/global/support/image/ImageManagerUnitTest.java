@@ -16,8 +16,7 @@ import java.io.InputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +27,9 @@ class ImageManagerUnitTest {
 
     @Mock
     private StorageProvider storageProvider;
+
+    @Mock
+    private ImageValidator imageValidator;
 
     // JPEG 매직 넘버
     private static final byte[] REAL_JPEG_HEADER = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0x00, 0x00};
@@ -50,18 +52,19 @@ class ImageManagerUnitTest {
         // then
         assertThat(actualUrl).isEqualTo(expectedUrl);
 
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
         then(storageProvider).should()
             .upload(
-                captor.capture(),
+                keyCaptor.capture(),
                 any(InputStream.class),
                 eq(validFile.getSize()),
                 eq("image/jpeg")
             );
 
-        assertThat(captor.getValue())
+        assertThat(keyCaptor.getValue())
             .startsWith("images/")
             .endsWith("-test.jpg");
+        then(imageValidator).should().validate(validFile);
     }
 
     @Test
@@ -71,6 +74,9 @@ class ImageManagerUnitTest {
         MockMultipartFile fakeFile = new MockMultipartFile(
             "image", "hack.jpg", "image/jpeg", fakeContent
         );
+
+        willThrow(new CoreException(ErrorType.INVALID_FILE_TYPE))
+            .given(imageValidator).validate(fakeFile);
 
         // expected
         assertThatThrownBy(() -> imageManager.upload(fakeFile))
@@ -88,6 +94,9 @@ class ImageManagerUnitTest {
             "file", "document.pdf", "application/pdf", new byte[]{1, 2, 3}
         );
 
+        willThrow(new CoreException(ErrorType.INVALID_FILE_TYPE))
+            .given(imageValidator).validate(pdfFile);
+
         // expected
         assertThatThrownBy(() -> imageManager.upload(pdfFile))
             .isInstanceOf(CoreException.class)
@@ -102,6 +111,9 @@ class ImageManagerUnitTest {
         MockMultipartFile largeFile = new MockMultipartFile(
             "image", "large.jpg", "image/jpeg", largeContent
         );
+
+        willThrow(new CoreException(ErrorType.FILE_SIZE_EXCEEDED))
+            .given(imageValidator).validate(largeFile);
 
         // expected
         assertThatThrownBy(() -> imageManager.upload(largeFile))
@@ -122,6 +134,44 @@ class ImageManagerUnitTest {
         // then
         then(storageProvider).should(never())
             .upload(any(), any(), anyLong(), any());
+        then(imageValidator).should(never()).validate(any());
+    }
+
+    @Test
+    void URL에서_이미지_키를_정상적으로_추출하여_삭제한다() {
+        // given
+        String imageUrl = "https://s3.amazonaws.com/bucket/images/uuid-test.jpg";
+
+        // when
+        imageManager.delete(imageUrl);
+
+        // then
+        then(storageProvider).should().delete("images/uuid-test.jpg");
+    }
+
+    @Test
+    void 잘못된_형식의_URL은_삭제를_시도하지_않는다() {
+        // given
+        String invalidUrl = "https://s3.amazonaws.com/bucket/no-images-prefix.jpg";
+
+        // expected
+        assertThatThrownBy(() -> imageManager.delete(invalidUrl))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.INVALID_IMAGE_URL);
+
+        then(storageProvider).should(never()).delete(any());
+    }
+
+    @Test
+    void null이나_빈_URL_삭제_시_아무_동작도_하지_않는다() {
+        // when
+        imageManager.delete(null);
+        imageManager.delete("");
+        imageManager.delete("   ");
+
+        // then
+        then(storageProvider).should(never()).delete(any());
     }
 
 }

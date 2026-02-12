@@ -1,6 +1,7 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FoodService {
@@ -36,26 +38,27 @@ public class FoodService {
     @ValidateRefrigeratorAccess(key = "#key")
     public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
         String uploadedUrl = imageManager.upload(file);
-        foodManager.createFood(
-            request.toFoodInfo(uploadedUrl),
-            key,
-            request.categoryId()
-        );
+
+        try {
+            foodManager.createFood(request.toFoodInfo(uploadedUrl), key, request.categoryId());
+        } catch (Exception e) {
+            rollbackImageUpload(uploadedUrl);
+            throw e;
+        }
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
     public void updateFood(long foodId, FoodUpdateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        String uploadedUrl = null;
-        if (file != null && !file.isEmpty()) {
-            uploadedUrl = imageManager.upload(file);
-        }
+        String uploadedUrl = file != null && !file.isEmpty()
+            ? imageManager.upload(file)
+            : null;
 
-        foodModifier.update(
-            foodId,
-            request.toFoodInfo(uploadedUrl),
-            key,
-            request.categoryId()
-        );
+        try {
+            foodModifier.update(foodId, request.toFoodInfo(uploadedUrl), key, request.categoryId());
+        } catch (Exception e) {
+            rollbackImageUpload(uploadedUrl);
+            throw e;
+        }
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -106,6 +109,16 @@ public class FoodService {
         switch (request.action()) {
             case ADD -> foodModifier.add(foodId, key.refrigeratorId(), quantity);
             case CONSUME -> foodModifier.consume(foodId, key.refrigeratorId(), quantity);
+        }
+    }
+
+    private void rollbackImageUpload(String imageUrl) {
+        if (imageUrl != null) {
+            try {
+                imageManager.delete(imageUrl);
+            } catch (Exception e) {
+                log.warn("[FoodService] 이미지 롤백 실패 - 원본 예외 전파 계속. (ImageUrl={})", imageUrl, e);
+            }
         }
     }
 

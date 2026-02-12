@@ -3,6 +3,7 @@ package soon.fridgely.domain.food.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
@@ -117,9 +118,48 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(deletedFood.isDeleted()).isTrue();
     }
 
+    @Test
+    void 음식_삭제_시_이미지_URL이_있으면_소프트_삭제된다() {
+        // given
+        String imageUrl = "https://s3.example.com/images/test-food.jpg";
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", imageUrl)
+                .sample()
+        );
+
+        // when
+        foodManager.delete(food.getId(), refrigerator.getId());
+
+        // then
+        Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(deletedFood).isNotNull()
+            .extracting("imageURL", "status")
+            .containsExactly(imageUrl, EntityStatus.DELETED);
+    }
+
+    @Test
+    void 음식_삭제_시_이미지_URL이_빈_문자열이면_정상_삭제된다() {
+        // given
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", "")
+                .sample()
+        );
+
+        // when
+        foodManager.delete(food.getId(), refrigerator.getId());
+
+        // then
+        Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(deletedFood.isDeleted()).isTrue();
+    }
+
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", "https://s3.example.com/images/uuid-test.jpg")
+                .sample()
         );
     }
 

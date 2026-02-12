@@ -74,7 +74,7 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
                 .sample()
         );
 
-        createFoods(3, category); // 기존 카테고리에 음식 3개 생성
+        createFoods(category); // 기존 카테고리에 음식 3개 생성
 
         // when
         foodModifier.moveAllFoodsToFallback(refrigerator.getId(), category.getId());
@@ -180,14 +180,104 @@ class FoodModifierIntegrationTest extends IntegrationTestSupport {
             .isEqualByComparingTo(BigDecimal.valueOf(3.0));
     }
 
+    @Test
+    void 음식_수정_시_이미지_URL이_변경되면_새로운_이미지로_교체된다() {
+        // given
+        String oldImageUrl = "https://s3.example.com/images/old-uuid-test.jpg";
+        String newImageUrl = "https://s3.example.com/images/new-uuid-test.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", oldImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", newImageUrl)
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getImageURL()).isEqualTo(newImageUrl);
+    }
+
+    @Test
+    void 음식_수정_시_이미지_URL이_같으면_이미지가_유지된다() {
+        // given
+        String sameImageUrl = "https://s3.example.com/images/same-uuid-test.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", sameImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", sameImageUrl)
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood.getImageURL()).isEqualTo(sameImageUrl);
+    }
+
+    @Test
+    void 음식_수정_시_이미지_URL이_null이면_기존_이미지가_유지된다() {
+        // given
+        String existingImageUrl = "https://s3.example.com/images/existing-image.jpg";
+
+        Food food = foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", existingImageUrl)
+                .sample()
+        );
+
+        var updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .set("imageURL", null)  // 이미지 수정 없음
+            .set("name", "이름만 수정")
+            .sample();
+
+        // when
+        foodModifier.update(
+            food.getId(),
+            updateInfo,
+            new MemberRefrigeratorKey(member.getId(), refrigerator.getId()),
+            category.getId()
+        );
+
+        // then
+        Food updatedFood = foodRepository.findById(food.getId()).orElseThrow();
+        assertThat(updatedFood).isNotNull()
+            .extracting("imageURL", "name")
+            .containsExactly(existingImageUrl, "이름만 수정");
+    }
+
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("imageURL", "https://s3.example.com/images/uuid-test.jpg")
+                .sample()
         );
     }
 
-    private void createFoods(int count, Category targetCategory) {
-        List<Food> foods = IntStream.range(0, count)
+    private void createFoods(Category targetCategory) {
+        List<Food> foods = IntStream.range(0, 3)
             .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory).sample())
             .toList();
         foodRepository.saveAll(foods);
