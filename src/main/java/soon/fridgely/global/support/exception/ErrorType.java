@@ -38,6 +38,7 @@ public enum ErrorType {
     // 초대 코드 오류
     INVALID_INVITATION_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 초대 코드입니다.", LogLevel.INFO),
     EXPIRED_INVITATION_CODE(HttpStatus.BAD_REQUEST, "만료된 초대 코드입니다.", LogLevel.INFO),
+    INVITATION_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "초대 코드 생성에 실패했습니다. 잠시 후 다시 시도해주세요.", LogLevel.ERROR),
 
     // 카테고리 오류
     DUPLICATE_CATEGORY_NAME(HttpStatus.CONFLICT, "이미 존재하는 카테고리 이름입니다.", LogLevel.WARN),

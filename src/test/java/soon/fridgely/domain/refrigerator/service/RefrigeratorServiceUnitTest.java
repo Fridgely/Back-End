@@ -73,7 +73,7 @@ class RefrigeratorServiceUnitTest {
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
 
         String generatedCode = "ABC12345";
-        given(codeGenerator.generate()).willReturn(generatedCode);
+        given(codeGenerator.generateUnique()).willReturn(generatedCode);
 
         InvitationCode expectedInvitationCode = fixtureMonkey.giveMeBuilder(InvitationCode.class)
             .set("code", generatedCode)

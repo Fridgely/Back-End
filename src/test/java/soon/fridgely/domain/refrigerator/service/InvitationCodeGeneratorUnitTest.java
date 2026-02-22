@@ -1,42 +1,84 @@
 package soon.fridgely.domain.refrigerator.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class InvitationCodeGeneratorUnitTest {
 
-    private final InvitationCodeGenerator generator = new InvitationCodeGenerator();
+    @InjectMocks
+    private InvitationCodeGenerator generator;
+
+    @Mock
+    private RefrigeratorRepository refrigeratorRepository;
 
     @Test
     void 생성된_코드는_8자리이며_대문자와_숫자로_구성되어있다() {
         // given
         Pattern validPattern = Pattern.compile("^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$");
+        given(refrigeratorRepository.existsByInvitationCode_codeAndStatus(anyString(), any())).willReturn(false);
 
-        // when
-        String code = generator.generate();
-
-        // then
-        assertThat(code).matches(validPattern);
+        // expected
+        for (int i = 0; i < 100; i++) {
+            String code = generator.generateUnique();
+            assertThat(code).matches(validPattern);
+        }
     }
 
     @Test
-    void 다수의_코드를_생성할때_중복이_발생하지_않아야한다() {
+    void 중복되지_않은_코드가_생성되면_첫_시도에_성공한다() {
         // given
-        int tryCount = 100_000;
-        Set<String> codes = new HashSet<>(tryCount);
+        given(refrigeratorRepository.existsByInvitationCode_codeAndStatus(anyString(), any())).willReturn(false);
 
         // when
-        for (int i = 0; i < tryCount; i++) {
-            String code = generator.generate();
-            codes.add(code);
-        }
+        String code = generator.generateUnique();
 
         // then
-        assertThat(codes).hasSize(tryCount);
+        assertThat(code).isNotNull();
+        verify(refrigeratorRepository, times(1)).existsByInvitationCode_codeAndStatus(anyString(), any());
     }
+
+    @Test
+    void 중복이_발생하면_재시도하여_고유한_코드를_생성한다() {
+        // given
+        given(refrigeratorRepository.existsByInvitationCode_codeAndStatus(anyString(), any()))
+            .willReturn(true, true, false);
+
+        // when
+        String code = generator.generateUnique();
+
+        // then
+        assertThat(code).isNotNull();
+        verify(refrigeratorRepository, times(3)).existsByInvitationCode_codeAndStatus(anyString(), any());
+    }
+
+    @Test
+    void 열번_재시도_후에도_중복이면_예외를_발생시킨다() {
+        // given
+        given(refrigeratorRepository.existsByInvitationCode_codeAndStatus(anyString(), any())).willReturn(true);
+
+        // expected
+        assertThatThrownBy(() -> generator.generateUnique())
+            .isInstanceOf(CoreException.class)
+            .hasFieldOrPropertyWithValue("errorType", ErrorType.INVITATION_CODE_GENERATION_FAILED);
+
+        verify(refrigeratorRepository, times(10)).existsByInvitationCode_codeAndStatus(anyString(), any());
+    }
+
 }
