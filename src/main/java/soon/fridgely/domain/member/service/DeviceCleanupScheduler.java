@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
 import soon.fridgely.global.batch.BatchResult;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class DeviceCleanupScheduler {
     public BatchResult cleanupInactiveDevices() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(INACTIVE_DAYS_THRESHOLD);
 
-        log.info("[DeviceCleanup] 장기 미사용 디바이스 토큰 정리 시작. (Threshold={}, InactiveDays={})", threshold, INACTIVE_DAYS_THRESHOLD);
+        log.debug("[DeviceCleanup] 시작 (Threshold={}, InactiveDays={})", threshold, INACTIVE_DAYS_THRESHOLD);
 
         // 100개씩 조회하면서 1000개 단위로 모아서 벌크 삭제
         List<Long> buffer = new ArrayList<>(DeviceCleanupProcessor.CHUNK_SIZE);
@@ -51,7 +52,12 @@ public class DeviceCleanupScheduler {
             deviceCleanupProcessor.bulkDelete(buffer);
         }
 
-        log.info("[DeviceCleanup] 장기 미사용 디바이스 토큰 정리 완료. (Result={})", result);
+        log.info(SlackMarkers.BATCH,
+            "[DeviceCleanup 배치 완료] 처리: {}건, 소요: {}ms",
+            result.submittedCount(),
+            result.durationMillis()
+        );
+
         return result;
     }
 

@@ -117,7 +117,7 @@ public class FoodService {
             try {
                 imageManager.delete(imageUrl);
             } catch (Exception e) {
-                log.warn("[FoodService] 이미지 롤백 실패 - 원본 예외 전파 계속. (ImageUrl={})", imageUrl, e);
+                log.debug("[Food] 이미지 롤백 실패 (ImageUrl={})", imageUrl);
             }
         }
     }
