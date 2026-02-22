@@ -13,6 +13,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class AuthService {
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
-        log.info("[AuthService] 로그인 성공. (MemberId={})", member.getId());
+        log.debug("[Auth] 로그인 성공. (MemberId={})", member.getId());
 
         return issueTokensAndUpdateMember(member);
     }
@@ -46,12 +47,12 @@ public class AuthService {
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
 
         if (!refreshToken.equals(member.getRefreshToken())) {
-            log.warn("[AuthService] Refresh Token 불일치 감지. 기존 토큰 무효화. (MemberId={})", memberId);
+            log.warn(SlackMarkers.SYSTEM, "[Auth] Refresh Token 불일치 감지. (MemberId={})", memberId);
             member.updateRefreshToken(null);
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
-        log.info("[AuthService] 토큰 재발급 성공. (MemberId={})", memberId);
+        log.debug("[Auth] 토큰 재발급 성공. (MemberId={})", memberId);
 
         return issueTokensAndUpdateMember(member);
     }
@@ -62,7 +63,7 @@ public class AuthService {
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
         member.updateRefreshToken(null);
 
-        log.info("[AuthService] 로그아웃 성공. (MemberId={})", memberId);
+        log.debug("[Auth] 로그아웃 성공. (MemberId={})", memberId);
     }
 
     private TokenResponse issueTokensAndUpdateMember(Member member) {

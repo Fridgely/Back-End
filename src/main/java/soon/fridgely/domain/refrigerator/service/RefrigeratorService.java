@@ -16,6 +16,7 @@ import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,7 +74,7 @@ public class RefrigeratorService {
     }
 
     private InvitationCodeResponse recoverInvitationCodeGeneration(MemberRefrigeratorKey key, Throwable t) {
-        log.warn("[RETRY_EXHAUSTED] 초대 코드 생성 재시도 횟수 초과. (RefrigeratorId={}, Error={})", key.refrigeratorId(), t.getMessage());
+        log.warn(SlackMarkers.SYSTEM, "[Retry Exhausted] 초대 코드 생성 재시도 횟수 초과 (RefrigeratorId={}, Error={})", key.refrigeratorId(), t.getMessage());
         throw new CoreException(ErrorType.CONCURRENT_UPDATE_LIMIT_EXCEEDED);
     }
 

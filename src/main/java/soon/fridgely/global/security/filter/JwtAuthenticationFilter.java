@@ -58,7 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Authentication auth = tokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (CoreException | JwtException e) {
-            log.warn("JWT 인증 처리 중 예외 발생: {}", e.getMessage());
             handlerHelper.sendErrorResponse(response, ErrorType.AUTHENTICATION_FAILED);
             return;
         }

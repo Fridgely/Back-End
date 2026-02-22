@@ -72,6 +72,9 @@ dependencies {
     // Cache
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
+    // Slack
+    implementation 'com.github.maricn:logback-slack-appender:1.6.1'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

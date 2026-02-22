@@ -28,16 +28,13 @@ public class ImageEventListener {
         String imageUrl = event.imageUrl();
 
         if (!StringUtils.hasText(imageUrl)) {
-            log.debug("[ImageEvent] 이미지 URL이 비어있어 삭제를 건너뜁니다.");
             return;
         }
 
         try {
             imageManager.delete(imageUrl);
-            log.info("[ImageEvent] 이미지 삭제 완료. (ImageUrl={})", imageUrl);
         } catch (Exception e) {
             log.error("[ImageEvent] 이미지 삭제 실패. (ImageUrl={})", imageUrl, e);
-            // 이미지 삭제 실패는 DB 트랜잭션에 영향을 주지 않음
         }
     }
 

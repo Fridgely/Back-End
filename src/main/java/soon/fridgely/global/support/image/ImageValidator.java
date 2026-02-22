@@ -83,12 +83,11 @@ public class ImageValidator {
             byte[] fileHeader = is.readNBytes(expectedMagicNumber.length);
 
             if (!Arrays.equals(fileHeader, expectedMagicNumber)) {
-                log.warn("[ImageValidator] Magic Number 불일치. (ContentType={}, ActualHeader={})",
-                    contentType, Arrays.toString(fileHeader));
+                log.debug("[ImageValidator] Magic Number 불일치 (ContentType={})", contentType);
                 throw new CoreException(ErrorType.INVALID_FILE_TYPE);
             }
         } catch (IOException e) {
-            log.error("[ImageValidator] Magic Number 검증 중 오류.", e);
+            log.error("[ImageValidator] Magic Number 검증 중 오류", e);
             throw new CoreException(ErrorType.STORAGE_UPLOAD_FAILED);
         }
     }

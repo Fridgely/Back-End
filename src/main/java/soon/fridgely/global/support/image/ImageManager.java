@@ -62,11 +62,11 @@ public class ImageManager {
 
         try {
             storageProvider.delete(key);
-            log.info("[ImageManager] 이미지 삭제 완료. Key: {}", key);
+            log.debug("[Image] 삭제 완료 (Key={})", key);
         } catch (CoreException e) {
             throw e;
         } catch (Exception e) {
-            log.error("[ImageManager] 이미지 삭제 실패. Key: {}", key, e);
+            log.error("[Image] 삭제 실패 (Key={})", key, e);
             throw new CoreException(ErrorType.STORAGE_DELETE_FAILED, "key: " + key);
         }
     }
