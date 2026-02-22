@@ -3,11 +3,14 @@ package soon.fridgely.domain.food.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,8 +42,15 @@ public interface FoodControllerDocs {
         @ApiResponse(responseCode = "500", description = "STORAGE_UPLOAD_FAILED: 파일 업로드 실패",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
+    @RequestBody(
+        content = @Content(
+            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+            schema = @Schema(implementation = FoodCreateRequest.class),
+            encoding = @Encoding(name = "image", contentType = "image/*")
+        )
+    )
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> createFood(
-        @Parameter(description = "식재료 정보") FoodCreateRequest request,
+        @Parameter(description = "식재료 정보", schema = @Schema(implementation = FoodCreateRequest.class)) FoodCreateRequest request,
         @Parameter(description = "식재료 이미지 파일 (최대 10MB, jpg/png/gif)") MultipartFile image,
         @Parameter(hidden = true) Long memberId,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
@@ -62,8 +72,15 @@ public interface FoodControllerDocs {
         @ApiResponse(responseCode = "403", description = "접근 권한 없음",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
+    @RequestBody(
+        content = @Content(
+            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+            schema = @Schema(implementation = FoodUpdateRequest.class),
+            encoding = @Encoding(name = "image", contentType = "image/*")
+        )
+    )
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> updateFood(
-        @Parameter(description = "식재료 수정 정보") FoodUpdateRequest request,
+        @Parameter(description = "식재료 수정 정보", schema = @Schema(implementation = FoodUpdateRequest.class)) FoodUpdateRequest request,
         @Parameter(description = "식재료 이미지 파일") MultipartFile image,
         @Parameter(hidden = true) Long memberId,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId,
