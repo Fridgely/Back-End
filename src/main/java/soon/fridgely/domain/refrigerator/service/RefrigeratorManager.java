@@ -43,7 +43,6 @@ public class RefrigeratorManager {
         return invitationCode;
     }
 
-    // 코드가 틀린 것과 냉장고가 없는 것은 동일하게 처리
     @Transactional(readOnly = true)
     public Refrigerator findByInvitationCode(String code) {
         return refrigeratorRepository.findByInvitationCode_code(code)

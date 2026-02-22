@@ -39,7 +39,7 @@ public class RefrigeratorService {
     @Retry(name = "invitationCodeGeneration", fallbackMethod = "recoverInvitationCodeGeneration")
     @ValidateRefrigeratorAccess(key = "#key")
     public InvitationCodeResponse generateInvitationCode(MemberRefrigeratorKey key) {
-        String newCode = codeGenerator.generate();
+        String newCode = codeGenerator.generateUnique();
         LocalDateTime now = LocalDateTime.now();
 
         InvitationCode savedCode = refrigeratorManager.refreshInvitationCode(key.refrigeratorId(), newCode, now);
