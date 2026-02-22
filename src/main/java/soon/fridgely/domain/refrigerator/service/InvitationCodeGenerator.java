@@ -3,6 +3,7 @@ package soon.fridgely.domain.refrigerator.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
@@ -31,14 +32,14 @@ public class InvitationCodeGenerator {
         for (int attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
             String code = generate();
 
-            if (!refrigeratorRepository.existsByInvitationCode_code(code)) {
+            if (!refrigeratorRepository.existsByInvitationCode_codeAndStatus(code, EntityStatus.ACTIVE)) {
                 if (attempt > 1) {
                     log.debug("[InvitationCode] 중복 체크 후 생성 성공. (Attempt={})", attempt);
                 }
                 return code;
             }
 
-            log.debug("[InvitationCode] 중복 발생, 재생성. (Attempt={}, Code={})", attempt, code);
+            log.debug("[InvitationCode] 중복 발생, 재생성. (Attempt={})", attempt);
         }
 
         log.error("[InvitationCode] {}회 재시도 후에도 고유 코드 생성 실패.", MAX_GENERATION_ATTEMPTS);
