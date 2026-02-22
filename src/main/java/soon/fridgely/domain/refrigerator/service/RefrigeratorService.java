@@ -74,7 +74,7 @@ public class RefrigeratorService {
     }
 
     private InvitationCodeResponse recoverInvitationCodeGeneration(MemberRefrigeratorKey key, Throwable t) {
-        log.warn(SlackMarkers.SYSTEM, "[Retry] 초대 코드 생성 재시도 횟수 초과 (RefrigeratorId={}, Error={})", key.refrigeratorId(), t.getMessage());
+        log.warn(SlackMarkers.SYSTEM, "[Retry Exhausted] 초대 코드 생성 재시도 횟수 초과 (RefrigeratorId={}, Error={})", key.refrigeratorId(), t.getMessage());
         throw new CoreException(ErrorType.CONCURRENT_UPDATE_LIMIT_EXCEEDED);
     }
 

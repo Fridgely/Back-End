@@ -6,6 +6,8 @@ import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import org.slf4j.Marker;
 
+import java.util.List;
+
 /**
  * Slack 전송용 로그 필터
  */
@@ -19,9 +21,15 @@ public class SlackLogFilter extends Filter<ILoggingEvent> {
         return FilterReply.DENY;
     }
 
-    @SuppressWarnings("deprecation") // Logback의 표준 API
     private boolean hasSlackMarker(ILoggingEvent event) {
-        Marker marker = event.getMarker();
-        return marker != null && marker.getName().startsWith("SLACK_");
+        List<Marker> markers = event.getMarkerList();
+        if (markers == null || markers.isEmpty()) {
+            return false;
+        }
+
+        return markers.stream()
+            .filter(marker -> marker != null && marker.getName() != null)
+            .anyMatch(marker -> marker.getName().startsWith("SLACK_"));
     }
+
 }

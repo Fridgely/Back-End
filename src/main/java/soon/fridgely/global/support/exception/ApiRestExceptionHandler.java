@@ -80,7 +80,8 @@ public class ApiRestExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleUnknown(Exception e) {
         ErrorType errorType = ErrorType.DEFAULT_ERROR;
-        log.error("[UNHANDLED] 처리되지 않은 예외 (Type={}, Message={})", e.getClass().getSimpleName(), e.getMessage(), e);
+        String message = e.getMessage() != null ? e.getMessage() : "<no-message>";
+        log.error("[UNHANDLED] 처리되지 않은 예외 (Type={}, Message={})", e.getClass().getSimpleName(), message, e);
 
         return buildResponse(errorType, null);
     }

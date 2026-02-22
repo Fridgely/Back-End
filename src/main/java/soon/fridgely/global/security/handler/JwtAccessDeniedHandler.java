@@ -28,7 +28,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         HttpServletResponse response,
         AccessDeniedException accessDeniedException
     ) throws IOException {
-        log.debug("[403_FORBIDDEN] 접근 권한 없음 (URI={}, Message={})", request.getRequestURI(), accessDeniedException.getMessage());
+        log.debug("[403_FORBIDDEN] 접근 권한 없음 (URI={}, Message={})", request.getRequestURI(), accessDeniedException.getMessage(), accessDeniedException);
         handlerHelper.sendErrorResponse(response, ErrorType.AUTHORIZATION_FAILED);
     }
 

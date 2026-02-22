@@ -4,9 +4,9 @@
 
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
 
-    <springProperty scope="context" name="SLACK_WEBHOOK_URL" source="slack.webhook-url"/>
-    <springProperty scope="context" name="SLACK_CHANNEL" source="slack.channel"/>
-    <springProperty scope="context" name="SLACK_USERNAME" source="slack.username"/>
+    <springProperty scope="context" name="SLACK_WEBHOOK_URL" source="slack.webhook-url" defaultValue=""/>
+    <springProperty scope="context" name="SLACK_CHANNEL" source="slack.channel" defaultValue="#project"/>
+    <springProperty scope="context" name="SLACK_USERNAME" source="slack.username" defaultValue="Fridgely-Error-Bot"/>
 
     <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%5p] [%X{traceId:-SYSTEM}] [%thread] %logger{36} - %m%n"/>
     <property name="LOG_PATH" value="./logs"/>
@@ -57,10 +57,10 @@
     <!-- ========== ASYNC SLACK Appender  ========== -->
     <appender name="ASYNC_SLACK" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="SLACK"/>
-        <queueSize>512</queueSize>
+        <queueSize>2048</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <includeCallerData>false</includeCallerData>
-        <neverBlock>true</neverBlock> <!-- Slack 큐가 가득 차도 메인 스레드는 블로킹하지 않음 -->
+        <neverBlock>true</neverBlock>
     </appender>
 
     <!-- ========== Local 환경: CONSOLE ========== -->

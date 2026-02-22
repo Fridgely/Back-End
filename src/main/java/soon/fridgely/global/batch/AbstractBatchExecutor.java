@@ -70,7 +70,7 @@ public abstract class AbstractBatchExecutor<T> {
         }
 
         stopWatch.stop();
-        log.info("[{}] 배치 처리 완료. (ProcessedCount={}, DurationMs={})", batchName, totalProcessed, stopWatch.getTotalTimeMillis());
+        log.debug("[{}] 배치 처리 완료 (ProcessedCount={}, DurationMs={})", batchName, totalProcessed, stopWatch.getTotalTimeMillis());
 
         return BatchResult.of(totalProcessed, stopWatch.getTotalTimeMillis());
     }

@@ -19,6 +19,7 @@ import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.image.ImageManager;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -117,7 +118,7 @@ public class FoodService {
             try {
                 imageManager.delete(imageUrl);
             } catch (Exception e) {
-                log.debug("[Food] 이미지 롤백 실패 (ImageUrl={})", imageUrl);
+                log.warn(SlackMarkers.SYSTEM, "[Food] 이미지 롤백 실패 - 수동 정리 필요 (ImageUrl={})", imageUrl, e);
             }
         }
     }

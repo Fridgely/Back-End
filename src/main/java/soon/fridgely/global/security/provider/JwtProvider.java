@@ -12,6 +12,7 @@ import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.member.entity.MemberRole;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.security.properties.JwtProperties;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.security.Key;
 import java.util.Collection;
@@ -49,7 +50,7 @@ public class JwtProvider implements TokenProvider {
             getClaimsFromToken(token);
             return true;
         } catch (SignatureException | MalformedJwtException e) {
-            log.debug("[JWT] 유효하지 않은 서명 (Exception={})", e.getClass().getSimpleName());
+            log.warn(SlackMarkers.SYSTEM, "[JWT] 유효하지 않은 서명 (Exception={})", e.getClass().getSimpleName());
         } catch (ExpiredJwtException e) {
             log.debug("[JWT] 만료된 토큰 (Exception={})", e.getClass().getSimpleName());
         } catch (UnsupportedJwtException e) {
