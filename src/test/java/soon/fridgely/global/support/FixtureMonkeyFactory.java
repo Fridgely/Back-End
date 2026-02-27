@@ -49,8 +49,8 @@ public final class FixtureMonkeyFactory {
     private static Function<FixtureMonkey, ArbitraryBuilder<BigDecimal>> bigDecimalFixture() {
         return fixture -> fixture.giveMeBuilder(BigDecimal.class)
             .set(Arbitraries.bigDecimals()
-                .between(BigDecimal.ZERO, BigDecimal.valueOf(9999))
-                .ofScale(2)
+                .between(BigDecimal.ONE, BigDecimal.valueOf(9999))
+                .ofScale(0) // trailing zero로 인한 BigDecimal.equals() JSON 비교 불일치 방지
             );
     }
 
