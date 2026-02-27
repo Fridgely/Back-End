@@ -17,7 +17,7 @@ public final class RefrigeratorFixture {
 
     public static ArbitraryBuilder<Refrigerator> refrigerator(FixtureMonkey fixtureMonkey) {
         return fixtureMonkey.giveMeBuilder(Refrigerator.class)
-            .set("name", Arbitraries.strings().alpha().ofMaxLength(50))
+            .set("name", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(50))
             .set("status", EntityStatus.ACTIVE) // DELETED 상태가 필요한 경우 사용시 지정
             .setNull("id"); // JPA 자동 생성 필드 null 처리
     }

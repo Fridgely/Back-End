@@ -17,9 +17,9 @@ public final class MemberFixture {
 
     public static ArbitraryBuilder<Member> member(FixtureMonkey fixtureMonkey) {
         return fixtureMonkey.giveMeBuilder(Member.class)
-            .set("nickname", Arbitraries.strings().alpha().ofMaxLength(20))
-            .set("loginId", Arbitraries.strings().alpha().ofMaxLength(100))
-            .set("password", Arbitraries.strings().alpha().ofMaxLength(100))
+            .set("nickname", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(20))
+            .set("loginId", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(100))
+            .set("password", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(100))
             .set("status", EntityStatus.ACTIVE) // DELETED 상태가 필요한 경우 사용시 지정
             .setNull("id"); // JPA 자동 생성 필드 null 처리
     }
