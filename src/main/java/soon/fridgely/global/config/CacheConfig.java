@@ -2,9 +2,6 @@ package soon.fridgely.global.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
@@ -16,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@RequiredArgsConstructor
 @EnableCaching
 @Configuration
 @ConditionalOnProperty(name = "spring.cache.type", havingValue = "caffeine")
@@ -28,8 +24,6 @@ public class CacheConfig {
     private static final int REFRIGERATORS_TTL_HOURS = 1;
     private static final int REFRIGERATORS_MAX_SIZE = 1000;
 
-    private final MeterRegistry meterRegistry;
-
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
@@ -39,9 +33,6 @@ public class CacheConfig {
 
         cacheManager.registerCustomCache("categories", categoriesCache);
         cacheManager.registerCustomCache("myRefrigerators", refrigeratorsCache);
-
-        CaffeineCacheMetrics.monitor(meterRegistry, categoriesCache, "categories");
-        CaffeineCacheMetrics.monitor(meterRegistry, refrigeratorsCache, "myRefrigerators");
 
         log.info("[CacheConfig] Caffeine 캐시 설정 완료 (categories: {}h, myRefrigerators: {}h)", CATEGORIES_TTL_HOURS, REFRIGERATORS_TTL_HOURS);
 
