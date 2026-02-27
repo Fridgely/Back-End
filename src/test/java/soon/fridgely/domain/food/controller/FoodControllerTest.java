@@ -183,7 +183,7 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.id").value(response.id()))
             .andExpect(jsonPath("$.data.name").value(response.name()))
             .andExpect(jsonPath("$.data.categoryName").value(response.categoryName()))
-            .andExpect(jsonPath("$.data.quantity.amount").value(response.quantity().amount()))
+            .andExpect(jsonPath("$.data.quantity.amount").value(response.quantity().amount().doubleValue()))
             .andExpect(jsonPath("$.data.quantity.unit").value(response.quantity().unit().name()))
             .andExpect(jsonPath("$.data.condition.storageType").value(response.condition().storageType().name()))
             .andExpect(jsonPath("$.data.condition.foodStatus").value(response.condition().foodStatus().name()));

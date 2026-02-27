@@ -23,7 +23,7 @@ public final class CategoryFixture {
         Member member
     ) {
         return fixtureMonkey.giveMeBuilder(Category.class)
-            .set("name", Arbitraries.strings().ofMaxLength(100))
+            .set("name", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(100))
             .set("member", member)
             .set("refrigerator", refrigerator)
             .set("status", EntityStatus.ACTIVE) // DELETED 상태가 필요한 경우 사용시 지정

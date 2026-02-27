@@ -21,7 +21,7 @@ public final class MemberDeviceFixture {
     public static ArbitraryBuilder<MemberDevice> memberDevice(FixtureMonkey fixtureMonkey, Member member) {
         return fixtureMonkey.giveMeBuilder(MemberDevice.class)
             .set("member", member)
-            .set("token", Arbitraries.strings().ofMinLength(10).ofMaxLength(512))
+            .set("token", Arbitraries.strings().alpha().ofMinLength(10).ofMaxLength(255))
             .set("lastUsedAt", LocalDateTime.of(2024, 1, 1, 0, 0))
             .set("status", EntityStatus.ACTIVE)
             .setNull("id");
