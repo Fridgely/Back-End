@@ -25,8 +25,8 @@ public final class FoodFixture {
         Category category
     ) {
         return fixtureMonkey.giveMeBuilder(Food.class)
-            .set("name", Arbitraries.strings().ofMaxLength(50))
-            .set("imageURL", Arbitraries.strings().ofMaxLength(512))
+            .set("name", Arbitraries.strings().alpha().ofMaxLength(50))
+            .set("imageURL", Arbitraries.strings().alpha().ofMaxLength(100))
             .set("refrigerator", refrigerator)
             .set("member", member)
             .set("category", category)
