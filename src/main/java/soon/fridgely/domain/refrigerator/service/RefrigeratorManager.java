@@ -20,9 +20,10 @@ public class RefrigeratorManager {
 
     private final RefrigeratorRepository refrigeratorRepository;
 
+    @Transactional
     public Refrigerator register(Member member) {
-        Refrigerator register = Refrigerator.register(member.getNickname());
-        return refrigeratorRepository.save(register);
+        Refrigerator refrigerator = Refrigerator.register(member.getNickname());
+        return refrigeratorRepository.saveAndFlush(refrigerator);
     }
 
     @CacheEvict(value = "myRefrigerators", allEntries = true)

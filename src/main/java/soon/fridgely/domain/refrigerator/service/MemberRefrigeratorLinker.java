@@ -25,6 +25,7 @@ public class MemberRefrigeratorLinker {
     private final MemberRepository memberRepository;
 
     @CacheEvict(value = "myRefrigerators", key = "#member.id")
+    @Transactional
     public void linkToOwner(Member member, Refrigerator refrigerator) {
         MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
         memberRefrigeratorRepository.save(memberRefrigerator);
