@@ -3,6 +3,7 @@ package soon.fridgely.domain.refrigerator.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
@@ -20,6 +21,7 @@ public class RefrigeratorManager {
 
     private final RefrigeratorRepository refrigeratorRepository;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Refrigerator register(Member member) {
         Refrigerator register = Refrigerator.register(member.getNickname());
         return refrigeratorRepository.save(register);

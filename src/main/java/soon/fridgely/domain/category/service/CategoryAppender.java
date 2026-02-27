@@ -35,6 +35,7 @@ public class CategoryAppender {
     private final MemberRepository memberRepository;
 
     @CacheEvict(value = "categories", key = "#key.refrigeratorId()")
+    @Transactional
     public void appendDefaultCategories(MemberRefrigeratorKey key) {
         CategoryContext context = getContext(key);
         if (categoryRepository.existsByRefrigeratorAndStatus(context.refrigerator(), EntityStatus.ACTIVE)) {
