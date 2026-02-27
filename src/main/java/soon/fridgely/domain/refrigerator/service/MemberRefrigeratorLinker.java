@@ -3,7 +3,6 @@ package soon.fridgely.domain.refrigerator.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
@@ -26,7 +25,7 @@ public class MemberRefrigeratorLinker {
     private final MemberRepository memberRepository;
 
     @CacheEvict(value = "myRefrigerators", key = "#member.id")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void linkToOwner(Member member, Refrigerator refrigerator) {
         MemberRefrigerator memberRefrigerator = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
         memberRefrigeratorRepository.save(memberRefrigerator);
