@@ -49,3 +49,6 @@ gradle-app.setting
 
 ### firebase ###
 secretJson.json
+
+# Environments
+.env
