@@ -20,7 +20,7 @@ services:
     volumes:
       - ./mysql_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "sh", "-c", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD" ]
+      test: ["CMD", "sh", "-c", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -59,7 +59,7 @@ services:
       - S3_BUCKET=${S3_BUCKET}
     expose:
       - "8080"
-    command: [ "java", "-jar", "fridgely.jar" ]
+    command: ["java", "-jar", "fridgely.jar"]
 
   # Nginx Reverse Proxy
   nginx:
@@ -75,7 +75,7 @@ services:
 
   # Prometheus
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.2.1
     container_name: prometheus
     restart: always
     volumes:
@@ -88,7 +88,7 @@ services:
 
   # Grafana
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.2
     container_name: grafana
     restart: always
     ports:
