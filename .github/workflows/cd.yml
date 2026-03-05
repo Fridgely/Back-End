@@ -1,0 +1,49 @@
+---
+name: Fridgely CD Pipeline
+
+'on':
+  workflow_run:
+    workflows: ["Fridgely CI Pipeline"]
+    branches: ["master"]
+    types: [completed]
+
+jobs:
+  deploy:
+    name: Deploy to OCI Server
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy via SSH
+        # appleboy/ssh-action v1.0.3
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          script: |
+            cd /home/${{ secrets.USERNAME }}/fridgely-project
+
+            git fetch origin master
+
+            # exit code 기반 변경 감지 (0=변경없음, 1=변경있음, >1=git 오류)
+            git diff --quiet HEAD origin/master -- nginx/nginx.conf; NGINX_CHANGED=$?
+            if [ "$NGINX_CHANGED" -gt 1 ]; then
+              echo "오류: nginx.conf 변경 감지 중 git diff 실패 (exit code: $NGINX_CHANGED)"
+              exit 1
+            fi
+
+            git reset --hard origin/master
+            git clean -fd -e .env -e .env.local
+
+            ./gradlew build -x test
+
+            cp build/libs/fridgely.jar fridgely.jar
+
+            docker-compose up -d --no-build --force-recreate app
+
+            if [ "$NGINX_CHANGED" -eq 1 ]; then
+              echo "nginx.conf 변경 감지 → nginx 재시작"
+              docker-compose restart nginx
+            fi

@@ -1,0 +1,113 @@
+package soon.fridgely.domain.notification.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.notification.entity.AlertSchedule;
+import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
+import soon.fridgely.global.support.IntegrationTestSupport;
+
+import java.time.LocalTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
+import static soon.fridgely.global.support.fixture.NotificationSettingFixture.notificationSetting;
+
+class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
+
+    @Autowired
+    private NotificationSettingManager notificationSettingManager;
+
+    @Autowired
+    private NotificationSettingRepository notificationSettingRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    private Member member;
+
+    @BeforeEach
+    void setUp() {
+        this.member = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+    }
+
+    @Test
+    void 기본_알림_설정을_생성한다() {
+        // when
+        notificationSettingManager.createDefaultSetting(member);
+
+        // then
+        NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
+        assertThat(setting)
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled", "member.id")
+            .containsExactly(LocalTime.of(9, 0), 3, true, member.getId());
+    }
+
+    @Test
+    void 이미_설정이_존재하면_새로_생성하지_않는다() {
+        // when
+        notificationSettingManager.createDefaultSetting(member);
+        long countBefore = notificationSettingRepository.count();
+
+        notificationSettingManager.createDefaultSetting(member);
+        long countAfter = notificationSettingRepository.count();
+
+        // then
+        assertThat(countBefore).isEqualTo(countAfter);
+    }
+
+    @Test
+    void 다른_회원에_대해서는_각각_설정이_생성된다() {
+        // given
+        Member member2 = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+
+        // when
+        notificationSettingManager.createDefaultSetting(member);
+        notificationSettingManager.createDefaultSetting(member2);
+
+        // then
+        NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
+        assertThat(setting1).isNotNull();
+
+        NotificationSetting setting2 = notificationSettingRepository.findByMemberId(member2.getId()).orElseThrow();
+        assertThat(setting2).isNotNull();
+
+        long savedCount = notificationSettingRepository.count();
+        assertThat(savedCount).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "0, 0, 1, true",
+        "9, 0, 5, false",
+        "14, 30, 15, true",
+        "23, 59, 30, false"
+    })
+    void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
+        // given
+        notificationSettingRepository.save(
+            notificationSetting(fixtureMonkey, member).sample()
+        );
+
+        var newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+
+        // when
+        notificationSettingManager.update(member.getId(), newSchedule, enabled);
+
+        // then
+        NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
+        assertThat(setting).isNotNull()
+            .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled")
+            .containsExactly(LocalTime.of(hour, minute), days, enabled);
+    }
+
+}

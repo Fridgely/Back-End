@@ -1,0 +1,82 @@
+package soon.fridgely.domain.category.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import soon.fridgely.domain.category.dto.command.DeleteCategory;
+import soon.fridgely.domain.category.dto.request.CategoryAddRequest;
+import soon.fridgely.domain.category.dto.request.CategoryModifyRequest;
+import soon.fridgely.domain.category.dto.response.CategoryDetailResponse;
+import soon.fridgely.domain.category.dto.response.CategoryResponse;
+import soon.fridgely.domain.category.service.CategoryService;
+import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
+import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.support.response.ApiResponse;
+
+import java.util.List;
+
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/refrigerators")
+@RestController
+public class CategoryController implements CategoryControllerDocs {
+
+    private final CategoryService categoryService;
+
+    @Override
+    @PostMapping("/{refrigeratorId}/categories")
+    public ResponseEntity<ApiResponse<?>> append(
+        @RequestBody @Valid CategoryAddRequest request,
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        categoryService.appendCustomCategory(request.toAddCategory(refrigeratorId, memberId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
+    }
+
+    @Override
+    @GetMapping("/{refrigeratorId}/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<CategoryDetailResponse>> find(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long categoryId
+    ) {
+        CategoryDetailResponse response = categoryService.findCategory(categoryId, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @Override
+    @GetMapping("/{refrigeratorId}/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> findAll(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        List<CategoryResponse> categories = categoryService.findAllCategory(new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success(categories));
+    }
+
+    @Override
+    @PatchMapping("/{refrigeratorId}/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<?>> modify(
+        @RequestBody @Valid CategoryModifyRequest request,
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long categoryId
+    ) {
+        categoryService.modifyCustomCategory(request.toModifyCategory(refrigeratorId, categoryId, memberId));
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Override
+    @DeleteMapping("/{refrigeratorId}/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<?>> remove(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId,
+        @PathVariable long categoryId
+    ) {
+        categoryService.removeCustomCategory(new DeleteCategory(memberId, refrigeratorId, categoryId));
+        return ResponseEntity.ok(ApiResponse.success()); // 일관성을 위해 OK 반환
+    }
+
+}

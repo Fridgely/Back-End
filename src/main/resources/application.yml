@@ -3,21 +3,92 @@ spring:
     name: fridge
   profiles:
     active: local
-  config:
-    import:
-      - logging.yml
-      - db.yml
   web:
     resources:
       add-mappings: false
 
-server:
-  tomcat:
-    max-connections: 20000
-    threads:
-      max: 600
-      min-spare: 100
+  # 공통 JPA 기본값
+  # ddl-auto는 각 프로파일에서 명시적으로 오버라이드해야 함
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate.default_batch_fetch_size: 100
 
+  # 공통 애플리케이션 설정
+  cache:
+    type: caffeine
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+  jackson:
+    time-zone: Asia/Seoul
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# 공통 서버 설정
+server:
+  ssl:
+    enabled: false
+  tomcat:
+    max-connections: 4000
+    threads:
+      max: 100
+      min-spare: 20
+
+# 공통 Actuator
+management:
+  endpoint:
+    shutdown:
+      access: none
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# 공통 스케줄링
+scheduling:
+  enabled: true
+
+# 공통 Resilience4j 설정
+resilience4j:
+  retry:
+    instances:
+      invitationCodeGeneration:
+        max-attempts: 3
+        wait-duration: 100ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        enable-randomized-wait: true
+        randomized-wait-factor: 0.5
+        retry-exceptions:
+          - org.springframework.orm.ObjectOptimisticLockingFailureException
+  ratelimiter:
+    instances:
+      login:
+        limit-for-period: 5
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      register:
+        limit-for-period: 3
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      auth:
+        limit-for-period: 10
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+
+slack:
+  webhook-url: ${SLACK_WEBHOOK_URL:}
+  channel: "#project"
+  username: "fridgely-alert"
+
+# 프로파일별 설정
 ---
 spring.config.activate.on-profile: local
 spring.config.import: application-local.yml
@@ -27,5 +98,9 @@ spring.config.activate.on-profile: test
 spring.config.import: application-test.yml
 
 ---
+spring.config.activate.on-profile: performance
+spring.config.import: application-performance.yml
+
+---
 spring.config.activate.on-profile: live
-spring.config.import: db.yml
+spring.config.import: application-live.yml

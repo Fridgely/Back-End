@@ -1,0 +1,189 @@
+package soon.fridgely.domain.member.controller;
+
+import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import soon.fridgely.domain.category.repository.CategoryRepository;
+import soon.fridgely.domain.member.dto.command.MemberInfo;
+import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
+import soon.fridgely.domain.member.repository.MemberRepository;
+import soon.fridgely.domain.member.service.MemberService;
+import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
+import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
+import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.response.ApiResponse;
+import soon.fridgely.global.support.response.ResultType;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
+class MemberControllerE2ETest extends E2ETestSupport {
+
+    private static final String BASE_URL = "/api/v1/members";
+
+    @Autowired
+    private MemberService memberService;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private RefrigeratorRepository refrigeratorRepository;
+
+    @Autowired
+    private MemberRefrigeratorRepository memberRefrigeratorRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Test
+    void 회원가입_성공_시_201_응답과_멤버_냉장고_연결_기본카테고리가_생성된다() {
+        // given
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "testId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
+        var httpEntity = new HttpEntity<>(request);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<Long>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL, HttpMethod.POST, httpEntity, responseType
+        );
+
+        // then
+        Long memberId = response.getBody().data();
+
+        assertAll(
+            () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED),
+            () -> assertThat(response.getBody().result()).isEqualTo(ResultType.SUCCESS),
+            () -> assertThat(memberId).isNotNull()
+        );
+
+        assertThat(memberRepository.findById(memberId)).isPresent();
+        assertThat(refrigeratorRepository.count()).isEqualTo(1);
+        assertThat(memberRefrigeratorRepository.count()).isEqualTo(1);
+        assertThat(categoryRepository.count()).isEqualTo(8);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidMemberRegisterRequests")
+    void 필수값이_누락된_요청은_예외가_발생한다(MemberRegisterRequest request, String field, String message) {
+        // given
+        var httpEntity = new HttpEntity<>(request);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<Object>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL, HttpMethod.POST, httpEntity, responseType
+        );
+
+        // then
+        assertAll(
+            () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST),
+            () -> assertThat(response.getBody().result()).isEqualTo(ResultType.ERROR),
+            () -> assertThat(response.getBody().error().message()).isEqualTo(ErrorType.INVALID_REQUEST.getMessage()),
+            () -> {
+                assertThat(response.getBody().error().data())
+                    .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+                    .containsEntry(field, message);
+            }
+        );
+    }
+
+    @Test
+    void 중복되는_ID로_요청시_예외가_발생한다() {
+        // given
+        var setupInfo = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
+        memberService.register(setupInfo);
+
+        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword")
+            .set("nickname", "testNickname")
+            .sample();
+        var httpEntity = new HttpEntity<>(request);
+
+        // when
+        var responseType = new ParameterizedTypeReference<ApiResponse<Object>>() {
+        };
+        var response = testRestTemplate.exchange(
+            BASE_URL, HttpMethod.POST, httpEntity, responseType
+        );
+
+        // then
+        assertAll(
+            () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT),
+            () -> assertThat(response.getBody().result()).isEqualTo(ResultType.ERROR),
+            () -> assertThat(response.getBody().error().message()).isEqualTo(ErrorType.DUPLICATE_LOGIN_ID.getMessage())
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
+        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
+        return Stream.of(
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", null)
+                    .sample(),
+                "loginId", "ID는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("loginId", "")
+                    .sample(),
+                "loginId", "ID는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", null)
+                    .sample(),
+                "password", "비밀번호는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("password", "")
+                    .sample(),
+                "password", "비밀번호는 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", null)
+                    .sample(),
+                "nickname", "닉네임은 필수입니다."
+            ),
+            Arguments.of(
+                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
+                    .validOnly(false)
+                    .set("nickname", "")
+                    .sample(),
+                "nickname", "닉네임은 필수입니다."
+            )
+        );
+    }
+
+}

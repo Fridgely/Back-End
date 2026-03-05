@@ -1,0 +1,60 @@
+# 부하/성능 테스트 환경
+spring:
+
+  datasource:
+    hikari:
+      maximum-pool-size: 200
+      connection-timeout: 10000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      pool-name: Fridgely-Hikari-Pool
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}
+    access-token-expiration-time: 2h
+    refresh-token-expiration-time: 7d
+
+scheduling:
+  enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        cache.gets: true
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+      profile: performance
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+resilience4j:
+  retry:
+    instances:
+      invitationCodeGeneration:
+        max-attempts: 1 # 재시도 없음
+  ratelimiter:
+    instances:
+      login:
+        limit-for-period: 10000
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      register:
+        limit-for-period: 10000
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      auth:
+        limit-for-period: 10000
+        limit-refresh-period: 1m
+        timeout-duration: 0s

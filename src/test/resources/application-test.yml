@@ -1,0 +1,65 @@
+spring:
+
+  jackson:
+    serialization:
+      WRITE_BIGDECIMAL_AS_PLAIN: true
+
+  cache:
+    type: none
+
+  datasource:
+    url: jdbc:h2:mem:~/fridge;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+  sql:
+    init:
+      mode: never
+
+  jwt:
+    secret-key: dGVzdC1vbmx5LXNlY3JldC1rZXktZm9yLWZyaWRnZWx5LXVuaXQtYW5kLWludGVncmF0aW9uLXRlc3RzLW9ubHk=
+    access-token-expiration-time: 30m
+    refresh-token-expiration-time: 7d
+
+cloud:
+  aws:
+    credentials:
+      access-key: test-access-key
+      secret-key: test-secret-key
+    region:
+      static-region: ap-northeast-2
+    s3:
+      bucket: test-bucket
+
+resilience4j:
+  retry:
+    instances:
+      invitationCodeGeneration:
+        max-attempts: 3
+        wait-duration: 1ms
+        retry-exceptions:
+          - org.springframework.orm.ObjectOptimisticLockingFailureException
+  ratelimiter:
+    instances:
+      login:
+        limit-for-period: 100
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      register:
+        limit-for-period: 100
+        limit-refresh-period: 1m
+        timeout-duration: 0s
+      auth:
+        limit-for-period: 100
+        limit-refresh-period: 1m
+        timeout-duration: 0s
