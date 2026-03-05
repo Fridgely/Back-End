@@ -2,13 +2,16 @@
 name: Fridgely CD Pipeline
 
 'on':
-  push:
+  workflow_run:
+    workflows: ["Fridgely CI Pipeline"]
     branches: ["master"]
+    types: [completed]
 
 jobs:
   deploy:
     name: Deploy to OCI Server
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Deploy via SSH
