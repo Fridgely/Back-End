@@ -48,7 +48,7 @@ public class Food extends BaseEntity {
     private LocalDateTime expirationDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 20)
     private StorageType storageType;
 
     @Enumerated(EnumType.STRING)
