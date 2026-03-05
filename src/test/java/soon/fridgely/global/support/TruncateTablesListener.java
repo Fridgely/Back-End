@@ -9,7 +9,7 @@ import java.util.List;
 public class TruncateTablesListener extends AbstractTestExecutionListener {
 
     @Override
-    public void afterTestMethod(TestContext testContext) {
+    public void afterTestExecution(TestContext testContext) {
         JdbcTemplate jdbcTemplate = getJdbcTemplate(testContext);
         List<String> truncateQueries = getTruncateQueries(jdbcTemplate);
         truncateTables(jdbcTemplate, truncateQueries);

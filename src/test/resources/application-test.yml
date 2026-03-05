@@ -27,7 +27,7 @@ spring:
       mode: never
 
   jwt:
-    secret-key: test-only-secret-key-for-fridgely-unit-and-integration-tests-only
+    secret-key: dGVzdC1vbmx5LXNlY3JldC1rZXktZm9yLWZyaWRnZWx5LXVuaXQtYW5kLWludGVncmF0aW9uLXRlc3RzLW9ubHk=
     access-token-expiration-time: 30m
     refresh-token-expiration-time: 7d
 
@@ -46,7 +46,7 @@ resilience4j:
     instances:
       invitationCodeGeneration:
         max-attempts: 3
-        wait-duration: 0ms # 테스트에서 대기 없음
+        wait-duration: 1ms
         retry-exceptions:
           - org.springframework.orm.ObjectOptimisticLockingFailureException
   ratelimiter:
