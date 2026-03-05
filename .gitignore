@@ -41,14 +41,11 @@ gradle-app.setting
 *.log.*
 *.gz
 
-### YML (환경파일 제외)
-*.yml
-!application.yml
-!ci.yml
-!cd.yml
-
 ### firebase ###
 secretJson.json
 
 # Environments
 .env
+
+# JAR
+fridgely.jar
