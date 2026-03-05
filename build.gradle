@@ -104,3 +104,11 @@ clean {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    archiveFileName = 'fridgely.jar'
+}
