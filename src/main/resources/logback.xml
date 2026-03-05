@@ -65,7 +65,8 @@
 
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.hibernate.SQL" level="INFO"/>
-    <logger name="org.springframework.boot.autoconfigure.security" level="WARN"/> <logger name="com.soon.fridge" level="DEBUG"/> <logger name="soon.fridgely" level="DEBUG"/>
+    <logger name="org.springframework.boot.autoconfigure.security" level="WARN"/>
+    <logger name="soon.fridgely" level="DEBUG"/>
 
     <springProfile name="local, test">
         <root level="INFO"> <appender-ref ref="CONSOLE"/>
