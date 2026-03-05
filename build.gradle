@@ -108,3 +108,7 @@ tasks.named('test') {
 jar {
     enabled = false
 }
+
+bootJar {
+    archiveFileName = 'fridgely.jar'
+}

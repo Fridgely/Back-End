@@ -1,8 +1,9 @@
+---
 name: Fridgely CD Pipeline
 
-on:
+'on':
   push:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   deploy:
@@ -11,7 +12,8 @@ jobs:
 
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        # appleboy/ssh-action v1.0.3
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -19,15 +21,16 @@ jobs:
           script: |
             cd /home/${{ secrets.USERNAME }}/fridgely-project
 
-            git fetch origin
+            git fetch origin master
 
-            NGINX_CHANGED=$(git diff origin/master -- nginx/nginx.conf | wc -l)
+            NGINX_CHANGED=$(git diff HEAD origin/master -- nginx/nginx.conf | wc -l)
 
-            git pull origin master
+            git reset --hard origin/master
+            git clean -fd
 
             ./gradlew build -x test
 
-            cp build/libs/*.jar fridgely.jar
+            cp build/libs/fridgely.jar fridgely.jar
 
             docker-compose up -d --no-build --force-recreate app
 
