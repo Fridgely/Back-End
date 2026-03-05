@@ -23,10 +23,11 @@ jobs:
 
             git fetch origin master
 
-            NGINX_CHANGED=$(git diff HEAD origin/master -- nginx/nginx.conf | wc -l)
+            # exit code 기반 변경 감지 (0=변경없음, 1=변경있음)
+            git diff --quiet HEAD origin/master -- nginx/nginx.conf; NGINX_CHANGED=$?
 
             git reset --hard origin/master
-            git clean -fd
+            git clean -fd -e .env -e .env.local
 
             ./gradlew build -x test
 
@@ -34,7 +35,7 @@ jobs:
 
             docker-compose up -d --no-build --force-recreate app
 
-            if [ "$NGINX_CHANGED" -gt "0" ]; then
+            if [ "$NGINX_CHANGED" -ne "0" ]; then
               echo "nginx.conf 변경 감지 → nginx 재시작"
               docker-compose restart nginx
             fi
