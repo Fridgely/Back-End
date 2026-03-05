@@ -1,0 +1,37 @@
+name: Fridgely CD Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    name: Deploy to OCI Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.USERNAME }}/fridgely-project
+
+            git fetch origin
+
+            NGINX_CHANGED=$(git diff origin/master -- nginx/nginx.conf | wc -l)
+
+            git pull origin master
+
+            ./gradlew build -x test
+
+            cp build/libs/*.jar fridgely.jar
+
+            docker-compose up -d --no-build --force-recreate app
+
+            if [ "$NGINX_CHANGED" -gt "0" ]; then
+              echo "nginx.conf 변경 감지 → nginx 재시작"
+              docker-compose restart nginx
+            fi
