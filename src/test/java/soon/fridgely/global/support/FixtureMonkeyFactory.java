@@ -6,6 +6,11 @@ import com.navercorp.fixturemonkey.api.introspector.ConstructorPropertiesArbitra
 import com.navercorp.fixturemonkey.api.introspector.FieldReflectionArbitraryIntrospector;
 import com.navercorp.fixturemonkey.jakarta.validation.plugin.JakartaValidationPlugin;
 import net.jqwik.api.Arbitraries;
+import soon.fridgely.domain.food.dto.command.FoodCondition;
+import soon.fridgely.domain.food.dto.command.FoodInfo;
+import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StorageType;
+import soon.fridgely.domain.food.entity.Unit;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 
@@ -43,6 +48,8 @@ public final class FixtureMonkeyFactory {
             .register(BigDecimal.class, bigDecimalFixture())
             .register(AlertSchedule.class, alertScheduleFixture())
             .register(InvitationCode.class, invitationCodeFixture())
+            .register(FoodCondition.class, foodConditionFixture())
+            .register(FoodInfo.class, foodInfoFixture())
             .build();
     }
 
@@ -70,6 +77,22 @@ public final class FixtureMonkeyFactory {
                 .ofLength(8))
             .set("expirationAt", Arbitraries.integers().between(1, 365)
                 .map(days -> LocalDateTime.now().plusDays(days)));
+    }
+
+    private static Function<FixtureMonkey, ArbitraryBuilder<FoodCondition>> foodConditionFixture() {
+        return fixture -> fixture.giveMeBuilder(FoodCondition.class)
+            .set("storageType", Arbitraries.of(StorageType.class))
+            .set("expirationDate", Arbitraries.integers().between(1, 365)
+                .map(days -> LocalDateTime.now().plusDays(days)));
+    }
+
+    private static Function<FixtureMonkey, ArbitraryBuilder<FoodInfo>> foodInfoFixture() {
+        return fixture -> fixture.giveMeBuilder(FoodInfo.class)
+            .set("name", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(50))
+            .set("description", Arbitraries.strings().alpha().ofMaxLength(255))
+            .set("imageURL", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(512))
+            .set("quantity", Arbitraries.integers().between(1, 100)
+                .map(amount -> Quantity.register(BigDecimal.valueOf(amount), Unit.PIECE)));
     }
 
 }
