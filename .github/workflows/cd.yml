@@ -21,7 +21,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           script: |
             cd /home/${{ secrets.USERNAME }}/fridgely-project
 
