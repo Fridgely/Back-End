@@ -20,18 +20,17 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
     private static final String TRACE_ID = "traceId";
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestId = request.getHeader("X-Request-ID");
+        String traceId = (requestId != null && !requestId.isBlank())
+            ? requestId
+            : UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         try {
-            MDC.put(TRACE_ID, generateTraceId());
+            MDC.put(TRACE_ID, traceId);
             filterChain.doFilter(request, response);
         } finally {
             MDC.remove(TRACE_ID);
         }
-    }
-
-    private String generateTraceId() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
 }
