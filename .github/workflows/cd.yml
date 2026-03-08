@@ -40,9 +40,12 @@ jobs:
 
             cp build/libs/fridgely.jar fridgely.jar
 
-            docker-compose up -d --no-build --force-recreate app
+            docker compose up -d --no-build --force-recreate --wait app
 
             if [ "$NGINX_CHANGED" -eq 1 ]; then
-              echo "nginx.conf 변경 감지 → nginx 재시작"
-              docker-compose restart nginx
+              echo "nginx 설정 변경 감지 → nginx 컨테이너 재생성"
+              docker compose up -d --force-recreate nginx
+            else
+              echo "nginx 설정 변경 없음 → reload만 수행"
+              docker exec nginx nginx -s reload
             fi
