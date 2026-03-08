@@ -38,7 +38,7 @@ jobs:
 
             ./gradlew clean bootJar -x test
 
-            cp build/libs/*-SNAPSHOT.jar fridgely.jar
+            cp build/libs/fridgely.jar fridgely.jar
 
             docker-compose up -d --no-build --force-recreate app
 
