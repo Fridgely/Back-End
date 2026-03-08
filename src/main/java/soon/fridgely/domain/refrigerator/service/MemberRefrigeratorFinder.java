@@ -37,4 +37,9 @@ public class MemberRefrigeratorFinder {
         return memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigeratorId, memberId, EntityStatus.ACTIVE);
     }
 
+    @Transactional(readOnly = true)
+    public List<MemberRefrigerator> findAllMembersByRefrigeratorId(long refrigeratorId) {
+        return memberRefrigeratorRepository.findAllByRefrigeratorId(refrigeratorId, EntityStatus.ACTIVE);
+    }
+
 }

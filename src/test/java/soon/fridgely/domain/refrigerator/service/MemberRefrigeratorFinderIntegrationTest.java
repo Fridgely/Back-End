@@ -139,4 +139,47 @@ class MemberRefrigeratorFinderIntegrationTest extends IntegrationTestSupport {
         assertThat(exists).isFalse();
     }
 
+    @Test
+    void 냉장고에_속한_팀원_목록을_조회한다() {
+        // given
+        Member otherMember = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        Refrigerator otherRefrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+
+        memberRefrigeratorRepository.saveAll(List.of(
+            memberRefrigerator(fixtureMonkey, refrigerator, member)
+                .set("role", RefrigeratorRole.OWNER)
+                .sample(),
+            memberRefrigerator(fixtureMonkey, refrigerator, otherMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample(),
+            memberRefrigerator(fixtureMonkey, otherRefrigerator, otherMember) // 다른 냉장고
+                .set("role", RefrigeratorRole.OWNER)
+                .sample()
+        ));
+
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).hasSize(2)
+            .extracting("member.id", "role")
+            .containsExactlyInAnyOrder(
+                tuple(member.getId(), RefrigeratorRole.OWNER),
+                tuple(otherMember.getId(), RefrigeratorRole.MEMBER)
+            );
+    }
+
+    @Test
+    void 팀원이_없는_냉장고는_빈_목록을_반환한다() {
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
 }
