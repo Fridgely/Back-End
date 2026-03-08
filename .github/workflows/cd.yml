@@ -40,9 +40,31 @@ jobs:
 
             cp build/libs/fridgely.jar fridgely.jar
 
-            docker-compose up -d --no-build --force-recreate app
+            docker compose up -d --no-build --force-recreate app
+
+            # app이 healthy 상태가 될 때까지 최대 60초 대기
+            echo "app 헬스체크 대기 중..."
+            HEALTHY=false
+            for i in $(seq 1 12); do
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' spring-app 2>/dev/null || echo "none")
+              if [ "$STATUS" = "healthy" ]; then
+                echo "app healthy 확인"
+                HEALTHY=true
+                break
+              fi
+              echo "대기 중... ($i/12)"
+              sleep 5
+            done
+
+            if [ "$HEALTHY" = "false" ]; then
+              echo "오류: app이 healthy 상태가 되지 않았습니다. 배포를 중단합니다."
+              exit 1
+            fi
 
             if [ "$NGINX_CHANGED" -eq 1 ]; then
-              echo "nginx.conf 변경 감지 → nginx 재시작"
-              docker-compose restart nginx
+              echo "nginx 설정 변경 감지 → nginx 컨테이너 재생성"
+              docker compose up -d --force-recreate nginx
+            else
+              echo "nginx 설정 변경 없음 → reload만 수행"
+              docker exec nginx nginx -s reload
             fi
