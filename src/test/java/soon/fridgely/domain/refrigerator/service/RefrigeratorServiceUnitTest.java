@@ -11,6 +11,7 @@ import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -167,6 +168,31 @@ class RefrigeratorServiceUnitTest {
         assertThat(response).isNotNull()
             .extracting("name", "role", "isOwner")
             .containsExactly("MyFridge", RefrigeratorRole.OWNER, true);
+    }
+
+    @Test
+    void 냉장고_팀원_목록을_조회한다() {
+        // given
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+
+        List<MemberRefrigerator> memberRefrigerators = List.of(
+            createMemberRefrigerator("Fridge1", RefrigeratorRole.OWNER),
+            createMemberRefrigerator("Fridge2", RefrigeratorRole.MEMBER)
+        );
+
+        given(memberRefrigeratorFinder.findAllMembersByRefrigeratorId(key.refrigeratorId()))
+            .willReturn(memberRefrigerators);
+
+        // when
+        List<RefrigeratorMemberResponse> responses = refrigeratorService.findAllMembers(key);
+
+        // then
+        assertThat(responses).hasSize(2)
+            .extracting("role", "isOwner")
+            .containsExactlyInAnyOrder(
+                tuple(RefrigeratorRole.OWNER, true),
+                tuple(RefrigeratorRole.MEMBER, false)
+            );
     }
 
     private MemberRefrigerator createMemberRefrigerator(String fridgeName, RefrigeratorRole role) {
