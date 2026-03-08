@@ -17,6 +17,7 @@ spring:
       pool-name: core-db-pool
       data-source-properties:
         socketTimeout: 60000
+        connectTimeout: 10000
         cachePrepStmts: true
         prepStmtCacheSize: 250
         prepStmtCacheSqlLimit: 2048
