@@ -36,9 +36,9 @@ jobs:
             git reset --hard origin/master
             git clean -fd -e .env -e .env.local
 
-            ./gradlew build -x test
+            ./gradlew clean bootJar -x test
 
-            cp build/libs/fridgely.jar fridgely.jar
+            cp build/libs/*-SNAPSHOT.jar fridgely.jar
 
             docker-compose up -d --no-build --force-recreate app
 
