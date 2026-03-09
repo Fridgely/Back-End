@@ -11,10 +11,7 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
-import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.FoodSortType;
-import soon.fridgely.domain.food.entity.Quantity;
-import soon.fridgely.domain.food.entity.Unit;
+import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -31,6 +28,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
+import static soon.fridgely.global.support.fixture.FoodFixture.expirationDayFor;
 import static soon.fridgely.global.support.fixture.FoodFixture.food;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
@@ -241,10 +239,10 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         LocalDate now = LocalDate.now();
         List<Food> foods = foodRepository.saveAll(List.of(
             food(fixtureMonkey, myFridge, me, myCategory)
-                .set("expirationDate", now.plusDays(5).atStartOfDay())
+                .set("expirationDate", expirationDayFor(FoodStatus.YELLOW, now)) // 나중에 만료
                 .sample(),
             food(fixtureMonkey, myFridge, me, myCategory)
-                .set("expirationDate", now.plusDays(1).atStartOfDay())
+                .set("expirationDate", expirationDayFor(FoodStatus.RED, now))    // 먼저 만료
                 .sample(),
             food(fixtureMonkey, otherFridge, other, otherCategory).sample()
         ));
@@ -324,6 +322,80 @@ class FoodRepositoryTest extends IntegrationTestSupport {
             .isEqualByComparingTo(BigDecimal.ZERO);
     }
 
+    @Transactional // 해당 메서드는 @Modifying 쿼리를 테스트하므로 트랜잭션이 필요
+    @Test
+    void 만료된_음식을_BLACK으로_bulk_update한다() {
+        // given
+        setupBasicEnvironment();
+        LocalDate today = LocalDate.now();
+
+        Food expired = createFoodExpiringIn(today, FoodStatus.BLACK);// 어제 만료, BLACK 대상
+        createFoodExpiringIn(today, null); // 당일 만료, BLACK 미포함
+        Food notExpired = createFoodExpiringIn(today, FoodStatus.RED); // RED 범위, BLACK 비대상
+
+        // when
+        int updated = foodRepository.bulkUpdateFoodStatus(FoodStatus.BLACK, null, today.atStartOfDay());
+        em.clear();
+
+        // then
+        assertThat(updated).isOne();
+
+        Food updatedExpired = foodRepository.findById(expired.getId()).orElseThrow();
+        assertThat(updatedExpired.getFoodStatus()).isEqualTo(FoodStatus.BLACK);
+
+        Food updatedNotExpired = foodRepository.findById(notExpired.getId()).orElseThrow();
+        assertThat(updatedNotExpired.getFoodStatus()).isNotEqualTo(FoodStatus.BLACK);
+    }
+
+    @Transactional
+    @Test
+    void 특정_날짜_범위의_음식을_RED로_bulk_update한다() {
+        // given
+        setupBasicEnvironment();
+        LocalDate today = LocalDate.now();
+
+        Food redFood = createFoodExpiringIn(today, FoodStatus.RED); // RED 범위, 변경 대상
+        Food yellowFood = createFoodExpiringIn(today, FoodStatus.YELLOW); // YELLOW 범위, 변경 비대상
+        Food greenFood = createFoodExpiringIn(today, FoodStatus.GREEN); // GREEN 범위, 변경 비대상
+
+        // when
+        int updated = foodRepository.bulkUpdateFoodStatus(
+            FoodStatus.RED,
+            today.atStartOfDay(),
+            today.plusDays(FoodStatus.RED.nextThresholdDay()).atStartOfDay()
+        );
+        em.clear();
+
+        // then
+        assertThat(updated).isOne();
+
+        List<Food> results = foodRepository.findAllById(
+            List.of(redFood.getId(), yellowFood.getId(), greenFood.getId())
+        );
+        assertThat(results).extracting(Food::getFoodStatus)
+            .containsExactlyInAnyOrder(FoodStatus.RED, FoodStatus.GREEN, FoodStatus.GREEN);
+    }
+
+    @Transactional
+    @Test
+    void 이미_동일한_status인_음식은_update_하지_않는다() {
+        // given
+        setupBasicEnvironment();
+        LocalDate today = LocalDate.now();
+
+        createFoodExpiringIn(today, FoodStatus.RED, FoodStatus.RED); //RED, 변경 비대상
+
+        // when
+        int updated = foodRepository.bulkUpdateFoodStatus(
+            FoodStatus.RED,
+            today.atStartOfDay(),
+            today.plusDays(FoodStatus.RED.nextThresholdDay()).atStartOfDay()
+        );
+
+        // then
+        assertThat(updated).isZero();
+    }
+
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
             member(fixtureMonkey).sample()
@@ -343,10 +415,45 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         return foodRepository.saveAll(foods);
     }
 
+    /**
+     * targetStatus 범위의 중간 날짜로 음식을 생성 (초기 foodStatus = GREEN)
+     * targetStatus == null 이면 경계값(당일 자정) 사용
+     */
+    private Food createFoodExpiringIn(LocalDate today, FoodStatus targetStatus) {
+        return createFoodExpiringIn(today, targetStatus, FoodStatus.GREEN);
+    }
+
+    /**
+     * targetStatus 범위의 중간 날짜로 음식을 생성 (초기 foodStatus 지정 가능)
+     * targetStatus == null 이면 경계값(당일 자정) 사용
+     */
+    private Food createFoodExpiringIn(LocalDate today, FoodStatus targetStatus, FoodStatus initialStatus) {
+        return foodRepository.save(
+            food(fixtureMonkey, refrigerator, member, category)
+                .set("expirationDate", resolveExpirationDate(today, targetStatus))
+                .set("foodStatus", initialStatus)
+                .sample()
+        );
+    }
+
+    /**
+     * FoodStatus 범위의 중간 날짜 계산
+     * BLACK: 어제(-1), RED/YELLOW: 범위 중간값, GREEN: 상한+10, null: 당일(경계)
+     */
+    private LocalDateTime resolveExpirationDate(LocalDate today, FoodStatus targetStatus) {
+        return targetStatus == null
+            ? today.atStartOfDay()
+            : expirationDayFor(targetStatus, today);
+    }
+
+    /**
+     * 지정된 유통기한으로 음식을 생성 (foodStatus는 GREEN으로 고정)
+     */
     private Food createFoodWithExpirationDate(LocalDateTime expirationDate) {
         return foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
                 .set("expirationDate", expirationDate)
+                .set("foodStatus", FoodStatus.GREEN)
                 .sample()
         );
     }
