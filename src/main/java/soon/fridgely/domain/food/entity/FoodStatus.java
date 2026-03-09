@@ -26,9 +26,10 @@ public enum FoodStatus {
     /**
      * 해당 status 범위의 다음 날 (상한 + 1)
      * bulk update 쿼리의 날짜 범위 상한 계산에 사용
+     * GREEN(Integer.MAX_VALUE)처럼 상한이 없는 status는 MAX_VALUE 그대로 반환
      */
     public int nextThresholdDay() {
-        return daysThreshold + 1;
+        return daysThreshold == Integer.MAX_VALUE ? Integer.MAX_VALUE : daysThreshold + 1;
     }
 
     public static FoodStatus fromDaysLeft(LocalDate expirationDate, LocalDate now) {
