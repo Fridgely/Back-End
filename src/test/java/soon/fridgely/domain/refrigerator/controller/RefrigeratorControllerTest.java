@@ -6,6 +6,7 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.TestLoginMember;
@@ -157,6 +158,45 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 냉장고_팀원_목록을_조회한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+
+        var responses = List.of(
+            fixtureMonkey.giveMeBuilder(RefrigeratorMemberResponse.class)
+                .set("nickname", "홍길동")
+                .set("role", RefrigeratorRole.OWNER)
+                .set("isOwner", true)
+                .sample(),
+            fixtureMonkey.giveMeBuilder(RefrigeratorMemberResponse.class)
+                .set("nickname", "김철수")
+                .set("role", RefrigeratorRole.MEMBER)
+                .set("isOwner", false)
+                .sample()
+        );
+
+        given(refrigeratorService.findAllMembers(any(MemberRefrigeratorKey.class)))
+            .willReturn(responses);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/{refrigeratorId}/members", refrigeratorId)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data").isArray())
+            .andExpect(jsonPath("$.data[0].nickname").value("홍길동"))
+            .andExpect(jsonPath("$.data[0].role").value("OWNER"))
+            .andExpect(jsonPath("$.data[0].isOwner").value(true))
+            .andExpect(jsonPath("$.data[1].nickname").value("김철수"))
+            .andExpect(jsonPath("$.data[1].role").value("MEMBER"))
+            .andExpect(jsonPath("$.data[1].isOwner").value(false));
     }
 
 }
