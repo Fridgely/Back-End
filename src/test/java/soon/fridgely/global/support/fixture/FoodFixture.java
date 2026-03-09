@@ -10,6 +10,7 @@ import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -42,6 +43,35 @@ public final class FoodFixture {
             .set("category", category)
             .set("status", EntityStatus.ACTIVE)
             .setNull("id");
+    }
+
+    public static ArbitraryBuilder<Food> food(
+        FixtureMonkey fixtureMonkey,
+        Refrigerator refrigerator,
+        Member member,
+        Category category,
+        LocalDateTime expirationDate,
+        FoodStatus foodStatus
+    ) {
+        return food(fixtureMonkey, refrigerator, member, category)
+            .set("expirationDate", expirationDate)
+            .set("foodStatus", foodStatus);
+    }
+
+    /**
+     * FoodStatus 범위의 만료일 반환
+     * - BLACK : 어제 (만료)
+     * - RED    : RED 범위 중간값
+     * - YELLOW : YELLOW 범위 중간값
+     * - GREEN  : YELLOW 상한 이후 10일
+     */
+    public static LocalDateTime expirationDayFor(FoodStatus status, LocalDate today) {
+        return switch (status) {
+            case BLACK -> today.minusDays(1).atStartOfDay();
+            case RED -> today.plusDays(FoodStatus.RED.daysThreshold / 2).atStartOfDay();
+            case YELLOW -> today.plusDays((FoodStatus.RED.daysThreshold + FoodStatus.YELLOW.daysThreshold) / 2).atStartOfDay();
+            case GREEN -> today.plusDays(FoodStatus.YELLOW.nextThresholdDay() + 10).atStartOfDay();
+        };
     }
 
 }
