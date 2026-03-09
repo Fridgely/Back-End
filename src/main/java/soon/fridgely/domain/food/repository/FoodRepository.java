@@ -33,7 +33,7 @@ public interface FoodRepository extends JpaRepository<Food, Long>, FoodRepositor
      * 날짜 범위에 해당하는 ACTIVE Food의 foodStatus를 일괄 변경
      * 이미 동일한 status인 경우 제외하여 불필요한 UPDATE 방지
      */
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             UPDATE Food f
             SET f.foodStatus = :newStatus
