@@ -42,9 +42,11 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
     @Query("""
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.member m
+            JOIN FETCH mr.refrigerator r
             WHERE mr.refrigerator.id = :refrigeratorId
             AND mr.status = :status
             AND m.status = :status
+            AND r.status = :status
             ORDER BY mr.createdAt ASC
         """)
     List<MemberRefrigerator> findAllByRefrigeratorId(
