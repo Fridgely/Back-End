@@ -176,8 +176,8 @@ class RefrigeratorServiceUnitTest {
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
 
         List<MemberRefrigerator> memberRefrigerators = List.of(
-            createMemberRefrigerator("Fridge1", RefrigeratorRole.OWNER),
-            createMemberRefrigerator("Fridge2", RefrigeratorRole.MEMBER)
+            createMemberRefrigerator(1L, "홍길동", "Fridge1", RefrigeratorRole.OWNER),
+            createMemberRefrigerator(2L, "김철수", "Fridge2", RefrigeratorRole.MEMBER)
         );
 
         given(memberRefrigeratorFinder.findAllMembersByRefrigeratorId(key.refrigeratorId()))
@@ -188,16 +188,31 @@ class RefrigeratorServiceUnitTest {
 
         // then
         assertThat(responses).hasSize(2)
-            .extracting("role", "isOwner")
+            .extracting("memberId", "nickname", "role", "isOwner")
             .containsExactlyInAnyOrder(
-                tuple(RefrigeratorRole.OWNER, true),
-                tuple(RefrigeratorRole.MEMBER, false)
+                tuple(1L, "홍길동", RefrigeratorRole.OWNER, true),
+                tuple(2L, "김철수", RefrigeratorRole.MEMBER, false)
             );
     }
 
     private MemberRefrigerator createMemberRefrigerator(String fridgeName, RefrigeratorRole role) {
         Member member = member(fixtureMonkey)
             .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .sample();
+        Refrigerator refrigerator = refrigerator(fixtureMonkey)
+            .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .set("name", fridgeName)
+            .sample();
+
+        return memberRefrigerator(fixtureMonkey, refrigerator, member)
+            .set("role", role)
+            .sample();
+    }
+
+    private MemberRefrigerator createMemberRefrigerator(long memberId, String nickname, String fridgeName, RefrigeratorRole role) {
+        Member member = member(fixtureMonkey)
+            .set("id", memberId)
+            .set("nickname", nickname)
             .sample();
         Refrigerator refrigerator = refrigerator(fixtureMonkey)
             .set("id", fixtureMonkey.giveMeOne(Long.class))
