@@ -81,7 +81,7 @@ public class Food extends BaseEntity {
             .quantity(requireNonNull(quantity, "quantity는 필수입니다."))
             .expirationDate(requireNonNull(expirationDate, "expirationDate는 필수입니다."))
             .storageType(requireNonNull(storageType, "storageType는 필수입니다."))
-            .foodStatus(FoodStatus.fromDaysLeft(expirationDate.toLocalDate(), now))
+            .foodStatus(FoodStatus.fromDaysLeft(expirationDate, now))
             .description(description == null ? "" : description)
             .imageURL(imageURL == null ? "" : imageURL)
             .build();
@@ -102,7 +102,7 @@ public class Food extends BaseEntity {
         this.expirationDate = requireNonNull(expirationDate, "expirationDate는 필수입니다.");
         this.storageType = requireNonNull(storageType, "storageType는 필수입니다.");
         this.description = description == null ? "" : description;
-        this.foodStatus = FoodStatus.fromDaysLeft(expirationDate.toLocalDate(), now);
+        this.foodStatus = FoodStatus.fromDaysLeft(expirationDate, now);
 
         if (category != null) {
             this.category = category;

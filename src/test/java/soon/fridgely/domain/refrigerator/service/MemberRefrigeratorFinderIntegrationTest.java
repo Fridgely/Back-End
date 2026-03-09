@@ -3,6 +3,7 @@ package soon.fridgely.domain.refrigerator.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
@@ -137,6 +138,108 @@ class MemberRefrigeratorFinderIntegrationTest extends IntegrationTestSupport {
 
         // then
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    void 냉장고에_속한_팀원_목록을_조회한다() {
+        // given
+        Member otherMember = memberRepository.save(
+            member(fixtureMonkey).sample()
+        );
+        Refrigerator otherRefrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey).sample()
+        );
+
+        memberRefrigeratorRepository.saveAll(List.of(
+            memberRefrigerator(fixtureMonkey, refrigerator, member)
+                .set("role", RefrigeratorRole.OWNER)
+                .sample(),
+            memberRefrigerator(fixtureMonkey, refrigerator, otherMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample(),
+            memberRefrigerator(fixtureMonkey, otherRefrigerator, otherMember) // 다른 냉장고
+                .set("role", RefrigeratorRole.OWNER)
+                .sample()
+        ));
+
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).hasSize(2)
+            .extracting("member.id", "role")
+            .containsExactlyInAnyOrder(
+                tuple(member.getId(), RefrigeratorRole.OWNER),
+                tuple(otherMember.getId(), RefrigeratorRole.MEMBER)
+            );
+    }
+
+    @Test
+    void 팀원이_없는_냉장고는_빈_목록을_반환한다() {
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void MemberRefrigerator가_삭제_상태이면_팀원_목록_조회에서_제외된다() {
+        // given
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member)
+                .set("role", RefrigeratorRole.OWNER)
+                .set("status", EntityStatus.DELETED)
+                .sample()
+        );
+
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void Member가_삭제_상태이면_팀원_목록_조회에서_제외된다() {
+        // given
+        Member deletedMember = memberRepository.save(
+            member(fixtureMonkey)
+                .set("status", EntityStatus.DELETED)
+                .sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, deletedMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
+        );
+
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(refrigerator.getId());
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void Refrigerator가_삭제_상태이면_팀원_목록_조회에서_제외된다() {
+        // given
+        Refrigerator deletedRefrigerator = refrigeratorRepository.save(
+            refrigerator(fixtureMonkey)
+                .set("status", EntityStatus.DELETED)
+                .sample()
+        );
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, deletedRefrigerator, member)
+                .set("role", RefrigeratorRole.OWNER)
+                .sample()
+        );
+
+        // when
+        List<MemberRefrigerator> result = memberRefrigeratorFinder.findAllMembersByRefrigeratorId(deletedRefrigerator.getId());
+
+        // then
+        assertThat(result).isEmpty();
     }
 
 }

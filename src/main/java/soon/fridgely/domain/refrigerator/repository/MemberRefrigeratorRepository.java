@@ -37,6 +37,24 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
     );
 
     /**
+     * 특정 냉장고에 속한 팀원 목록 조회
+     */
+    @Query("""
+            SELECT mr FROM MemberRefrigerator mr
+            JOIN FETCH mr.member m
+            JOIN FETCH mr.refrigerator r
+            WHERE mr.refrigerator.id = :refrigeratorId
+            AND mr.status = :status
+            AND m.status = :status
+            AND r.status = :status
+            ORDER BY mr.createdAt ASC
+        """)
+    List<MemberRefrigerator> findAllByRefrigeratorId(
+        @Param("refrigeratorId") long refrigeratorId,
+        @Param("status") EntityStatus status
+    );
+
+    /**
      * 특정 회원이 특정 냉장고에 속해있는지 조회
      */
     @Query("""

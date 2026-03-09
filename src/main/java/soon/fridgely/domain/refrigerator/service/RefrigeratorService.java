@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
@@ -70,6 +71,15 @@ public class RefrigeratorService {
     public RefrigeratorResponse findRefrigerator(MemberRefrigeratorKey key) {
         MemberRefrigerator memberRefrigerator = memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId());
         return RefrigeratorResponse.from(memberRefrigerator);
+    }
+
+    @ValidateRefrigeratorAccess(key = "#key")
+    @Transactional(readOnly = true)
+    public List<RefrigeratorMemberResponse> findAllMembers(MemberRefrigeratorKey key) {
+        return memberRefrigeratorFinder.findAllMembersByRefrigeratorId(key.refrigeratorId())
+            .stream()
+            .map(RefrigeratorMemberResponse::from)
+            .toList();
     }
 
     private InvitationCodeResponse generateInvitationCodeFallback(MemberRefrigeratorKey key, Exception e) {

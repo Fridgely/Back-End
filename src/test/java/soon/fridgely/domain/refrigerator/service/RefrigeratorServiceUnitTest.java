@@ -11,6 +11,7 @@ import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
@@ -169,9 +170,49 @@ class RefrigeratorServiceUnitTest {
             .containsExactly("MyFridge", RefrigeratorRole.OWNER, true);
     }
 
+    @Test
+    void 냉장고_팀원_목록을_조회한다() {
+        // given
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+
+        List<MemberRefrigerator> memberRefrigerators = List.of(
+            createMemberRefrigerator(1L, "홍길동", "Fridge1", RefrigeratorRole.OWNER),
+            createMemberRefrigerator(2L, "김철수", "Fridge2", RefrigeratorRole.MEMBER)
+        );
+
+        given(memberRefrigeratorFinder.findAllMembersByRefrigeratorId(key.refrigeratorId()))
+            .willReturn(memberRefrigerators);
+
+        // when
+        List<RefrigeratorMemberResponse> responses = refrigeratorService.findAllMembers(key);
+
+        // then
+        assertThat(responses).hasSize(2)
+            .extracting("memberId", "nickname", "role", "isOwner")
+            .containsExactlyInAnyOrder(
+                tuple(1L, "홍길동", RefrigeratorRole.OWNER, true),
+                tuple(2L, "김철수", RefrigeratorRole.MEMBER, false)
+            );
+    }
+
     private MemberRefrigerator createMemberRefrigerator(String fridgeName, RefrigeratorRole role) {
         Member member = member(fixtureMonkey)
             .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .sample();
+        Refrigerator refrigerator = refrigerator(fixtureMonkey)
+            .set("id", fixtureMonkey.giveMeOne(Long.class))
+            .set("name", fridgeName)
+            .sample();
+
+        return memberRefrigerator(fixtureMonkey, refrigerator, member)
+            .set("role", role)
+            .sample();
+    }
+
+    private MemberRefrigerator createMemberRefrigerator(long memberId, String nickname, String fridgeName, RefrigeratorRole role) {
+        Member member = member(fixtureMonkey)
+            .set("id", memberId)
+            .set("nickname", nickname)
             .sample();
         Refrigerator refrigerator = refrigerator(fixtureMonkey)
             .set("id", fixtureMonkey.giveMeOne(Long.class))

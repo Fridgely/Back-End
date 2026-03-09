@@ -8,6 +8,7 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -70,6 +71,16 @@ public class RefrigeratorController implements RefrigeratorControllerDocs {
     ) {
         refrigeratorService.joinByInvitationCode(memberId, request.code());
         return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Override
+    @GetMapping("/{refrigeratorId}/members")
+    public ResponseEntity<ApiResponse<List<RefrigeratorMemberResponse>>> findAllMembers(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        List<RefrigeratorMemberResponse> responses = refrigeratorService.findAllMembers(new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
 }
