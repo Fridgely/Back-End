@@ -54,8 +54,11 @@ public class RefrigeratorManager {
     @CacheEvict(value = "myRefrigerators", allEntries = true)
     @Transactional
     public void delete(long refrigeratorId) {
-        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(refrigeratorId, EntityStatus.ACTIVE)
+        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        if (refrigerator.isDeleted()) {
+            return;
+        }
         refrigerator.delete();
     }
 
