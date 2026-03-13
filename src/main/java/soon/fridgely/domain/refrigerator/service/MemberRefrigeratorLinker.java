@@ -16,6 +16,8 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Component
 public class MemberRefrigeratorLinker {
@@ -51,6 +53,13 @@ public class MemberRefrigeratorLinker {
         MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         memberRefrigerator.delete();
+    }
+
+    @CacheEvict(value = "myRefrigerators", allEntries = true)
+    @Transactional
+    public void unlinkAll(long refrigeratorId) {
+        List<MemberRefrigerator> links = memberRefrigeratorRepository.findAllByRefrigeratorId(refrigeratorId, EntityStatus.ACTIVE);
+        links.forEach(MemberRefrigerator::delete);
     }
 
 }
