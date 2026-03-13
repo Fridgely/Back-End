@@ -216,6 +216,7 @@ class FoodServiceUnitTest {
         // then
         then(foodRemover).should()
             .remove(foodId, key.refrigeratorId());
+        then(foodManager).shouldHaveNoInteractions();
     }
 
     @Test
