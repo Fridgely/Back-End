@@ -49,6 +49,9 @@ class FoodServiceUnitTest {
     private FoodManager foodManager;
 
     @Mock
+    private FoodRemover foodRemover;
+
+    @Mock
     private ImageManager imageManager;
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
@@ -211,9 +214,8 @@ class FoodServiceUnitTest {
         foodService.deleteFood(foodId, key);
 
         // then
-        InOrder inOrder = inOrder(foodManager);
-        then(foodManager).should(inOrder)
-            .delete(foodId, key.refrigeratorId());
+        then(foodRemover).should()
+            .remove(foodId, key.refrigeratorId());
     }
 
     @Test

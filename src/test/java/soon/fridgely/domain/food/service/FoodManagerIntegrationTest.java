@@ -34,6 +34,9 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
     private FoodManager foodManager;
 
     @Autowired
+    private FoodRemover foodRemover;
+
+    @Autowired
     private FoodFinder foodFinder;
 
     @Autowired
@@ -92,7 +95,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Food food = createFood();
 
         // when
-        foodManager.delete(food.getId(), refrigerator.getId());
+        foodRemover.remove(food.getId(), refrigerator.getId());
 
         // then
         assertThatThrownBy(() -> foodFinder.find(food.getId(), refrigerator.getId()))
@@ -110,8 +113,8 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         Food food = createFood();
 
         // when
-        foodManager.delete(food.getId(), refrigerator.getId());
-        foodManager.delete(food.getId(), refrigerator.getId());
+        foodRemover.remove(food.getId(), refrigerator.getId());
+        foodRemover.remove(food.getId(), refrigerator.getId());
 
         // then
         Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
@@ -129,7 +132,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        foodManager.delete(food.getId(), refrigerator.getId());
+        foodRemover.remove(food.getId(), refrigerator.getId());
 
         // then
         Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
@@ -148,7 +151,7 @@ class FoodManagerIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        foodManager.delete(food.getId(), refrigerator.getId());
+        foodRemover.remove(food.getId(), refrigerator.getId());
 
         // then
         Food deletedFood = foodRepository.findById(food.getId()).orElseThrow();
