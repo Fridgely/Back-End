@@ -74,6 +74,16 @@ public class RefrigeratorService {
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
+    @Transactional
+    public void leaveRefrigerator(MemberRefrigeratorKey key) {
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId());
+        if (memberRefrigerator.isOwner()) { // TODO: 냉장고 삭제 기능 구현 후 MEMBER가 존재하지 않는다면 냉장고도 삭제하도록 변경
+            throw new CoreException(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
+        }
+        memberRefrigeratorLinker.unlink(key);
+    }
+
+    @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public List<RefrigeratorMemberResponse> findAllMembers(MemberRefrigeratorKey key) {
         return memberRefrigeratorFinder.findAllMembersByRefrigeratorId(key.refrigeratorId())

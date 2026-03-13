@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -81,6 +82,36 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(response.code()).isEqualTo(succeedCode.getCode());
         verify(refrigeratorManager, times(3)).refreshInvitationCode(anyLong(), anyString(), any());
+    }
+
+    @Test
+    void MEMBER가_냉장고를_나가면_연결이_해제된다() {
+        // given
+        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
+        );
+        var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
+
+        // when
+        refrigeratorService.leaveRefrigerator(key);
+
+        // then
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isFalse();
+    }
+
+    @Test
+    void OWNER가_냉장고를_나가려하면_예외가_발생한다() {
+        // given - setUp에서 OWNER로 연결된 member 사용
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+
+        // expected
+        assertThatThrownBy(() -> refrigeratorService.leaveRefrigerator(key))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
     }
 
     @Test
