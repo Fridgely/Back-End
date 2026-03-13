@@ -93,6 +93,24 @@ public interface RefrigeratorControllerDocs {
         @Parameter(hidden = true) Long memberId
     );
 
+    @Operation(summary = "냉장고 나가기", description = "현재 참여 중인 냉장고에서 나갑니다. 소유자는 나갈 수 없습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "냉장고 나가기 성공"),
+        @ApiResponse(responseCode = "400", description = """
+            잘못된 요청:
+            - OWNER_CANNOT_LEAVE_REFRIGERATOR: 냉장고 소유자는 나갈 수 없음
+            """,
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "403", description = "해당 냉장고에 대한 접근 권한 없음",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
+    })
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> leave(
+        @Parameter(hidden = true) Long memberId,
+        @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
+    );
+
     @Operation(summary = "냉장고 팀원 목록 조회", description = "냉장고에 속한 모든 팀원 목록을 조회합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "조회 성공"),
