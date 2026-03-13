@@ -29,7 +29,7 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 @ExtendWith(MockitoExtension.class)
-class FoodManagerUnitTest {
+class FoodRemoverUnitTest {
 
     @Mock
     private FoodRepository foodRepository;
@@ -38,7 +38,7 @@ class FoodManagerUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
-    private FoodManager foodManager;
+    private FoodRemover foodRemover;
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
@@ -65,7 +65,7 @@ class FoodManagerUnitTest {
             .willReturn(Optional.of(mockFood));
 
         // when
-        foodManager.delete(1L, 1L);
+        foodRemover.remove(1L, 1L);
 
         // then
         then(eventPublisher).should(times(1))
@@ -83,7 +83,7 @@ class FoodManagerUnitTest {
             .willReturn(Optional.of(mockFood));
 
         // when
-        foodManager.delete(1L, 1L);
+        foodRemover.remove(1L, 1L);
 
         // then
         then(eventPublisher).should(never())
@@ -101,7 +101,7 @@ class FoodManagerUnitTest {
             .willReturn(Optional.of(mockFood));
 
         // when
-        foodManager.delete(1L, 1L);
+        foodRemover.remove(1L, 1L);
 
         // then
         then(eventPublisher).should(never())

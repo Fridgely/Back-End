@@ -93,6 +93,23 @@ public interface RefrigeratorControllerDocs {
         @Parameter(hidden = true) Long memberId
     );
 
+    @Operation(summary = "냉장고 삭제", description = "냉장고와 모든 연관 데이터(음식, 카테고리, 멤버)를 삭제합니다. 소유자만 삭제할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "삭제 성공"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "403", description = """
+            권한 없음:
+            - AUTHORIZATION_FAILED: 해당 냉장고에 대한 접근 권한 없음
+            - ONLY_OWNER_CAN_DELETE_REFRIGERATOR: 소유자가 아님
+            """,
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
+    })
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> deleteRefrigerator(
+        @Parameter(hidden = true) Long memberId,
+        @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
+    );
+
     @Operation(summary = "냉장고 나가기", description = "현재 참여 중인 냉장고에서 나갑니다. 소유자는 나갈 수 없습니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "냉장고 나가기 성공"),

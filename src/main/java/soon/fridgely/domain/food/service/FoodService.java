@@ -34,6 +34,7 @@ public class FoodService {
     private final FoodFinder foodFinder;
     private final FoodManager foodManager;
     private final FoodModifier foodModifier;
+    private final FoodRemover foodRemover;
     private final ImageManager imageManager;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -100,7 +101,7 @@ public class FoodService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     public void deleteFood(long foodId, MemberRefrigeratorKey key) {
-        foodManager.delete(foodId, key.refrigeratorId());
+        foodRemover.remove(foodId, key.refrigeratorId());
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
