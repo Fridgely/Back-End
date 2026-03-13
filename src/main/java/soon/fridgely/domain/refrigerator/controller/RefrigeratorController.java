@@ -74,6 +74,16 @@ public class RefrigeratorController implements RefrigeratorControllerDocs {
     }
 
     @Override
+    @DeleteMapping("/{refrigeratorId}/members/me")
+    public ResponseEntity<ApiResponse<?>> leave(
+        @LoginMember Long memberId,
+        @PathVariable long refrigeratorId
+    ) {
+        refrigeratorService.leaveRefrigerator(new MemberRefrigeratorKey(memberId, refrigeratorId));
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @Override
     @GetMapping("/{refrigeratorId}/members")
     public ResponseEntity<ApiResponse<List<RefrigeratorMemberResponse>>> findAllMembers(
         @LoginMember Long memberId,

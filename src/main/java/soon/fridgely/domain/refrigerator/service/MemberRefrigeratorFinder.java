@@ -12,6 +12,7 @@ import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -30,6 +31,11 @@ public class MemberRefrigeratorFinder {
     public MemberRefrigerator findByMemberIdAndRefrigeratorId(long memberId, long refrigeratorId) {
         return memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(memberId, refrigeratorId, EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<MemberRefrigerator> findOptionalByMemberIdAndRefrigeratorId(long memberId, long refrigeratorId) {
+        return memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(memberId, refrigeratorId, EntityStatus.ACTIVE);
     }
 
     @Transactional(readOnly = true)
