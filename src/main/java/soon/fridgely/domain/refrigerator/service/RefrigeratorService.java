@@ -20,6 +20,7 @@ import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -73,11 +74,13 @@ public class RefrigeratorService {
         return RefrigeratorResponse.from(memberRefrigerator);
     }
 
-    @ValidateRefrigeratorAccess(key = "#key")
     @Transactional
     public void leaveRefrigerator(MemberRefrigeratorKey key) {
-        MemberRefrigerator memberRefrigerator = memberRefrigeratorFinder.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId());
-        if (memberRefrigerator.isOwner()) { // TODO: 냉장고 삭제 기능 구현 후 MEMBER가 존재하지 않는다면 냉장고도 삭제하도록 변경
+        Optional<MemberRefrigerator> memberRefrigerator = memberRefrigeratorFinder.findOptionalByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId());
+        if (memberRefrigerator.isEmpty()) {
+            return;
+        }
+        if (memberRefrigerator.get().isOwner()) { // TODO: 냉장고 삭제 기능 구현 후 MEMBER가 존재하지 않는다면 냉장고도 삭제하도록 변경
             throw new CoreException(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
         }
         memberRefrigeratorLinker.unlink(key);
