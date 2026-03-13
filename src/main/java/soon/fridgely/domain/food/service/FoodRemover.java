@@ -10,6 +10,7 @@ import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.image.event.ImageDeleteEvent;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class FoodRemover {
 
     private void publishImageDeleteEventIfPresent(Food food) {
         String imageUrl = food.getImageURL();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
+        if (StringUtils.hasText(imageUrl)) {
             eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
         }
     }
