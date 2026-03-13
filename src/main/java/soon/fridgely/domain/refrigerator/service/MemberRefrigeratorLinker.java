@@ -45,4 +45,12 @@ public class MemberRefrigeratorLinker {
         memberRefrigeratorRepository.save(MemberRefrigerator.link(member, refrigerator, role));
     }
 
+    @CacheEvict(value = "myRefrigerators", key = "#key.memberId()")
+    @Transactional
+    public void unlink(MemberRefrigeratorKey key) {
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findByMemberIdAndRefrigeratorId(key.memberId(), key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        memberRefrigerator.delete();
+    }
+
 }

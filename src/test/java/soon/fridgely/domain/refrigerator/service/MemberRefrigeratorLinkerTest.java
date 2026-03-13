@@ -76,6 +76,24 @@ class MemberRefrigeratorLinkerTest extends IntegrationTestSupport {
     }
 
     @Test
+    void 냉장고_연결을_해제하면_DELETED_상태가_된다() {
+        // given
+        MemberRefrigerator saved = memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, member)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
+        );
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+
+        // when
+        memberRefrigeratorLinker.unlink(key);
+
+        // then
+        MemberRefrigerator memberRefrigerator = memberRefrigeratorRepository.findById(saved.getId()).orElseThrow();
+        assertThat(memberRefrigerator.isDeleted()).isTrue();
+    }
+
+    @Test
     void 이미_가입한_냉장고에_다시_가입하려하면_예외가_발생한다() {
         // given
         memberRefrigeratorRepository.save(
