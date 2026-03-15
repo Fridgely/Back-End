@@ -66,7 +66,9 @@ public class Member extends BaseEntity {
     }
 
     public boolean matchesRefreshToken(String rawToken, PasswordEncoder encoder) {
-        return this.refreshToken != null && encoder.matches(sha256Hex(rawToken), this.refreshToken);
+        return this.refreshToken != null
+            && rawToken != null
+            && encoder.matches(sha256Hex(rawToken), this.refreshToken);
     }
 
     public String getRole() {
