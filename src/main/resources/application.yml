@@ -79,7 +79,7 @@ resilience4j:
         limit-refresh-period: 1m
         timeout-duration: 0s
       auth:
-        limit-for-period: 10
+        limit-for-period: 5
         limit-refresh-period: 1m
         timeout-duration: 0s
 
