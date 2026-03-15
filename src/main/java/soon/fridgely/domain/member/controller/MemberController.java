@@ -1,5 +1,6 @@
 package soon.fridgely.domain.member.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,8 @@ import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.security.ratelimit.RateLimitGuard;
+import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -17,12 +20,15 @@ import soon.fridgely.global.support.response.ApiResponse;
 public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
+    private final RateLimitGuard rateLimitGuard;
 
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> register(
-        @RequestBody @Valid MemberRegisterRequest request
+        @RequestBody @Valid MemberRegisterRequest request,
+        HttpServletRequest httpRequest
     ) {
+        rateLimitGuard.check(RateLimitInstance.REGISTER, rateLimitGuard.extractClientIp(httpRequest));
         Long memberId = memberService.register(request.toInfo());
         return ResponseEntity
             .status(HttpStatus.CREATED)
