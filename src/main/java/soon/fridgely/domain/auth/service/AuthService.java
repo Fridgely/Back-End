@@ -46,9 +46,9 @@ public class AuthService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
 
-        if (!refreshToken.equals(member.getRefreshToken())) {
+        if (!member.matchesRefreshToken(refreshToken, passwordEncoder)) {
             log.warn(SlackMarkers.SYSTEM, "[Auth] Refresh Token 불일치 감지. (MemberId={})", memberId);
-            member.updateRefreshToken(null);
+            member.updateRefreshToken(null, passwordEncoder);
             throw new CoreException(ErrorType.AUTHENTICATION_FAILED);
         }
 
@@ -61,14 +61,14 @@ public class AuthService {
     public void logout(long memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
-        member.updateRefreshToken(null);
+        member.updateRefreshToken(null, passwordEncoder);
 
         log.debug("[Auth] 로그아웃 성공. (MemberId={})", memberId);
     }
 
     private TokenResponse issueTokensAndUpdateMember(Member member) {
         TokenResponse tokenResponse = tokenProvider.generateAllToken(member.getId(), member.getRole());
-        member.updateRefreshToken(tokenResponse.refreshToken());
+        member.updateRefreshToken(tokenResponse.refreshToken(), passwordEncoder);
         return tokenResponse;
     }
 
