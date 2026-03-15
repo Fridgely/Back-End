@@ -47,5 +47,8 @@ secretJson.json
 # Environments
 .env
 
+# Nginx Basic Auth
+nginx/.htpasswd
+
 # JAR
 fridgely.jar
