@@ -11,6 +11,8 @@ import soon.fridgely.domain.auth.provider.TokenProvider;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.global.security.dto.response.TokenResponse;
+import soon.fridgely.global.security.ratelimit.RateLimitGuard;
+import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.logging.SlackMarkers;
@@ -23,6 +25,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final RateLimitGuard rateLimitGuard;
 
     @Transactional
     public TokenResponse login(LoginInfo info) {
@@ -43,6 +46,7 @@ public class AuthService {
         validateRefreshToken(refreshToken);
 
         long memberId = Long.parseLong(tokenProvider.getSubjectFromToken(refreshToken));
+        rateLimitGuard.check(RateLimitInstance.AUTH, String.valueOf(memberId));
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CoreException(ErrorType.AUTHENTICATION_FAILED));
 

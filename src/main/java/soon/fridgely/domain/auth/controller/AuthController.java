@@ -1,5 +1,6 @@
 package soon.fridgely.domain.auth.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,8 @@ import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
 import soon.fridgely.domain.auth.service.AuthService;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.security.dto.response.TokenResponse;
+import soon.fridgely.global.security.ratelimit.RateLimitGuard;
+import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -20,12 +23,15 @@ import soon.fridgely.global.support.response.ApiResponse;
 public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
+    private final RateLimitGuard rateLimitGuard;
 
     @Override
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
-        @RequestBody @Valid LoginRequest request
+        @RequestBody @Valid LoginRequest request,
+        HttpServletRequest httpRequest
     ) {
+        rateLimitGuard.check(RateLimitInstance.LOGIN, rateLimitGuard.extractClientIp(httpRequest));
         TokenResponse response = authService.login(request.toLoginInfo());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
