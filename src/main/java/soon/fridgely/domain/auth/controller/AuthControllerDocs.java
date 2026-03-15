@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
@@ -21,10 +22,13 @@ public interface AuthControllerDocs {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (필수 값 누락, 유효성 검증 실패)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
         @ApiResponse(responseCode = "401", description = "인증 실패 (아이디 또는 비밀번호 불일치)",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (IP당 분당 5회 제한)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> login(
-        @Parameter(description = "로그인 요청 정보") LoginRequest request
+        @Parameter(description = "로그인 요청 정보") LoginRequest request,
+        @Parameter(hidden = true) HttpServletRequest httpRequest
     );
 
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 이용하여 새로운 Access Token을 발급받습니다.")
@@ -33,6 +37,8 @@ public interface AuthControllerDocs {
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (필수 값 누락)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
         @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 Refresh Token",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (회원당 분당 5회 제한)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> reissue(

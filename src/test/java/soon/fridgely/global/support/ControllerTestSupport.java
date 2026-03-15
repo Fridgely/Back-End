@@ -21,6 +21,7 @@ import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.domain.refrigerator.controller.RefrigeratorController;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
+import soon.fridgely.global.security.ratelimit.RateLimitGuard;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = {
@@ -44,6 +45,9 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockitoBean
+    protected RateLimitGuard rateLimitGuard;
 
     @MockitoBean
     protected MemberService memberService;
