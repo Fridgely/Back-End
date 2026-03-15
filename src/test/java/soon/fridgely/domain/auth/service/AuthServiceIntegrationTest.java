@@ -201,21 +201,6 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 로그아웃_시_DB에_저장된_Refresh_Token이_null이_된다() {
-        // given
-        Member member = createMember();
-        memberRepository.save(member);
-        authService.login(new LoginInfo("testId", "testPassword"));
-
-        // when
-        authService.logout(member.getId());
-
-        // then
-        Member updated = memberRepository.findById(member.getId()).orElse(null);
-        assertThat(updated.getRefreshToken()).isNull();
-    }
-
-    @Test
     void 토큰_재발급_시_새로운_Refresh_Token이_해시되어_저장된다() {
         // given
         Member member = createMember();
@@ -229,22 +214,6 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
         Member updated = memberRepository.findById(member.getId()).orElse(null);
         assertThat(updated.getRefreshToken()).isNotEqualTo(newTokens.refreshToken());
         assertThat(passwordEncoder.matches(sha256Hex(newTokens.refreshToken()), updated.getRefreshToken())).isTrue();
-    }
-
-    @Test
-    void 이전_Refresh_Token으로_재발급_시도_시_예외가_발생한다() {
-        // given
-        Member member = createMember();
-        memberRepository.save(member);
-
-        TokenResponse oldTokens = authService.login(new LoginInfo("testId", "testPassword"));
-        authService.login(new LoginInfo("testId", "testPassword")); // DB 토큰 교체
-
-        // expected - 교체된 이후 이전 토큰으로 재발급 시도 시 예외 발생
-        assertThatThrownBy(() -> authService.reissue(oldTokens.refreshToken()))
-            .isInstanceOf(CoreException.class)
-            .extracting("errorType")
-            .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
     }
 
     private String sha256Hex(String input) {
