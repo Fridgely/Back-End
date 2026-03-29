@@ -2,19 +2,31 @@ package soon.fridgely.domain.member.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.ImageManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
 class MemberManagerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberManager memberManager;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @MockitoBean
+    private ImageManager imageManager;
 
     @Test
     void 회원을_생성한다() {
@@ -50,6 +62,53 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(member.getPassword())
             .isNotNull()
             .isNotEqualTo("testPassword");
+    }
+
+    @Test
+    void 프로필_이미지가_없는_회원의_이미지를_업데이트한다() {
+        // given
+        Member saved = memberRepository.save(
+            member(fixtureMonkey).setNull("profileImageUrl").sample()
+        );
+        String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-profile.jpg";
+
+        // when
+        memberManager.updateProfileImage(saved.getId(), newImageUrl);
+
+        // then
+        Member updated = memberRepository.findById(saved.getId()).orElseThrow();
+        assertThat(updated.getProfileImageUrl()).isEqualTo(newImageUrl);
+        then(imageManager).should(times(0)).delete(null);
+    }
+
+    @Test
+    void 기존_프로필_이미지가_있는_회원의_이미지를_교체하면_삭제_이벤트가_처리된다() {
+        // given
+        String oldImageUrl = "https://s3.amazonaws.com/bucket/images/old-profile.jpg";
+        String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-profile.jpg";
+        Member saved = memberRepository.save(
+            member(fixtureMonkey).set("profileImageUrl", oldImageUrl).sample()
+        );
+
+        // when
+        memberManager.updateProfileImage(saved.getId(), newImageUrl);
+
+        // then
+        Member updated = memberRepository.findById(saved.getId()).orElseThrow();
+        assertThat(updated.getProfileImageUrl()).isEqualTo(newImageUrl);
+        then(imageManager).should(times(1)).delete(oldImageUrl);
+    }
+
+    @Test
+    void 존재하지_않는_회원의_프로필_이미지를_업데이트하면_예외가_발생한다() {
+        // given
+        long nonExistentMemberId = 999L;
+
+        // expected
+        assertThatThrownBy(() -> memberManager.updateProfileImage(nonExistentMemberId, "https://s3.amazonaws.com/bucket/images/image.jpg"))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.NOT_FOUND_DATA);
     }
 
     @Test
