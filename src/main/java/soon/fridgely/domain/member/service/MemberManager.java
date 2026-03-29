@@ -48,13 +48,12 @@ public class MemberManager {
 
     @Transactional
     public void updateProfileImage(long memberId, String newImageUrl) {
-        Member member = memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)
-            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Member member = findById(memberId);
         String oldImageUrl = member.getProfileImageUrl();
 
         member.updateProfileImage(newImageUrl);
 
-        if (StringUtils.hasText(oldImageUrl)) {
+        if (StringUtils.hasText(oldImageUrl) && !oldImageUrl.equals(newImageUrl)) {
             eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
         }
     }

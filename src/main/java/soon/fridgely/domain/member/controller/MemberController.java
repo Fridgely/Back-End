@@ -58,7 +58,7 @@ public class MemberController implements MemberControllerDocs {
     @Override
     @PatchMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> updateProfileImage(
-        @RequestPart MultipartFile file,
+        @RequestPart("file") MultipartFile file,
         @LoginMember Long memberId
     ) {
         memberService.updateProfileImage(memberId, file);

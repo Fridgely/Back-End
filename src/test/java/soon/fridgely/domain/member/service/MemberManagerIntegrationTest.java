@@ -13,7 +13,9 @@ import soon.fridgely.global.support.image.ImageManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
@@ -78,7 +80,7 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         // then
         Member updated = memberRepository.findById(saved.getId()).orElseThrow();
         assertThat(updated.getProfileImageUrl()).isEqualTo(newImageUrl);
-        then(imageManager).should(times(0)).delete(null);
+        then(imageManager).should(never()).delete(any());
     }
 
     @Test

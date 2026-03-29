@@ -185,7 +185,7 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
 
-        verify(memberService).updateProfileImage(anyLong(), any());
+        verify(memberService).updateProfileImage(eq(1L), any());
     }
 
     @TestLoginMember
