@@ -39,8 +39,10 @@ public class AuthController implements AuthControllerDocs {
     @Override
     @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<TokenResponse>> reissue(
-        @RequestBody @Valid ReissueTokenRequest request
+        @RequestBody @Valid ReissueTokenRequest request,
+        HttpServletRequest httpRequest
     ) {
+        rateLimitGuard.check(RateLimitInstance.AUTH, rateLimitGuard.extractClientIp(httpRequest));
         TokenResponse response = authService.reissue(request.refreshToken());
         return ResponseEntity.ok(ApiResponse.success(response));
     }

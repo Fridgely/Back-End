@@ -38,11 +38,12 @@ public interface AuthControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
         @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 Refresh Token",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
-        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (회원당 분당 5회 제한)",
+        @ApiResponse(responseCode = "429", description = "요청 횟수 초과",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> reissue(
-        @Parameter(description = "토큰 재발급 요청 정보") ReissueTokenRequest request
+        @Parameter(description = "토큰 재발급 요청 정보") ReissueTokenRequest request,
+        @Parameter(hidden = true) HttpServletRequest httpRequest
     );
 
     @Operation(summary = "로그아웃", description = "현재 로그인된 사용자를 로그아웃 처리합니다.")
