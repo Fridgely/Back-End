@@ -22,7 +22,7 @@ public interface MemberControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
         @ApiResponse(responseCode = "409", description = "이미 사용 중인 ID (DUPLICATE_LOGIN_ID)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
-        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (IP당 분당 3회 제한)",
+        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (요율 제한)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Long>> register(

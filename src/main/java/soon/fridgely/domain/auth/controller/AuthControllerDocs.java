@@ -23,7 +23,7 @@ public interface AuthControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
         @ApiResponse(responseCode = "401", description = "인증 실패 (아이디 또는 비밀번호 불일치)",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
-        @ApiResponse(responseCode = "429", description = "요청 횟수 초과 (IP당 분당 5회 제한)",
+        @ApiResponse(responseCode = "429", description = "요청 횟수 초과",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> login(
