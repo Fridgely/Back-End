@@ -128,6 +128,22 @@ class MemberServiceUnitTest {
     }
 
     @Test
+    void 빈_파일로_프로필_이미지_업로드_시_예외가_발생한다() {
+        // given
+        long memberId = 1L;
+        MockMultipartFile emptyFile = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[0]);
+
+        // expected
+        assertThatThrownBy(() -> memberService.updateProfileImage(memberId, emptyFile))
+            .isInstanceOf(soon.fridgely.global.support.exception.CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(soon.fridgely.global.support.exception.ErrorType.INVALID_REQUEST);
+
+        then(imageManager).shouldHaveNoInteractions();
+        then(memberManager).shouldHaveNoInteractions();
+    }
+
+    @Test
     void 프로필_이미지를_업로드한다() {
         // given
         long memberId = 1L;

@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.image.ImageManager;
 import soon.fridgely.global.support.logging.SlackMarkers;
 import soon.fridgely.domain.notification.service.NotificationSettingManager;
@@ -64,6 +66,10 @@ public class MemberService {
     }
 
     public void updateProfileImage(long memberId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new CoreException(ErrorType.INVALID_REQUEST);
+        }
+
         String uploadedUrl = imageManager.upload(file);
 
         try {
