@@ -4,6 +4,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import soon.fridgely.domain.BaseEntity;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 
 import static java.util.Objects.requireNonNull;
 
@@ -37,6 +44,9 @@ public class Member extends BaseEntity {
     @Column(length = 512)
     private String refreshToken;
 
+    @Column(length = 512)
+    private String profileImageUrl;
+
     public static Member register(
         String loginId,
         String password,
@@ -52,12 +62,37 @@ public class Member extends BaseEntity {
             .build();
     }
 
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void updateRefreshToken(String rawToken, PasswordEncoder encoder) {
+        this.refreshToken = (rawToken == null)
+            ? null
+            : encoder.encode(sha256Hex(rawToken));
+    }
+
+    public boolean matchesRefreshToken(String rawToken, PasswordEncoder encoder) {
+        return this.refreshToken != null
+            && rawToken != null
+            && encoder.matches(sha256Hex(rawToken), this.refreshToken);
+    }
+
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public String getRole() {
         return role.name();
+    }
+
+    /**
+     * SHA-256 해시를 생성하여 16진수 문자열로 반환
+     * 리프레시 토큰의 BCrypt 해시를 생성하기 전에 원본 토큰을 SHA-256으로 해싱하여 저장 및 비교에 사용
+     */
+    private static String sha256Hex(String input) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new CoreException(ErrorType.INTERNAL_CRYPTO_ERROR);
+        }
     }
 
 }

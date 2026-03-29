@@ -12,6 +12,11 @@ import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -42,9 +47,8 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
         assertThat(response.refreshToken()).isNotNull();
 
         Member updated = memberRepository.findById(savedMember.getId()).orElse(null);
-        assertThat(updated.getRefreshToken())
-            .isNotNull()
-            .isEqualTo(response.refreshToken());
+        assertThat(updated.getRefreshToken()).isNotNull();
+        assertThat(passwordEncoder.matches(sha256Hex(response.refreshToken()), updated.getRefreshToken())).isTrue();
     }
 
     @Test
@@ -89,9 +93,8 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
         assertThat(newTokens.refreshToken()).isNotEqualTo(tokens.refreshToken());
 
         Member updatedMember = memberRepository.findById(member.getId()).orElse(null);
-        assertThat(updatedMember.getRefreshToken())
-            .isNotNull()
-            .isEqualTo(newTokens.refreshToken());
+        assertThat(updatedMember.getRefreshToken()).isNotNull();
+        assertThat(passwordEncoder.matches(sha256Hex(newTokens.refreshToken()), updatedMember.getRefreshToken())).isTrue();
     }
 
     @Test
@@ -180,6 +183,46 @@ class AuthServiceIntegrationTest extends IntegrationTestSupport {
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.AUTHENTICATION_FAILED);
+    }
+
+    @Test
+    void 로그인_시_DB에_저장된_Refresh_Token은_평문이_아닌_해시값이다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+
+        // when
+        TokenResponse response = authService.login(new LoginInfo("testId", "testPassword"));
+
+        // then
+        Member updated = memberRepository.findById(member.getId()).orElse(null);
+        assertThat(updated.getRefreshToken()).isNotEqualTo(response.refreshToken());
+        assertThat(passwordEncoder.matches(sha256Hex(response.refreshToken()), updated.getRefreshToken())).isTrue();
+    }
+
+    @Test
+    void 토큰_재발급_시_새로운_Refresh_Token이_해시되어_저장된다() {
+        // given
+        Member member = createMember();
+        memberRepository.save(member);
+        TokenResponse firstTokens = authService.login(new LoginInfo("testId", "testPassword"));
+
+        // when
+        TokenResponse newTokens = authService.reissue(firstTokens.refreshToken());
+
+        // then
+        Member updated = memberRepository.findById(member.getId()).orElse(null);
+        assertThat(updated.getRefreshToken()).isNotEqualTo(newTokens.refreshToken());
+        assertThat(passwordEncoder.matches(sha256Hex(newTokens.refreshToken()), updated.getRefreshToken())).isTrue();
+    }
+
+    private String sha256Hex(String input) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private Member createMember() {

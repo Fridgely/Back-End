@@ -19,7 +19,7 @@ import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 
 @Tag(name = "식재료 API", description = "냉장고 내 식재료 관리 API")
 public interface FoodControllerDocs {
@@ -152,7 +152,7 @@ public interface FoodControllerDocs {
         @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
-    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Slice<FoodResponse>>> findAllFoods(
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Slice<FoodListResponse>>> findAllFoods(
         @Parameter(hidden = true) Long memberId,
         @ModelAttribute @Parameter(description = "커서 기반 페이징 정보") FoodCursorPageRequest cursorRequest,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId

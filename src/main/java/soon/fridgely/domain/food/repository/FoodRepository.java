@@ -10,6 +10,7 @@ import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.FoodStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface FoodRepository extends JpaRepository<Food, Long>, FoodRepositoryCustom {
@@ -24,6 +25,8 @@ public interface FoodRepository extends JpaRepository<Food, Long>, FoodRepositor
         @Param("target") Category targetCategory,
         @Param("fallback") Category fallbackCategory
     );
+
+    List<Food> findAllByRefrigeratorIdAndStatus(long refrigeratorId, EntityStatus status);
 
     Optional<Food> findByIdAndRefrigeratorIdAndStatus(long foodId, long refrigeratorId, EntityStatus status);
 

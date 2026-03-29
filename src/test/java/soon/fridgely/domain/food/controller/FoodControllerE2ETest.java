@@ -16,7 +16,7 @@ import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -141,7 +141,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         var httpEntity = createAuthEntity(member);
 
         // when
-        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodListResponse>>>() {
         };
 
         var response = testRestTemplate.exchange(
@@ -172,7 +172,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         var httpEntity = createAuthEntity(member);
 
         // when
-        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodListResponse>>>() {
         };
 
         var response = testRestTemplate.exchange(
@@ -187,10 +187,10 @@ class FoodControllerE2ETest extends E2ETestSupport {
             .extracting("statusCode", "body.result")
             .containsExactly(HttpStatus.OK, ResultType.SUCCESS);
 
-        List<FoodResponse> content = response.getBody().data().content();
+        List<FoodListResponse> content = response.getBody().data().content();
         assertThat(content).hasSize(2);
         assertThat(content)
-            .extracting(FoodResponse::name)
+            .extracting(FoodListResponse::name)
             .containsExactlyInAnyOrder("우유", "치즈");
     }
 
@@ -313,7 +313,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         var httpEntity = createAuthEntity(member);
 
         // when
-        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodListResponse>>>() {
         };
         var response = testRestTemplate.exchange(
             BASE_URL + "/" + refrigerator.getId() + "/foods?size=10&sortBy=EXPIRATION",
@@ -345,7 +345,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         var httpEntity = createAuthEntity(member);
 
         // when
-        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodResponse>>>() {
+        var responseType = new ParameterizedTypeReference<ApiResponse<TestPage<FoodListResponse>>>() {
         };
         var response = testRestTemplate.exchange(
             BASE_URL + "/" + refrigerator.getId() + "/foods?size=10&sortBy=NAME",

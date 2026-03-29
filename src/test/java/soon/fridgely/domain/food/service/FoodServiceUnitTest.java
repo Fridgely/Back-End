@@ -18,7 +18,7 @@ import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -47,6 +47,9 @@ class FoodServiceUnitTest {
 
     @Mock
     private FoodManager foodManager;
+
+    @Mock
+    private FoodRemover foodRemover;
 
     @Mock
     private ImageManager imageManager;
@@ -184,7 +187,7 @@ class FoodServiceUnitTest {
             .willReturn(foodSlice);
 
         // when
-        Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
+        Slice<FoodListResponse> responseSlice = foodService.findAllFoods(key, request);
 
         // then
         InOrder inOrder = inOrder(foodFinder);
@@ -211,9 +214,9 @@ class FoodServiceUnitTest {
         foodService.deleteFood(foodId, key);
 
         // then
-        InOrder inOrder = inOrder(foodManager);
-        then(foodManager).should(inOrder)
-            .delete(foodId, key.refrigeratorId());
+        then(foodRemover).should()
+            .remove(foodId, key.refrigeratorId());
+        then(foodManager).shouldHaveNoInteractions();
     }
 
     @Test
@@ -272,7 +275,7 @@ class FoodServiceUnitTest {
             .willReturn(foodSlice);
 
         // when
-        Slice<FoodResponse> responseSlice = foodService.findAllFoods(key, request);
+        Slice<FoodListResponse> responseSlice = foodService.findAllFoods(key, request);
 
         // then
         InOrder inOrder = inOrder(foodFinder);

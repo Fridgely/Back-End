@@ -51,4 +51,15 @@ public class RefrigeratorManager {
             .orElseThrow(() -> new CoreException(ErrorType.INVALID_INVITATION_CODE));
     }
 
+    @CacheEvict(value = "myRefrigerators", allEntries = true)
+    @Transactional
+    public void delete(long refrigeratorId) {
+        Refrigerator refrigerator = refrigeratorRepository.findById(refrigeratorId)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        if (refrigerator.isDeleted()) {
+            return;
+        }
+        refrigerator.delete();
+    }
+
 }

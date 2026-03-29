@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -19,6 +20,7 @@ import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -81,6 +83,55 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(response.code()).isEqualTo(succeedCode.getCode());
         verify(refrigeratorManager, times(3)).refreshInvitationCode(anyLong(), anyString(), any());
+    }
+
+    @Test
+    void MEMBER가_냉장고를_나가면_연결이_해제된다() {
+        // given
+        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
+        );
+        var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
+
+        // when
+        refrigeratorService.leaveRefrigerator(key);
+
+        // then
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isFalse();
+    }
+
+    @Test
+    void 이미_나간_냉장고에_다시_나가기를_시도해도_예외가_발생하지_않는다() {
+        // given
+        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        memberRefrigeratorRepository.save(
+            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+                .set("role", RefrigeratorRole.MEMBER)
+                .sample()
+        );
+        var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
+        refrigeratorService.leaveRefrigerator(key);
+
+        // expected
+        assertThatNoException().isThrownBy(() -> refrigeratorService.leaveRefrigerator(key));
+    }
+
+    @Test
+    void OWNER가_냉장고를_나가려하면_예외가_발생하고_링크는_ACTIVE_상태를_유지한다() {
+        // given - setUp에서 OWNER로 연결된 member 사용
+        var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+
+        // when
+        assertThatThrownBy(() -> refrigeratorService.leaveRefrigerator(key))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
+
+        // then
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigerator.getId(), member.getId(), EntityStatus.ACTIVE)).isTrue();
     }
 
     @Test

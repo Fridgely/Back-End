@@ -11,6 +11,7 @@ import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.entity.Food;
@@ -34,6 +35,7 @@ public class FoodService {
     private final FoodFinder foodFinder;
     private final FoodManager foodManager;
     private final FoodModifier foodModifier;
+    private final FoodRemover foodRemover;
     private final ImageManager imageManager;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -72,7 +74,7 @@ public class FoodService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
-    public Slice<FoodResponse> findAllFoods(MemberRefrigeratorKey key, FoodCursorPageRequest request) {
+    public Slice<FoodListResponse> findAllFoods(MemberRefrigeratorKey key, FoodCursorPageRequest request) {
         LocalDate now = LocalDate.now();
         return foodFinder.findAll(
                 key.refrigeratorId(),
@@ -81,7 +83,7 @@ public class FoodService {
                 request.getSortBy(),
                 request.storageType()
             )
-            .map(food -> FoodResponse.of(food, now));
+            .map(food -> FoodListResponse.of(food, now));
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +102,7 @@ public class FoodService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     public void deleteFood(long foodId, MemberRefrigeratorKey key) {
-        foodManager.delete(foodId, key.refrigeratorId());
+        foodRemover.remove(foodId, key.refrigeratorId());
     }
 
     @ValidateRefrigeratorAccess(key = "#key")

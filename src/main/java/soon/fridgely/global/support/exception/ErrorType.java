@@ -11,6 +11,7 @@ public enum ErrorType {
 
     // 공통 오류
     DEFAULT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", LogLevel.ERROR),
+    INTERNAL_CRYPTO_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 암호화 처리 중 오류가 발생했습니다.", LogLevel.ERROR),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "요청이 올바르지 않습니다.", LogLevel.INFO),
     NOT_FOUND_DATA(HttpStatus.BAD_REQUEST, "해당 데이터를 찾을 수 없습니다.", LogLevel.ERROR),
     INVALID_TYPE_VALUE(HttpStatus.BAD_REQUEST, "요청 값의 타입이 올바르지 않습니다.", LogLevel.INFO),
@@ -18,6 +19,7 @@ public enum ErrorType {
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다.", LogLevel.INFO),
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다.", LogLevel.WARN),
     AUTHORIZATION_FAILED(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", LogLevel.WARN),
     CONCURRENT_UPDATE_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "동시 요청이 많아 처리에 실패했습니다. 잠시 후 다시 시도해주세요.", LogLevel.WARN),
 
     // 스토리지 오류
@@ -34,6 +36,8 @@ public enum ErrorType {
     // 냉장고 오류
     INVALID_REFRIGERATOR_ACCESS_KEY(HttpStatus.BAD_REQUEST, "유효하지 않은 냉장고 접근 키입니다.", LogLevel.INFO),
     ALREADY_JOINED_REFRIGERATOR(HttpStatus.BAD_REQUEST, "이미 가입된 냉장고입니다.", LogLevel.INFO),
+    OWNER_CANNOT_LEAVE_REFRIGERATOR(HttpStatus.BAD_REQUEST, "냉장고 소유자는 냉장고를 나갈 수 없습니다.", LogLevel.INFO),
+    ONLY_OWNER_CAN_DELETE_REFRIGERATOR(HttpStatus.FORBIDDEN, "냉장고 소유자만 냉장고를 삭제할 수 있습니다.", LogLevel.WARN),
 
     // 초대 코드 오류
     INVALID_INVITATION_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 초대 코드입니다.", LogLevel.INFO),
