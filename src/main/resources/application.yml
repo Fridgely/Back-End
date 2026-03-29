@@ -83,6 +83,11 @@ resilience4j:
         limit-refresh-period: 1m
         timeout-duration: 0s
 
+rate-limit:
+  cache:
+    max-size: 10000
+    ttl: PT2M
+
 slack:
   webhook-url: ${SLACK_WEBHOOK_URL:}
   channel: "#project"
