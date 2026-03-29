@@ -140,4 +140,8 @@ public class Food extends BaseEntity {
         return this.quantity != null && this.quantity.isZero();
     }
 
+    public long refrigeratorId() {
+        return refrigerator.getId();
+    }
+
 }

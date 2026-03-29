@@ -13,7 +13,7 @@ import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -76,12 +76,12 @@ public class FoodController implements FoodControllerDocs {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<Slice<FoodResponse>>> findAllFoods(
+    public ResponseEntity<ApiResponse<Slice<FoodListResponse>>> findAllFoods(
         @LoginMember Long memberId,
         @ModelAttribute @Valid FoodCursorPageRequest cursorRequest,
         @PathVariable long refrigeratorId
     ) {
-        Slice<FoodResponse> responses = foodService.findAllFoods(new MemberRefrigeratorKey(memberId, refrigeratorId), cursorRequest);
+        Slice<FoodListResponse> responses = foodService.findAllFoods(new MemberRefrigeratorKey(memberId, refrigeratorId), cursorRequest);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
