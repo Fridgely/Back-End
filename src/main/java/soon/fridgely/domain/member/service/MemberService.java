@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
+import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.global.support.image.ImageManager;
 import soon.fridgely.global.support.logging.SlackMarkers;
@@ -49,6 +50,12 @@ public class MemberService {
         eventPublisher.publishEvent(new RefrigeratorCreatedEvent(refrigerator.getId(), member.getId()));
 
         return member.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public MemberProfileResponse getMyProfile(long memberId) {
+        Member member = memberManager.findById(memberId);
+        return MemberProfileResponse.of(member);
     }
 
     public void syncToken(long memberId, String token) {

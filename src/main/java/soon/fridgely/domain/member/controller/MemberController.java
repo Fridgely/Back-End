@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
+import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.security.ratelimit.RateLimitGuard;
@@ -35,6 +36,13 @@ public class MemberController implements MemberControllerDocs {
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(memberId));
+    }
+
+    @Override
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<MemberProfileResponse>> getMyProfile(@LoginMember Long memberId) {
+        MemberProfileResponse response = memberService.getMyProfile(memberId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Override

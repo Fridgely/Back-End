@@ -141,6 +141,31 @@ class MemberControllerTest extends ControllerTestSupport {
 
     @TestLoginMember
     @Test
+    void 마이페이지_프로필을_조회한다() throws Exception {
+        // given
+        var response = fixtureMonkey.giveMeBuilder(soon.fridgely.domain.member.dto.response.MemberProfileResponse.class)
+            .set("loginId", "testId")
+            .set("nickname", "testNickname")
+            .set("profileImageUrl", "https://s3.amazonaws.com/bucket/images/profile.jpg")
+            .sample();
+
+        given(memberService.getMyProfile(1L)).willReturn(response);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/me")
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.loginId").value("testId"))
+            .andExpect(jsonPath("$.data.nickname").value("testNickname"))
+            .andExpect(jsonPath("$.data.profileImageUrl").value("https://s3.amazonaws.com/bucket/images/profile.jpg"));
+    }
+
+    @TestLoginMember
+    @Test
     void 프로필_이미지를_업로드한다() throws Exception {
         // given
         MockMultipartFile file = new MockMultipartFile(

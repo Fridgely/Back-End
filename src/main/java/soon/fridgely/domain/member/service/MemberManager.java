@@ -40,6 +40,12 @@ public class MemberManager {
         }
     }
 
+    @Transactional(readOnly = true)
+    public Member findById(long memberId) {
+        return memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+    }
+
     @Transactional
     public void updateProfileImage(long memberId, String newImageUrl) {
         Member member = memberRepository.findByIdAndStatus(memberId, EntityStatus.ACTIVE)

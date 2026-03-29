@@ -87,6 +87,47 @@ class MemberServiceUnitTest {
     }
 
     @Test
+    void 마이페이지_프로필을_조회한다() {
+        // given
+        long memberId = 1L;
+        Member mockMember = fixtureMonkey.giveMeBuilder(Member.class)
+            .set("id", memberId)
+            .set("loginId", "testId")
+            .set("nickname", "testNickname")
+            .set("profileImageUrl", "https://s3.amazonaws.com/bucket/images/profile.jpg")
+            .sample();
+
+        given(memberManager.findById(memberId)).willReturn(mockMember);
+
+        // when
+        var response = memberService.getMyProfile(memberId);
+
+        // then
+        then(memberManager).should().findById(memberId);
+        assertThat(response.loginId()).isEqualTo("testId");
+        assertThat(response.nickname()).isEqualTo("testNickname");
+        assertThat(response.profileImageUrl()).isEqualTo("https://s3.amazonaws.com/bucket/images/profile.jpg");
+    }
+
+    @Test
+    void 프로필_이미지가_없는_경우_profileImageUrl이_null이다() {
+        // given
+        long memberId = 1L;
+        Member mockMember = fixtureMonkey.giveMeBuilder(Member.class)
+            .set("id", memberId)
+            .setNull("profileImageUrl")
+            .sample();
+
+        given(memberManager.findById(memberId)).willReturn(mockMember);
+
+        // when
+        var response = memberService.getMyProfile(memberId);
+
+        // then
+        assertThat(response.profileImageUrl()).isNull();
+    }
+
+    @Test
     void 프로필_이미지를_업로드한다() {
         // given
         long memberId = 1L;
