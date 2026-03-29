@@ -19,6 +19,7 @@ public enum ErrorType {
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, "필수 요청 파라미터가 누락되었습니다.", LogLevel.INFO),
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다.", LogLevel.WARN),
     AUTHORIZATION_FAILED(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", LogLevel.WARN),
     CONCURRENT_UPDATE_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "동시 요청이 많아 처리에 실패했습니다. 잠시 후 다시 시도해주세요.", LogLevel.WARN),
 
     // 스토리지 오류

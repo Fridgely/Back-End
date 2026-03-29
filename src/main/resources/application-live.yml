@@ -1,4 +1,7 @@
 # 운영 배포 환경
+server:
+  forward-headers-strategy: native
+
 spring:
 
   datasource:

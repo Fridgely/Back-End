@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
+import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.ControllerTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
@@ -15,6 +16,8 @@ import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -58,6 +61,25 @@ class AuthControllerTest extends ControllerTestSupport {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.result").value("ERROR"))
             .andExpect(jsonPath("$.error.data.%s", field).value(message));
+    }
+
+    @Test
+    void 로그인_요청이_제한_횟수를_초과하면_예외가_발생한다() throws Exception {
+        // given
+        var request = new LoginRequest("testId", "testPassword");
+        willThrow(new CoreException(ErrorType.TOO_MANY_REQUESTS))
+            .given(rateLimitGuard).check(eq(RateLimitInstance.LOGIN), any());
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/login")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isTooManyRequests())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.message").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
     }
 
     @Test
@@ -114,6 +136,25 @@ class AuthControllerTest extends ControllerTestSupport {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.result").value("ERROR"))
             .andExpect(jsonPath("$.error.data.%s", field).value(message));
+    }
+
+    @Test
+    void 토큰_재발급_요청이_제한_횟수를_초과하면_429_예외가_발생한다() throws Exception {
+        // given
+        var request = new ReissueTokenRequest("valid-refresh-token");
+        given(authService.reissue(request.refreshToken()))
+            .willThrow(new CoreException(ErrorType.TOO_MANY_REQUESTS));
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/reissue")
+                    .content(objectMapper.writeValueAsString(request))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isTooManyRequests())
+            .andExpect(jsonPath("$.result").value("ERROR"))
+            .andExpect(jsonPath("$.error.message").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
     }
 
     @Test
