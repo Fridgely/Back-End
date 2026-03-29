@@ -14,12 +14,10 @@ import soon.fridgely.global.support.exception.ErrorType;
 public class RateLimitGuard {
 
     private final RateLimiterRegistry rateLimiterRegistry;
-    private final RateLimitProperties rateLimitProperties;
     private final Cache<String, RateLimiter> rateLimiterCache;
 
     public RateLimitGuard(RateLimiterRegistry rateLimiterRegistry, RateLimitProperties rateLimitProperties) {
         this.rateLimiterRegistry = rateLimiterRegistry;
-        this.rateLimitProperties = rateLimitProperties;
         this.rateLimiterCache = Caffeine.newBuilder()
             .maximumSize(rateLimitProperties.maxSize())
             .expireAfterWrite(rateLimitProperties.ttl())
