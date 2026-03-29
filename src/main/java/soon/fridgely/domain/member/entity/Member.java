@@ -44,6 +44,9 @@ public class Member extends BaseEntity {
     @Column(length = 512)
     private String refreshToken;
 
+    @Column(length = 512)
+    private String profileImageUrl;
+
     public static Member register(
         String loginId,
         String password,
@@ -69,6 +72,10 @@ public class Member extends BaseEntity {
         return this.refreshToken != null
             && rawToken != null
             && encoder.matches(sha256Hex(rawToken), this.refreshToken);
+    }
+
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public String getRole() {

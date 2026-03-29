@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
@@ -17,13 +19,11 @@ import soon.fridgely.global.support.exception.ErrorType;
 
 import java.util.stream.Stream;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -137,6 +137,79 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("SUCCESS"));
 
         verify(memberService).syncToken(1L, request.token());
+    }
+
+    @TestLoginMember
+    @Test
+    void 마이페이지_프로필을_조회한다() throws Exception {
+        // given
+        var response = fixtureMonkey.giveMeBuilder(soon.fridgely.domain.member.dto.response.MemberProfileResponse.class)
+            .set("loginId", "testId")
+            .set("nickname", "testNickname")
+            .set("profileImageUrl", "https://s3.amazonaws.com/bucket/images/profile.jpg")
+            .sample();
+
+        given(memberService.getMyProfile(1L)).willReturn(response);
+
+        // expected
+        mockMvc.perform(
+                get(BASE_URL + "/me")
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"))
+            .andExpect(jsonPath("$.data.loginId").value("testId"))
+            .andExpect(jsonPath("$.data.nickname").value("testNickname"))
+            .andExpect(jsonPath("$.data.profileImageUrl").value("https://s3.amazonaws.com/bucket/images/profile.jpg"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 프로필_이미지를_업로드한다() throws Exception {
+        // given
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "profile.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            "image-bytes".getBytes()
+        );
+
+        // expected
+        mockMvc.perform(
+                multipart(HttpMethod.PATCH, BASE_URL + "/me/profile-image")
+                    .file(file)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        verify(memberService).updateProfileImage(eq(1L), any());
+    }
+
+    @TestLoginMember
+    @Test
+    void 파일_업로드_실패_시_예외가_발생한다() throws Exception {
+        // given
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "profile.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            "image-bytes".getBytes()
+        );
+        willThrow(new CoreException(ErrorType.STORAGE_UPLOAD_FAILED))
+            .given(memberService).updateProfileImage(anyLong(), any());
+
+        // expected
+        mockMvc.perform(
+                multipart(HttpMethod.PATCH, BASE_URL + "/me/profile-image")
+                    .file(file)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+            )
+            .andDo(print())
+            .andExpect(status().isInternalServerError())
+            .andExpect(jsonPath("$.result").value("ERROR"));
     }
 
     @TestLoginMember

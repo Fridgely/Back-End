@@ -9,8 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
+import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
 
 @Tag(name = "회원 API", description = "회원 가입 및 회원 정보 관리 API")
 public interface MemberControllerDocs {
@@ -30,6 +32,16 @@ public interface MemberControllerDocs {
         @Parameter(hidden = true) HttpServletRequest httpRequest
     );
 
+    @Operation(summary = "마이페이지 조회", description = "현재 로그인한 회원의 프로필 정보를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
+    })
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<MemberProfileResponse>> getMyProfile(
+        @Parameter(hidden = true) Long memberId
+    );
+
     @Operation(summary = "디바이스 토큰 동기화", description = "FCM 푸시 알림을 위한 디바이스 토큰을 동기화합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "토큰 동기화 성공"),
@@ -43,5 +55,19 @@ public interface MemberControllerDocs {
         @Parameter(hidden = true) Long memberId
     );
 
-}
+    @Operation(summary = "프로필 사진 업로드/수정", description = "회원의 프로필 사진을 업로드하거나 기존 사진을 교체합니다. 최대 10MB, jpg/jpeg/png/gif/webp 형식 지원.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "프로필 사진 업데이트 성공"),
+        @ApiResponse(responseCode = "400", description = "파일 크기 초과 또는 허용되지 않은 파일 형식 (FILE_SIZE_EXCEEDED, INVALID_FILE_TYPE)",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class))),
+        @ApiResponse(responseCode = "500", description = "파일 업로드 실패 (STORAGE_UPLOAD_FAILED)",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
+    })
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> updateProfileImage(
+        @Parameter(description = "프로필 사진 파일 (최대 10MB, jpg/jpeg/png/gif/webp)") MultipartFile file,
+        @Parameter(hidden = true) Long memberId
+    );
 
+}
