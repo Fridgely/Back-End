@@ -17,7 +17,7 @@ import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
+import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.entity.FoodSortType;
 import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
@@ -195,10 +195,10 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         int size = 10;
-        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
+        var foodResponse = fixtureMonkey.giveMeOne(FoodListResponse.class);
 
-        List<FoodResponse> content = List.of(foodResponse);
-        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
+        List<FoodListResponse> content = List.of(foodResponse);
+        Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
         given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
             .willReturn(mockSlice);
@@ -214,6 +214,7 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data.last").value(false))
             .andExpect(jsonPath("$.data.numberOfElements").value(1))
+            .andExpect(jsonPath("$.data.content[0].refrigeratorId").value(foodResponse.refrigeratorId()))
             .andExpect(jsonPath("$.data.content[0].id").value(foodResponse.id()))
             .andExpect(jsonPath("$.data.content[0].name").value(foodResponse.name()))
             .andExpect(jsonPath("$.data.content[0].imageURL").value(foodResponse.imageURL()));
@@ -225,10 +226,10 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         int size = 10;
-        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
+        var foodResponse = fixtureMonkey.giveMeOne(FoodListResponse.class);
 
-        List<FoodResponse> content = List.of(foodResponse);
-        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
+        List<FoodListResponse> content = List.of(foodResponse);
+        Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
         ArgumentCaptor<FoodCursorPageRequest> requestCaptor = ArgumentCaptor.forClass(FoodCursorPageRequest.class);
         given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), requestCaptor.capture()))
@@ -257,10 +258,10 @@ class FoodControllerTest extends ControllerTestSupport {
         // given
         long refrigeratorId = 1L;
         int size = 10;
-        var foodResponse = fixtureMonkey.giveMeOne(FoodResponse.class);
+        var foodResponse = fixtureMonkey.giveMeOne(FoodListResponse.class);
 
-        List<FoodResponse> content = List.of(foodResponse);
-        Slice<FoodResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), false);
+        List<FoodListResponse> content = List.of(foodResponse);
+        Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), false);
 
         given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
             .willReturn(mockSlice);
