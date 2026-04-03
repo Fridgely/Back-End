@@ -11,6 +11,9 @@ public record FoodResponse(
     @Schema(description = "식재료 ID", example = "1")
     long id,
 
+    @Schema(description = "냉장고 ID", example = "1")
+    long refrigeratorId,
+
     @Schema(description = "식재료 이름", example = "우유")
     String name,
 
@@ -31,6 +34,7 @@ public record FoodResponse(
     public static FoodResponse of(Food food, LocalDate now) {
         return new FoodResponse(
             food.getId(),
+            food.refrigeratorId(),
             food.getName(),
             food.getCategory().getName(),
             food.getImageURL(),
