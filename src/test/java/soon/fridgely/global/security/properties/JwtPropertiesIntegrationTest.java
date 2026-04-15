@@ -20,7 +20,7 @@ class JwtPropertiesIntegrationTest extends IntegrationTestSupport {
         Duration expectedRefreshTokenExpiration = Duration.ofDays(7);
 
         // expected
-        assertThat(jwtProperties.secretKey()).isNotNull();
+        assertThat(jwtProperties.secretKey()).isNotBlank();
         assertThat(jwtProperties.accessTokenExpirationTime()).isEqualTo(expectedAccessTokenExpiration);
         assertThat(jwtProperties.refreshTokenExpirationTime()).isEqualTo(expectedRefreshTokenExpiration);
     }
