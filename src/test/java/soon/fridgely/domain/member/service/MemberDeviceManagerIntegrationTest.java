@@ -9,10 +9,13 @@ import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static soon.fridgely.global.support.fixture.MemberDeviceFixture.memberDevice;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
@@ -73,5 +76,17 @@ class MemberDeviceManagerIntegrationTest extends IntegrationTestSupport {
         assertThat(updatedDevice.getLastUsedAt()).isAfter(originalLastUsedAt);
     }
 
+    @Test
+    void 존재하지_않는_회원으로_새_디바이스_등록_시_예외가_발생한다() {
+        // given
+        long nonExistentMemberId = Long.MAX_VALUE;
+        String token = "newToken";
+
+        // expected
+        assertThatThrownBy(() -> memberDeviceManager.syncToken(nonExistentMemberId, token, LocalDateTime.now()))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.NOT_FOUND_DATA);
+    }
 
 }

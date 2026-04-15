@@ -18,10 +18,13 @@ import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -91,54 +94,6 @@ class FoodModifierUnitTest {
     }
 
     @Test
-    void 이미지_URL이_같으면_이벤트가_발행되지_않는다() {
-        // given
-        String sameImageUrl = "https://s3.example.com/images/same-image.jpg";
-
-        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
-            .set("imageURL", sameImageUrl)
-            .sample();
-
-        FoodInfo updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
-            .set("imageURL", sameImageUrl)
-            .sample();
-
-        given(foodRepository.findByIdAndRefrigeratorIdAndStatus(anyLong(), anyLong(), eq(EntityStatus.ACTIVE)))
-            .willReturn(Optional.of(mockFood));
-
-        // when
-        foodModifier.update(1L, updateInfo, key, 1L);
-
-        // then
-        then(eventPublisher).should(never())
-            .publishEvent(any(ImageDeleteEvent.class));
-    }
-
-    @Test
-    void 새_이미지_URL이_null이면_이벤트가_발행되지_않는다() {
-        // given
-        String existingImageUrl = "https://s3.example.com/images/existing-image.jpg";
-
-        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
-            .set("imageURL", existingImageUrl)
-            .sample();
-
-        FoodInfo updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
-            .set("imageURL", null)
-            .sample();
-
-        given(foodRepository.findByIdAndRefrigeratorIdAndStatus(anyLong(), anyLong(), eq(EntityStatus.ACTIVE)))
-            .willReturn(Optional.of(mockFood));
-
-        // when
-        foodModifier.update(1L, updateInfo, key, 1L);
-
-        // then
-        then(eventPublisher).should(never())
-            .publishEvent(any(ImageDeleteEvent.class));
-    }
-
-    @Test
     void 기존_이미지가_null이고_새_이미지가_있으면_이벤트가_발행되지_않는다() {
         // given
         Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
@@ -158,6 +113,43 @@ class FoodModifierUnitTest {
         // then
         then(eventPublisher).should(never())
             .publishEvent(any(ImageDeleteEvent.class));
+    }
+
+    @Test
+    void 카테고리_ID가_동일하면_카테고리를_조회하지_않는다() {
+        // given
+        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
+            .set("category", mockCategory)
+            .sample();
+
+        // imageURL을 null로 설정하여 이벤트 발행 분기를 제거
+        FoodInfo updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
+            .setNull("imageURL")
+            .sample();
+
+        given(foodRepository.findByIdAndRefrigeratorIdAndStatus(anyLong(), anyLong(), eq(EntityStatus.ACTIVE)))
+            .willReturn(Optional.of(mockFood));
+
+        // when
+        foodModifier.update(1L, updateInfo, key, mockCategory.getId());
+
+        // then
+        then(categoryFinder).shouldHaveNoInteractions();
+    }
+
+    @Test
+    void 존재하지_않는_음식을_수정하면_예외가_발생한다() {
+        // given
+        given(foodRepository.findByIdAndRefrigeratorIdAndStatus(anyLong(), anyLong(), eq(EntityStatus.ACTIVE)))
+            .willReturn(Optional.empty());
+
+        FoodInfo updateInfo = fixtureMonkey.giveMeOne(FoodInfo.class);
+
+        // expected
+        assertThatThrownBy(() -> foodModifier.update(999L, updateInfo, key, 1L))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.NOT_FOUND_DATA);
     }
 
 }

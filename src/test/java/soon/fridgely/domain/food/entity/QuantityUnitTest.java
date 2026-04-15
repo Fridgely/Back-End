@@ -130,4 +130,42 @@ public class QuantityUnitTest {
         assertThat(quantity.isZero()).isEqualTo(expectedZero);
     }
 
+    @Test
+    void unit이_null이면_예외가_발생한다() {
+        // expected
+        assertThatThrownBy(() -> Quantity.register(BigDecimal.ONE, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("unit은 필수입니다.");
+    }
+
+    @Test
+    void amount가_음수이면_예외가_발생한다() {
+        // expected
+        assertThatThrownBy(() -> Quantity.register(new BigDecimal("-0.01"), Unit.KG))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("수량은 음수일 수 없습니다.");
+    }
+
+    @Test
+    void 더할_수량이_null이면_예외가_발생한다() {
+        // given
+        Quantity quantity = Quantity.register(BigDecimal.ONE, Unit.KG);
+
+        // expected
+        assertThatThrownBy(() -> quantity.plus(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("더할 수량은 필수입니다.");
+    }
+
+    @Test
+    void 차감할_수량이_null이면_예외가_발생한다() {
+        // given
+        Quantity quantity = Quantity.register(BigDecimal.ONE, Unit.KG);
+
+        // expected
+        assertThatThrownBy(() -> quantity.minus(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("차감할 수량은 필수입니다.");
+    }
+
 }
