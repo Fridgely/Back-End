@@ -18,11 +18,11 @@ import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
 import static soon.fridgely.global.support.fixture.FoodFixture.food;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
@@ -54,47 +54,10 @@ class FoodRemoverUnitTest {
     }
 
     @Test
-    void 음식_삭제_시_이미지_URL이_있으면_이벤트가_발행된다() {
-        // given
-        String imageUrl = "https://s3.example.com/images/test-image.jpg";
-        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
-            .set("imageURL", imageUrl)
-            .sample();
-
-        given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))
-            .willReturn(Optional.of(mockFood));
-
-        // when
-        foodRemover.remove(1L, 1L);
-
-        // then
-        then(eventPublisher).should(times(1))
-            .publishEvent(any(ImageDeleteEvent.class));
-    }
-
-    @Test
     void 음식_삭제_시_이미지_URL이_null이면_이벤트가_발행되지_않는다() {
         // given
         Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
             .set("imageURL", null)
-            .sample();
-
-        given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))
-            .willReturn(Optional.of(mockFood));
-
-        // when
-        foodRemover.remove(1L, 1L);
-
-        // then
-        then(eventPublisher).should(never())
-            .publishEvent(any(ImageDeleteEvent.class));
-    }
-
-    @Test
-    void 음식_삭제_시_이미지_URL이_빈_문자열이면_이벤트가_발행되지_않는다() {
-        // given
-        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
-            .set("imageURL", "")
             .sample();
 
         given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))

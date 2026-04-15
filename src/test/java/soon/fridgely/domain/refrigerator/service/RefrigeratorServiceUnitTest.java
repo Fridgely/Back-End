@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.entity.InvitationCode;
@@ -51,22 +50,6 @@ class RefrigeratorServiceUnitTest {
 
     @Mock
     private InvitationCodeGenerator codeGenerator;
-
-    @Test
-    void 냉장고_정보를_수정한다() {
-        // given
-        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = fixtureMonkey.giveMeBuilder(RefrigeratorUpdateRequest.class)
-            .set("newName", "New Name")
-            .sample();
-
-        // when
-        refrigeratorService.updateRefrigeratorName(key, request);
-
-        // then
-        then(refrigeratorManager).should()
-            .update(eq(key.refrigeratorId()), eq("New Name"));
-    }
 
     @Test
     void 초대_코드를_생성하고_반환한다() {

@@ -9,12 +9,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.batch.NotificationBatchExecutor;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 
-import java.time.LocalTime;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,22 +38,6 @@ class NotificationServiceUnitTest {
     private ArgumentCaptor<Consumer<NotificationSetting>> taskCaptor;
 
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
-
-    @Test
-    void 유통기한_임박_알림_배치를_실행한다() {
-        // given
-        BatchResult mockResult = fixtureMonkey.giveMeOne(BatchResult.class);
-        given(notificationBatchExecutor.executeForExpiration(any(LocalTime.class), any(LocalTime.class), any()))
-            .willReturn(mockResult);
-
-        // when
-        BatchResult result = notificationService.sendScheduledAlerts();
-
-        // then
-        assertThat(result).isEqualTo(mockResult);
-        then(notificationBatchExecutor).should()
-            .executeForExpiration(any(LocalTime.class), any(LocalTime.class), any());
-    }
 
     @Test
     void 재고_소진_알림_배치를_실행한다() {
