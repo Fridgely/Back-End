@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
 import static soon.fridgely.global.support.fixture.FoodFixture.food;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
@@ -51,6 +52,24 @@ class FoodRemoverUnitTest {
         mockMember = member(fixtureMonkey).sample();
         mockRefrigerator = refrigerator(fixtureMonkey).sample();
         mockCategory = category(fixtureMonkey, mockRefrigerator, mockMember).sample();
+    }
+
+    @Test
+    void 음식_삭제_시_이미지_URL이_있으면_이벤트가_발행된다() {
+        // given
+        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
+            .set("imageURL", "https://s3.example.com/images/food.jpg")
+            .sample();
+
+        given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))
+            .willReturn(Optional.of(mockFood));
+
+        // when
+        foodRemover.remove(1L, 1L);
+
+        // then
+        then(eventPublisher).should(times(1))
+            .publishEvent(any(ImageDeleteEvent.class));
     }
 
     @Test
