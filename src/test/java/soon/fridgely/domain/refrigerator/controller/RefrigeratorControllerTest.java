@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.InvitationCodeJoinRequest;
+import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
@@ -16,8 +17,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -124,6 +124,41 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 냉장고_이름을_수정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        var request = new RefrigeratorUpdateRequest("새 냉장고 이름");
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/{refrigeratorId}", refrigeratorId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 초대_코드로_냉장고에_참여한다() throws Exception {
+        // given
+        var request = new InvitationCodeJoinRequest("ABC12345");
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/invitation-codes/join")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
     @TestLoginMember
