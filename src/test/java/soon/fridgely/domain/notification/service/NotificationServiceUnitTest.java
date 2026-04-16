@@ -40,6 +40,24 @@ class NotificationServiceUnitTest {
     private final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
     @Test
+    void 유통기한_만료_알림_배치를_실행한다() {
+        // given
+        var mockResult = fixtureMonkey.giveMeOne(BatchResult.class);
+        given(notificationBatchExecutor.executeForExpiration(any(), any(), any()))
+            .willReturn(mockResult);
+
+        // when
+        BatchResult result = notificationService.sendScheduledAlerts();
+
+        // then
+        then(notificationBatchExecutor).should()
+            .executeForExpiration(any(), any(), taskCaptor.capture());
+        assertThat(result).isEqualTo(mockResult);
+
+        verifyExpirationTaskLogic(taskCaptor.getValue());
+    }
+
+    @Test
     void 재고_소진_알림_배치를_실행한다() {
         // given
         var mockResult = fixtureMonkey.giveMeOne(BatchResult.class);
@@ -55,6 +73,22 @@ class NotificationServiceUnitTest {
         assertThat(result).isEqualTo(mockResult);
 
         verifyTaskLogic(taskCaptor.getValue());
+    }
+
+    private void verifyExpirationTaskLogic(Consumer<NotificationSetting> task) {
+        // given
+        NotificationSetting setting = mock(NotificationSetting.class);
+        Member member = mock(Member.class);
+        long memberId = 123L;
+
+        given(setting.getMember()).willReturn(member);
+        given(member.getId()).willReturn(memberId);
+
+        // when
+        task.accept(setting);
+
+        // then
+        then(notificationProcessor).should().processExpiration(memberId);
     }
 
     private void verifyTaskLogic(Consumer<NotificationSetting> task) {
