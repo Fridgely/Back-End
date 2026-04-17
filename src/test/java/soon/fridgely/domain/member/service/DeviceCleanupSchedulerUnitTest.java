@@ -22,8 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeviceCleanupSchedulerUnitTest {
@@ -101,6 +100,31 @@ class DeviceCleanupSchedulerUnitTest {
 
         // then
         then(deviceCleanupProcessor).should(never()).bulkDelete(anyList());
+    }
+
+    @Test
+    void 처리_건수가_CHUNK_SIZE와_같으면_배치_중_flush는_1회_최종_flush는_없다() {
+        // given
+        int count = DeviceCleanupProcessor.CHUNK_SIZE;
+        BatchResult mockResult = new BatchResult(count, 100L);
+
+        given(deviceCleanupBatchExecutor.executeCleanup(any(LocalDateTime.class), any()))
+            .willAnswer(invocation -> {
+                Consumer<MemberDevice> task = invocation.getArgument(1);
+                for (int i = 0; i < count; i++) {
+                    MemberDevice mockDevice = mock(MemberDevice.class);
+                    given(mockDevice.getId()).willReturn((long) i);
+                    task.accept(mockDevice);
+                }
+                return mockResult;
+            });
+
+        // when
+        deviceCleanupScheduler.cleanupInactiveDevices();
+
+        // then - 배치 중 1회만 호출, 최종 flush 없음, 총 1회
+        then(deviceCleanupProcessor).should(times(1)).bulkDelete(deviceIdsCaptor.capture());
+        assertThat(deviceIdsCaptor.getValue()).hasSize(count);
     }
 
 }

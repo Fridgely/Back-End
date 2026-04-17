@@ -78,8 +78,6 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
         );
 
         // then
-        System.out.println("response = " + response);
-        
         assertThat(response).isNotNull()
             .extracting("statusCode", "body.result")
             .containsExactly(HttpStatus.OK, ResultType.SUCCESS);

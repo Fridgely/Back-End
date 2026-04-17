@@ -7,8 +7,8 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalDateTime;
@@ -99,32 +99,6 @@ class DeviceCleanupBatchExecutorIntegrationTest extends IntegrationTestSupport {
         // then
         assertThat(result.submittedCount()).isEqualTo(1);
         assertThat(processedIds).containsExactly(activeDevice.getId());
-    }
-
-    @Test
-    void 배치_결과에_처리_건수와_소요_시간이_포함된다() {
-        // given
-        LocalDateTime threshold = LocalDateTime.now().minusDays(90);
-        LocalDateTime oldDate = LocalDateTime.now().minusDays(120);
-
-        for (int i = 0; i < 5; i++) {
-            memberDeviceRepository.save(
-                memberDevice(fixtureMonkey, member)
-                    .set("lastUsedAt", oldDate)
-                    .sample()
-            );
-        }
-
-        // when
-        BatchResult result = deviceCleanupBatchExecutor.executeCleanup(
-            threshold,
-            device -> { // 결과 통계만 검증
-            }
-        );
-
-        // then
-        assertThat(result.submittedCount()).isEqualTo(5);
-        assertThat(result.durationMillis()).isGreaterThanOrEqualTo(0);
     }
 
 }

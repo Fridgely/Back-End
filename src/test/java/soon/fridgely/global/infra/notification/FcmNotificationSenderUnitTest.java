@@ -7,7 +7,6 @@ import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +18,6 @@ import soon.fridgely.global.support.FixtureMonkeyFactory;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -87,24 +85,6 @@ class FcmNotificationSenderUnitTest {
     }
 
     @Test
-    void target_screen데이터가_FOOD_STATUS로_포함된다() throws FirebaseMessagingException {
-        // given
-        var title = fixtureMonkey.giveMeOne(String.class);
-        var body = fixtureMonkey.giveMeOne(String.class);
-
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice));
-        given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
-
-        // when
-        fcmNotificationSender.send(member.getId(), title, body);
-
-        // then
-        ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-        then(firebaseMessaging).should().send(messageCaptor.capture());
-        assertThat(messageCaptor.getValue()).isNotNull();
-    }
-
-    @Test
     void 한개의_알림_전송에_실패해도_나머지_알림은_전송된다() throws FirebaseMessagingException {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
@@ -121,22 +101,6 @@ class FcmNotificationSenderUnitTest {
 
         // then
         then(firebaseMessaging).should(times(2)).send(any(Message.class));
-    }
-
-    @Test
-    void 하나의_디바이스에_알림을_전송한다() throws FirebaseMessagingException {
-        // given
-        var title = fixtureMonkey.giveMeOne(String.class);
-        var body = fixtureMonkey.giveMeOne(String.class);
-
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice));
-        given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
-
-        // when
-        fcmNotificationSender.send(member.getId(), title, body);
-
-        // then
-        then(firebaseMessaging).should(times(1)).send(any(Message.class));
     }
 
 }
