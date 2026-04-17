@@ -4,6 +4,7 @@ import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,12 +19,12 @@ import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static soon.fridgely.global.support.fixture.CategoryFixture.category;
 import static soon.fridgely.global.support.fixture.FoodFixture.food;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
@@ -57,8 +58,9 @@ class FoodRemoverUnitTest {
     @Test
     void 음식_삭제_시_이미지_URL이_있으면_이벤트가_발행된다() {
         // given
+        String imageUrl = "https://s3.example.com/images/food.jpg";
         Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
-            .set("imageURL", "https://s3.example.com/images/food.jpg")
+            .set("imageURL", imageUrl)
             .sample();
 
         given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))
@@ -68,7 +70,26 @@ class FoodRemoverUnitTest {
         foodRemover.remove(1L, 1L);
 
         // then
-        then(eventPublisher).should(times(1))
+        ArgumentCaptor<ImageDeleteEvent> captor = ArgumentCaptor.forClass(ImageDeleteEvent.class);
+        then(eventPublisher).should().publishEvent(captor.capture());
+        assertThat(captor.getValue().imageUrl()).isEqualTo(imageUrl);
+    }
+
+    @Test
+    void 음식_삭제_시_이미지_URL이_빈_문자열이면_이벤트가_발행되지_않는다() {
+        // given
+        Food mockFood = food(fixtureMonkey, mockRefrigerator, mockMember, mockCategory)
+            .set("imageURL", "")
+            .sample();
+
+        given(foodRepository.findByIdAndRefrigeratorId(anyLong(), anyLong()))
+            .willReturn(Optional.of(mockFood));
+
+        // when
+        foodRemover.remove(1L, 1L);
+
+        // then
+        then(eventPublisher).should(never())
             .publishEvent(any(ImageDeleteEvent.class));
     }
 

@@ -17,6 +17,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -111,7 +112,7 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     void 유효하지_않은_초대코드는_예외가_발생한다() throws Exception {
         // given
         var request = fixtureMonkey.giveMeBuilder(InvitationCodeJoinRequest.class)
-            .validOnly(false)
+            .validOnly(true)
             .set("code", "SHORT")
             .sample();
 
@@ -142,6 +143,9 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        then(refrigeratorService).should()
+            .updateRefrigeratorName(any(MemberRefrigeratorKey.class), any(RefrigeratorUpdateRequest.class));
     }
 
     @TestLoginMember
