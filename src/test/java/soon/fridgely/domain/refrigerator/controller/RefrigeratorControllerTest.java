@@ -111,10 +111,7 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
     @Test
     void 유효하지_않은_초대코드는_예외가_발생한다() throws Exception {
         // given
-        var request = fixtureMonkey.giveMeBuilder(InvitationCodeJoinRequest.class)
-            .validOnly(true)
-            .set("code", "SHORT")
-            .sample();
+        var request = new InvitationCodeJoinRequest("SHORT");
 
         // expected
         mockMvc.perform(
