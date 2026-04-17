@@ -28,17 +28,89 @@ class CategoryControllerTest extends ControllerTestSupport {
     @Test
     void 카테고리를_추가한다() throws Exception {
         // given
-        var request = fixtureMonkey.giveMeOne(CategoryAddRequest.class);
         long refrigeratorId = 1L;
+        var request = new CategoryAddRequest("간식류");
 
         // expected
         mockMvc.perform(
                 post(BASE_URL + "/" + refrigeratorId + "/categories")
-                    .content(objectMapper.writeValueAsString(request))
                     .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
             )
             .andDo(print())
             .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리_이름이_빈_문자열이면_추가에_실패한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        var invalidRequest = new CategoryAddRequest("");
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/" + refrigeratorId + "/categories")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidRequest))
+            )
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리를_수정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long categoryId = 1L;
+        var request = new CategoryModifyRequest("음료류");
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리_새_이름이_빈_문자열이면_수정에_실패한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long categoryId = 1L;
+        var invalidRequest = new CategoryModifyRequest("");
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidRequest))
+            )
+            .andDo(print())
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 카테고리를_삭제한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        long categoryId = 1L;
+
+        // expected
+        mockMvc.perform(
+                delete(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
@@ -99,41 +171,6 @@ class CategoryControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.length()").value(2))
             .andExpect(jsonPath("$.data[0].id").value(1L))
             .andExpect(jsonPath("$.data[1].id").value(2L));
-    }
-
-    @TestLoginMember
-    @Test
-    void 카테고리를_수정한다() throws Exception {
-        // given
-        long refrigeratorId = 1L;
-        long categoryId = 1L;
-        var request = fixtureMonkey.giveMeOne(CategoryModifyRequest.class);
-
-        // expected
-        mockMvc.perform(
-                patch(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("SUCCESS"));
-    }
-
-    @TestLoginMember
-    @Test
-    void 카테고리를_삭제한다() throws Exception {
-        // given
-        long refrigeratorId = 1L;
-        long categoryId = 1L;
-
-        // expected
-        mockMvc.perform(
-                delete(BASE_URL + "/" + refrigeratorId + "/categories/" + categoryId)
-            )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
 }

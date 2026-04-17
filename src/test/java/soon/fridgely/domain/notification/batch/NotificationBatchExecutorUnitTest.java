@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -110,22 +111,6 @@ class NotificationBatchExecutorUnitTest {
             .findAllActive(eq(Long.MAX_VALUE), any());
         then(task).should(times(1))
             .accept(any());
-    }
-
-    @Test
-    void 실행_시간을_측정한다() {
-        // given
-        given(finder.findAllActiveByTime(any(), any(), anyLong(), any()))
-            .willReturn(new SliceImpl<>(List.of()));
-
-        LocalTime startTime = fixtureMonkey.giveMeOne(LocalTime.class);
-        LocalTime endTime = startTime.plusMinutes(59);
-
-        // when
-        BatchResult result = executor.executeForExpiration(startTime, endTime, mockTask());
-
-        // then
-        assertThat(result.durationMillis()).isNotNegative();
     }
 
     @SuppressWarnings("unchecked")

@@ -16,11 +16,13 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
 import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
-import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
-import soon.fridgely.domain.food.entity.*;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.FoodSortType;
+import soon.fridgely.domain.food.entity.FoodStatus;
+import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.image.ImageManager;
@@ -28,9 +30,9 @@ import soon.fridgely.global.support.image.ImageManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.inOrder;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,9 +49,6 @@ class FoodServiceUnitTest {
 
     @Mock
     private FoodManager foodManager;
-
-    @Mock
-    private FoodRemover foodRemover;
 
     @Mock
     private ImageManager imageManager;
@@ -205,21 +204,6 @@ class FoodServiceUnitTest {
     }
 
     @Test
-    void 음식을_삭제한다() {
-        // given
-        long foodId = 1L;
-        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-
-        // when
-        foodService.deleteFood(foodId, key);
-
-        // then
-        then(foodRemover).should()
-            .remove(foodId, key.refrigeratorId());
-        then(foodManager).shouldHaveNoInteractions();
-    }
-
-    @Test
     void 사용자의_모든_음식을_조회하여_상태별로_그룹핑_한다() {
         // given
         long memberId = 1L;
@@ -287,38 +271,59 @@ class FoodServiceUnitTest {
     }
 
     @Test
-    void 음식의_재고를_추가한다() {
+    void 음식_등록_중_DB_저장_실패_시_업로드된_이미지를_삭제한다() {
         // given
-        long foodId = 1L;
+        var request = fixtureMonkey.giveMeOne(FoodCreateRequest.class);
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
-            .set("action", StockActionType.ADD)
-            .sample();
+        MockMultipartFile mockFile = createMockFile();
+        String uploadedUrl = "http://s3.example.com/image.jpg";
 
-        // when
-        foodService.updateFoodStock(foodId, request, key);
+        given(imageManager.upload(mockFile)).willReturn(uploadedUrl);
+        willThrow(new RuntimeException("DB 오류"))
+            .given(foodManager).createFood(any(), any(), anyLong());
 
-        // then
-        then(foodModifier).should()
-            .add(foodId, key.refrigeratorId(), request.toQuantity());
+        // expected
+        assertThatThrownBy(() -> foodService.createFood(request, mockFile, key))
+            .isInstanceOf(RuntimeException.class);
+
+        then(imageManager).should().delete(uploadedUrl);
     }
 
     @Test
-    void 음식을_소비한다() {
+    void 이미지가_있는_음식_수정_중_저장_실패_시_업로드된_이미지를_삭제한다() {
         // given
         long foodId = 1L;
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
         var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
-        var request = fixtureMonkey.giveMeBuilder(FoodStockUpdateRequest.class)
-            .set("action", StockActionType.CONSUME)
-            .sample();
-        Quantity amount = request.toQuantity();
+        MockMultipartFile mockFile = createMockFile();
+        String uploadedUrl = "http://s3.example.com/new-image.jpg";
 
-        // when
-        foodService.updateFoodStock(foodId, request, key);
+        given(imageManager.upload(mockFile)).willReturn(uploadedUrl);
+        willThrow(new RuntimeException("DB 오류"))
+            .given(foodModifier).update(anyLong(), any(), any(), anyLong());
 
-        // then
-        then(foodModifier).should()
-            .consume(foodId, key.refrigeratorId(), amount);
+        // expected
+        assertThatThrownBy(() -> foodService.updateFood(foodId, request, mockFile, key))
+            .isInstanceOf(RuntimeException.class);
+
+        then(imageManager).should().delete(uploadedUrl);
+    }
+
+    @Test
+    void 이미지가_없는_음식_수정_중_저장_실패_시_이미지_삭제는_호출되지_않는다() {
+        // given
+        long foodId = 1L;
+        var request = fixtureMonkey.giveMeOne(FoodUpdateRequest.class);
+        var key = fixtureMonkey.giveMeOne(MemberRefrigeratorKey.class);
+
+        willThrow(new RuntimeException("DB 오류"))
+            .given(foodModifier).update(anyLong(), any(), any(), anyLong());
+
+        // expected
+        assertThatThrownBy(() -> foodService.updateFood(foodId, request, null, key))
+            .isInstanceOf(RuntimeException.class);
+
+        then(imageManager).shouldHaveNoInteractions();
     }
 
     private MockMultipartFile createMockFile() {

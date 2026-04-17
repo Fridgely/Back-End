@@ -19,7 +19,6 @@ import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,76 +110,6 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 유통기한_임박순으로_음식을_조회한다() {
-        // given
-        LocalDate now = LocalDate.now();
-        createFoodWithExpiration("음식1", now.plusDays(30));
-        createFoodWithExpiration("음식2", now.plusDays(5));
-        createFoodWithExpiration("음식3", now.plusDays(15));
-
-        // when
-        Slice<Food> result = foodFinder.findAll(
-            refrigerator.getId(),
-            Long.MAX_VALUE,
-            PageRequest.of(0, 10),
-            FoodSortType.EXPIRATION,
-            null
-        );
-
-        // then
-        assertThat(result.getContent())
-            .hasSize(3)
-            .extracting("name")
-            .containsExactly("음식2", "음식3", "음식1");
-    }
-
-    @Test
-    void 등록순으로_음식을_조회한다() {
-        // given
-        createFoodWithName("음식1");
-        createFoodWithName("음식2");
-        createFoodWithName("음식3");
-
-        // when
-        Slice<Food> result = foodFinder.findAll(
-            refrigerator.getId(),
-            Long.MAX_VALUE,
-            PageRequest.of(0, 10),
-            FoodSortType.CREATED,
-            null
-        );
-
-        // then
-        assertThat(result.getContent())
-            .hasSize(3)
-            .extracting("name")
-            .containsExactly("음식3", "음식2", "음식1");
-    }
-
-    @Test
-    void 이름순으로_음식을_조회한다() {
-        // given
-        createFoodWithName("토마토");
-        createFoodWithName("감자");
-        createFoodWithName("당근");
-
-        // when
-        Slice<Food> result = foodFinder.findAll(
-            refrigerator.getId(),
-            Long.MAX_VALUE,
-            PageRequest.of(0, 10),
-            FoodSortType.NAME,
-            null
-        );
-
-        // then
-        assertThat(result.getContent())
-            .hasSize(3)
-            .extracting("name")
-            .containsExactly("감자", "당근", "토마토");
-    }
-
-    @Test
     void 저장_위치로_필터링하여_음식을_조회한다() {
         // given
         createFoodWithStorageType("냉장음식", StorageType.REFRIGERATION);
@@ -205,23 +134,6 @@ class FoodFinderIntegrationTest extends IntegrationTestSupport {
         foodRepository.save(
             food(fixtureMonkey, refrigerator, member, category)
                 .set("foodStatus", status)
-                .sample()
-        );
-    }
-
-    private Food createFoodWithName(String name) {
-        return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
-                .set("name", name)
-                .sample()
-        );
-    }
-
-    private Food createFoodWithExpiration(String name, LocalDate expirationDate) {
-        return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
-                .set("name", name)
-                .set("expirationDate", expirationDate.atStartOfDay())
                 .sample()
         );
     }

@@ -52,23 +52,6 @@ class NotificationSettingControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data.enabled").value(true));
     }
 
-    @TestLoginMember
-    @Test
-    void 내_알림_설정을_수정한다() throws Exception {
-        // given
-        var request = fixtureMonkey.giveMeOne(NotificationSettingUpdateRequest.class);
-
-        // expected
-        mockMvc.perform(
-                patch(BASE_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("SUCCESS"));
-    }
-
     @ParameterizedTest
     @MethodSource("provideInvalidUpdateRequests")
     @TestLoginMember

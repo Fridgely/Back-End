@@ -17,6 +17,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -84,23 +85,6 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
 
     @TestLoginMember
     @Test
-    void 냉장고_이름을_수정한다() throws Exception {
-        // given
-        var request = fixtureMonkey.giveMeOne(RefrigeratorUpdateRequest.class);
-
-        // expected
-        mockMvc.perform(
-                patch(BASE_URL + "/{refrigeratorId}", 1L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("SUCCESS"));
-    }
-
-    @TestLoginMember
-    @Test
     void 초대_코드를_생성한다() throws Exception {
         // given
         String generatedCode = "ABC12345";
@@ -125,29 +109,9 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
 
     @TestLoginMember
     @Test
-    void 초대_코드로_냉장고에_참여한다() throws Exception {
-        // given
-        var request = fixtureMonkey.giveMeOne(InvitationCodeJoinRequest.class);
-
-        // expected
-        mockMvc.perform(
-                post(BASE_URL + "/invitation-codes/join")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.result").value("SUCCESS"));
-    }
-
-    @TestLoginMember
-    @Test
     void 유효하지_않은_초대코드는_예외가_발생한다() throws Exception {
         // given
-        var request = fixtureMonkey.giveMeBuilder(InvitationCodeJoinRequest.class)
-            .validOnly(false)
-            .set("code", "SHORT")
-            .sample();
+        var request = new InvitationCodeJoinRequest("SHORT");
 
         // expected
         mockMvc.perform(
@@ -158,6 +122,44 @@ class RefrigeratorControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.result").value("ERROR"));
+    }
+
+    @TestLoginMember
+    @Test
+    void 냉장고_이름을_수정한다() throws Exception {
+        // given
+        long refrigeratorId = 1L;
+        var request = new RefrigeratorUpdateRequest("새 냉장고 이름");
+
+        // expected
+        mockMvc.perform(
+                patch(BASE_URL + "/{refrigeratorId}", refrigeratorId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
+
+        then(refrigeratorService).should()
+            .updateRefrigeratorName(any(MemberRefrigeratorKey.class), any(RefrigeratorUpdateRequest.class));
+    }
+
+    @TestLoginMember
+    @Test
+    void 초대_코드로_냉장고에_참여한다() throws Exception {
+        // given
+        var request = new InvitationCodeJoinRequest("ABC12345");
+
+        // expected
+        mockMvc.perform(
+                post(BASE_URL + "/invitation-codes/join")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.result").value("SUCCESS"));
     }
 
     @TestLoginMember

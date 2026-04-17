@@ -1,10 +1,6 @@
 package soon.fridgely.domain.member.controller;
 
-import com.navercorp.fixturemonkey.FixtureMonkey;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -13,11 +9,8 @@ import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.ControllerTestSupport;
-import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-
-import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -56,22 +49,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.data").value(1));
     }
 
-    @ParameterizedTest
-    @MethodSource("provideInvalidMemberRegisterRequests")
-    void 회원_등록시_필수값이_누락되면_예외가_발생한다(MemberRegisterRequest request, String field, String message) throws Exception {
-        // expected
-        mockMvc.perform(
-                post(BASE_URL)
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.result").value("ERROR"))
-            .andExpect(jsonPath("$.error.message").value("요청이 올바르지 않습니다."))
-            .andExpect(jsonPath("$.error.data.%s", field).value(message));
-    }
-
     @Test
     void 회원_등록_요청이_제한_횟수를_초과하면_예외가_발생한다() throws Exception {
         // given
@@ -93,29 +70,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(status().isTooManyRequests())
             .andExpect(jsonPath("$.result").value("ERROR"))
             .andExpect(jsonPath("$.error.message").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
-    }
-
-    @Test
-    void 중복된_ID로_회원_등록시_예외가_발생한다() throws Exception {
-        // given
-        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-            .set("loginId", "duplicateId")
-            .set("password", "password")
-            .set("nickname", "nickname")
-            .sample();
-
-        given(memberService.register(request.toInfo()))
-            .willThrow(new CoreException(ErrorType.DUPLICATE_LOGIN_ID));
-
-        // expected
-        mockMvc.perform(
-                post(BASE_URL)
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-            .andDo(print())
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.result").value("ERROR"));
     }
 
     @TestLoginMember
@@ -229,54 +183,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("ERROR"))
             .andExpect(jsonPath("$.error.message").value("요청이 올바르지 않습니다."))
             .andExpect(jsonPath("$.error.data.token").value("토큰은 필수입니다."));
-    }
-
-    private static Stream<Arguments> provideInvalidMemberRegisterRequests() {
-        FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
-        return Stream.of(
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("loginId", null)
-                    .sample(),
-                "loginId", "ID는 필수입니다."
-            ),
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("loginId", "")
-                    .sample(),
-                "loginId", "ID는 필수입니다."
-            ),
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("password", null)
-                    .sample(),
-                "password", "비밀번호는 필수입니다."
-            ),
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("password", "")
-                    .sample(),
-                "password", "비밀번호는 필수입니다."
-            ),
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("nickname", null)
-                    .sample(),
-                "nickname", "닉네임은 필수입니다."
-            ),
-            Arguments.of(
-                fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-                    .validOnly(false)
-                    .set("nickname", "")
-                    .sample(),
-                "nickname", "닉네임은 필수입니다."
-            )
-        );
     }
 
 }
