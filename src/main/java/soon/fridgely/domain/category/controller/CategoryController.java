@@ -64,7 +64,7 @@ public class CategoryController implements CategoryControllerDocs {
         @PathVariable long refrigeratorId,
         @PathVariable long categoryId
     ) {
-        categoryService.modifyCustomCategory(request.toModifyCategory(refrigeratorId, categoryId, memberId));
+        categoryService.modifyCustomCategory(request.toModifyCategory(memberId, refrigeratorId, categoryId));
         return ResponseEntity.ok(ApiResponse.success());
     }
 
