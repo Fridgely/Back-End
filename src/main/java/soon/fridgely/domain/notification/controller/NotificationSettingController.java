@@ -36,4 +36,13 @@ public class NotificationSettingController implements NotificationSettingControl
         return ResponseEntity.ok(ApiResponse.success());
     }
 
+    @Override
+    @PostMapping("/test/expiration")
+    public ResponseEntity<ApiResponse<?>> triggerExpirationTest(
+        @LoginMember Long memberId
+    ) {
+        notificationSettingService.triggerExpirationTest(memberId);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
 }
