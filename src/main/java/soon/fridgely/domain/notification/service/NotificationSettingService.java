@@ -12,6 +12,7 @@ public class NotificationSettingService {
 
     private final NotificationSettingManager notificationSettingManager;
     private final NotificationSettingFinder notificationSettingFinder;
+    private final NotificationProcessor notificationProcessor;
 
     public NotificationSettingDetailResponse findNotificationSetting(long memberId) {
         NotificationSetting setting = notificationSettingFinder.findNotificationSetting(memberId);
@@ -20,6 +21,10 @@ public class NotificationSettingService {
 
     public void updateNotificationSetting(long memberId, NotificationSettingUpdateRequest request) {
         notificationSettingManager.update(memberId, request.toAlertSchedule(), request.enabled());
+    }
+
+    public void triggerExpirationTest(long memberId) {
+        notificationProcessor.processExpiration(memberId);
     }
 
 }
