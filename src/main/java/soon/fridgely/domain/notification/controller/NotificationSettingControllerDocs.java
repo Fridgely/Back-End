@@ -49,5 +49,16 @@ public interface NotificationSettingControllerDocs {
         @Parameter(hidden = true) Long memberId
     );
 
+    @Operation(summary = "[테스트] 유통기한 알림 즉시 발송",
+        description = "현재 로그인한 사용자에게 유통기한 임박 알림을 즉시 발송합니다. (테스트 전용)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "알림 발송 요청 성공"),
+        @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+            content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
+    })
+    ResponseEntity<soon.fridgely.global.support.response.ApiResponse<?>> triggerExpirationTest(
+        @Parameter(hidden = true) Long memberId
+    );
+
 }
 
