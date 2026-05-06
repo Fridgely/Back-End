@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL 8.0
   db:
     image: mysql:8.0
     container_name: mysql-db
@@ -26,7 +25,6 @@ services:
       timeout: 3s
       retries: 10
 
-  # Spring Boot Application
   app:
     image: eclipse-temurin:17-jre-jammy
     container_name: spring-app
@@ -42,25 +40,17 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:?SPRING_PROFILES_ACTIVE is required}
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:?JAVA_TOOL_OPTIONS is required}
       - TZ=${TZ:-Asia/Seoul}
-
-      # DB
       - DB_HOST=${DB_HOST:?DB_HOST is required}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
-
-      # JWT
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-
-      # 알림
       - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
       - FCM_BASE64_KEY=${FCM_BASE64_KEY}
-
-      # AWS S3
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - S3_BUCKET=${S3_BUCKET}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
@@ -69,7 +59,6 @@ services:
       start_period: 30s
     command: ["java", "-jar", "fridgely.jar"]
 
-  # Nginx Reverse Proxy
   nginx:
     image: nginx:stable-alpine
     container_name: nginx
@@ -79,11 +68,12 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
-      - ./certbot/www:/var/www/certbot # Certbot HTTP-01 인증용
+      - ./certbot/www:/var/www/certbot
     depends_on:
       app:
         condition: service_healthy
 
+  # SSL은 OCI LB에서 종료. LB 없이 직접 갱신이 필요한 경우를 위해 유지.
   certbot:
     image: certbot/certbot
     container_name: certbot
@@ -96,7 +86,6 @@ services:
     # 갱신 성공 후 nginx reload는 호스트 cron으로 처리
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
 
-  # Prometheus
   prometheus:
     image: prom/prometheus:v3.2.1
     container_name: prometheus
@@ -109,7 +98,6 @@ services:
     depends_on:
       - app
 
-  # Grafana
   grafana:
     image: grafana/grafana:11.5.2
     container_name: grafana
