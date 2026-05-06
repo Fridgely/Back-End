@@ -61,6 +61,7 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_MAIN }}
             --weight 0 --drain true
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
 
       - name: 기존 연결 drain 대기 (30s)
         run: sleep 30
@@ -143,10 +144,27 @@ jobs:
             if [ -f fridgely.jar.bak ]; then
               cp fridgely.jar.bak fridgely.jar
               docker compose up -d --no-build --force-recreate app
-              echo "이전 버전으로 롤백 완료 — LB 백엔드 복구는 수동으로 진행 필요"
+              echo "이전 버전으로 롤백 완료"
             else
               echo "백업 파일 없음 — 롤백 불가"
             fi
+
+      - name: LB Main 백엔드 복구 (롤백 후)
+        if: failure()
+        uses: oracle-actions/run-oci-cli-command@v1.3.2
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
+        with:
+          command: >-
+            lb backend update
+            --load-balancer-id ${{ secrets.LB_OCID }}
+            --backend-set-name ${{ secrets.LB_BACKEND_SET }}
+            --backend-name ${{ secrets.LB_BACKEND_MAIN }}
+            --weight 1 --drain false
 
   deploy-sub:
     name: Sub 서버 배포
@@ -184,6 +202,7 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_SUB }}
             --weight 0 --drain true
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
 
       - name: 기존 연결 drain 대기 (30s)
         run: sleep 30
@@ -218,6 +237,7 @@ jobs:
             mkdir -p /home/${{ secrets.USERNAME }}/fridgely-project/nginx
             cd /home/${{ secrets.USERNAME }}/fridgely-project
             docker compose -f docker-compose.sub.yml up -d --no-build --force-recreate --wait
+            curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
 
       - name: LB Sub 백엔드 복구
         uses: oracle-actions/run-oci-cli-command@v1.3.2
@@ -247,7 +267,24 @@ jobs:
             if [ -f fridgely.jar.bak ]; then
               cp fridgely.jar.bak fridgely.jar
               docker compose -f docker-compose.sub.yml up -d --no-build --force-recreate app
-              echo "이전 버전으로 롤백 완료 — LB 백엔드 복구는 수동으로 진행 필요"
+              echo "이전 버전으로 롤백 완료"
             else
               echo "백업 파일 없음 — 롤백 불가"
             fi
+
+      - name: LB Sub 백엔드 복구 (롤백 후)
+        if: failure()
+        uses: oracle-actions/run-oci-cli-command@v1.3.2
+        env:
+          OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+          OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+          OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+          OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+          OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
+        with:
+          command: >-
+            lb backend update
+            --load-balancer-id ${{ secrets.LB_OCID }}
+            --backend-set-name ${{ secrets.LB_BACKEND_SET }}
+            --backend-name ${{ secrets.LB_BACKEND_SUB }}
+            --weight 1 --drain false
