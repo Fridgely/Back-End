@@ -62,7 +62,7 @@ jobs:
             --load-balancer-id ${{ secrets.LB_OCID }}
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_MAIN }}
-            --weight 0 --drain true --backup false --offline false
+            --weight 1 --drain true --backup false --offline false
             --wait-for-state SUCCEEDED --max-wait-seconds 120
           silent: false
 
@@ -204,7 +204,7 @@ jobs:
             --load-balancer-id ${{ secrets.LB_OCID }}
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_SUB }}
-            --weight 0 --drain true --backup false --offline false
+            --weight 1 --drain true --backup false --offline false
             --wait-for-state SUCCEEDED --max-wait-seconds 120
 
       - name: 기존 연결 drain 대기 (30s)
