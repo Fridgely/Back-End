@@ -7,6 +7,9 @@ name: Fridgely CD Pipeline
     branches: ["master"]
     types: [completed]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: JAR 빌드
@@ -62,6 +65,7 @@ jobs:
             --backend-name ${{ secrets.LB_BACKEND_MAIN }}
             --weight 0 --drain true
             --wait-for-state SUCCEEDED --max-wait-seconds 120
+          silent: false
 
       - name: 기존 연결 drain 대기 (30s)
         run: sleep 30
