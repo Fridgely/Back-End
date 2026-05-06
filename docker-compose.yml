@@ -39,12 +39,12 @@ services:
       - ./fridgely.jar:/app/fridgely.jar
       - ./logs:/app/logs
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
-      - TZ=${TZ}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:?SPRING_PROFILES_ACTIVE is required}
+      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:?JAVA_TOOL_OPTIONS is required}
+      - TZ=${TZ:-Asia/Seoul}
 
       # DB
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=${DB_HOST:?DB_HOST is required}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
 

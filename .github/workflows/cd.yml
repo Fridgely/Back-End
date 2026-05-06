@@ -38,12 +38,9 @@ jobs:
     name: Main 서버 배포
     needs: build
     runs-on: ubuntu-latest
+    # NOTE: LB drain 활성화 전까지 재기동 중 순단 발생 가능 — 아래 TODO 참조
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: master
-
       - name: JAR 다운로드
         uses: actions/download-artifact@v4
         with:
@@ -58,7 +55,7 @@ jobs:
       #   --weight 0 --drain true
 
       - name: JAR 전송 (Main)
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634
         with:
           host: ${{ secrets.HOST_MAIN }}
           username: ${{ secrets.USERNAME }}
@@ -108,11 +105,15 @@ jobs:
     name: Sub 서버 배포
     needs: deploy-main
     runs-on: ubuntu-latest
+    # NOTE: LB drain 활성화 전까지 재기동 중 순단 발생 가능 — 아래 TODO 참조
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Compose 파일 체크아웃 (sparse)
+        uses: actions/checkout@v4
         with:
           ref: master
+          sparse-checkout: docker-compose.sub.yml
+          sparse-checkout-cone-mode: false
 
       - name: JAR 다운로드
         uses: actions/download-artifact@v4
@@ -127,8 +128,18 @@ jobs:
       #   --backend-name "${{ secrets.LB_BACKEND_SUB }}" \
       #   --weight 0 --drain true
 
+      - name: 현재 JAR 백업 (Sub)
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.HOST_SUB }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.USERNAME }}/fridgely-project
+            [ -f fridgely.jar ] && cp fridgely.jar fridgely.jar.bak || true
+
       - name: JAR + Compose 파일 전송 (Sub)
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634
         with:
           host: ${{ secrets.HOST_SUB }}
           username: ${{ secrets.USERNAME }}
@@ -146,6 +157,23 @@ jobs:
             mkdir -p /home/${{ secrets.USERNAME }}/fridgely-project/logs
             cd /home/${{ secrets.USERNAME }}/fridgely-project
             docker compose -f docker-compose.sub.yml up -d --no-build --force-recreate --wait app
+
+      - name: 배포 실패 시 이전 버전 롤백 (Sub)
+        if: failure()
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.HOST_SUB }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.USERNAME }}/fridgely-project
+            if [ -f fridgely.jar.bak ]; then
+              cp fridgely.jar.bak fridgely.jar
+              docker compose -f docker-compose.sub.yml up -d --no-build --force-recreate app
+              echo "이전 버전으로 롤백 완료"
+            else
+              echo "백업 파일 없음 — 롤백 불가"
+            fi
 
       # TODO: Load Balancer — Sub 복구 (LB 생성 후 활성화)
       # oci lb backend update \
