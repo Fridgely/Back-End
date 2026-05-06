@@ -1,0 +1,43 @@
+version: '3.8'
+
+# Sub 서버 전용 Compose
+
+services:
+  app:
+    image: eclipse-temurin:17-jre-jammy
+    container_name: spring-app
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./fridgely.jar:/app/fridgely.jar
+      - ./logs:/app/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
+      - TZ=${TZ}
+
+      # DB
+      - DB_HOST=${DB_HOST}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # JWT
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+
+      # 알림
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - FCM_BASE64_KEY=${FCM_BASE64_KEY}
+
+      # AWS S3
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+    expose:
+      - "8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command: [ "java", "-jar", "fridgely.jar" ]

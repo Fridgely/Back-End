@@ -15,9 +15,9 @@ services:
       - --default-authentication-plugin=mysql_native_password
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: fridge_core
-    expose:
-      - "3306"
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    ports:
+      - "${MYSQL_BIND_IP}:3306:3306"
     volumes:
       - ./mysql_data:/var/lib/mysql
     healthcheck:
@@ -39,12 +39,12 @@ services:
       - ./fridgely.jar:/app/fridgely.jar
       - ./logs:/app/logs
     environment:
-      - SPRING_PROFILES_ACTIVE=live
-      - JAVA_TOOL_OPTIONS=-Xms2g -Xmx3g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs/heapdump.hprof -Djava.security.egd=file:/dev/./urandom -Duser.timezone=Asia/Seoul
-      - TZ=Asia/Seoul
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
+      - TZ=${TZ}
 
       # DB
-      - DB_HOST=db
+      - DB_HOST=${DB_HOST}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
 
@@ -124,8 +124,8 @@ services:
       - prometheus
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-      - GF_SERVER_DOMAIN=fridgely.cloud
-      - GF_SERVER_ROOT_URL=https://fridgely.cloud/grafana/
+      - GF_SERVER_DOMAIN=${GF_SERVER_DOMAIN}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL}
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
 
 volumes:
