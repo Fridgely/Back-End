@@ -25,12 +25,29 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_BIND_IP:-127.0.0.1}:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   app:
     image: eclipse-temurin:17-jre-jammy
     container_name: spring-app
     restart: always
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     working_dir: /app
     volumes:
@@ -49,6 +66,8 @@ services:
       - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
       - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - S3_BUCKET=${S3_BUCKET}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
     ports:
       - "127.0.0.1:8080:8080"
     healthcheck:
@@ -117,3 +136,4 @@ services:
 volumes:
   prometheus_data:
   grafana_data:
+  redis_data:
