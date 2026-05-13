@@ -2,6 +2,7 @@ package soon.fridgely.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,10 +26,8 @@ public class DeviceCleanupScheduler {
     private final DeviceCleanupBatchExecutor deviceCleanupBatchExecutor;
     private final DeviceCleanupProcessor deviceCleanupProcessor;
 
-    /**
-     * 매일 새벽 2시 30분 장기 미사용 FCM 토큰 정리
-     */
     @Scheduled(cron = "0 30 2 * * *")
+    @SchedulerLock(name = "DeviceCleanupScheduler.cleanupInactiveDevices", lockAtLeastFor = "PT10S", lockAtMostFor = "PT5M")
     public BatchResult cleanupInactiveDevices() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(INACTIVE_DAYS_THRESHOLD);
 
