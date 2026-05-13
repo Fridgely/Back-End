@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
-@TestPropertySource(properties = "spring.cache.type=caffeine")
+@TestPropertySource(properties = "spring.cache.type=redis")
 class CategoryCacheIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
