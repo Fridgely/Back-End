@@ -119,6 +119,7 @@ jobs:
               echo "nginx 설정 변경 없음"
             fi
             docker compose up -d --force-recreate nginx
+            docker compose up -d prometheus grafana
 
       - name: LB Main 백엔드 복구
         uses: oracle-actions/run-oci-cli-command@v1.3.2
