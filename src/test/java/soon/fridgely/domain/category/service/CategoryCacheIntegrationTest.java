@@ -14,7 +14,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.support.IntegrationTestSupport;
+import soon.fridgely.global.support.RedisIntegrationTestSupport;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
 @TestPropertySource(properties = "spring.cache.type=redis")
-class CategoryCacheIntegrationTest extends IntegrationTestSupport {
+class CategoryCacheIntegrationTest extends RedisIntegrationTestSupport {
 
     @Autowired
     private CategoryFinder categoryFinder;
