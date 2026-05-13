@@ -72,6 +72,13 @@ dependencies {
     // Cache
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // ShedLock
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:7.7.0'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-redis-spring:7.7.0'
+
     // Slack
     implementation 'com.github.maricn:logback-slack-appender:1.6.1'
 
@@ -79,6 +86,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey-starter:1.1.15'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
