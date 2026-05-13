@@ -3,6 +3,8 @@ package soon.fridgely.domain.food.entity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import java.math.BigDecimal;
 
@@ -57,8 +59,8 @@ public class QuantityUnitTest {
 
         // expected
         assertThatThrownBy(() -> quantity1.plus(quantity2))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("동일한 단위끼리만 계산할 수 있습니다.");
+            .isInstanceOf(CoreException.class)
+            .hasMessage(ErrorType.INVALID_REQUEST.getMessage());
     }
 
     @Test
@@ -84,8 +86,8 @@ public class QuantityUnitTest {
 
         // expected
         assertThatThrownBy(() -> quantity1.minus(quantity2))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("동일한 단위끼리만 계산할 수 있습니다.");
+            .isInstanceOf(CoreException.class)
+            .hasMessage(ErrorType.INVALID_REQUEST.getMessage());
     }
 
     @Test
@@ -96,8 +98,8 @@ public class QuantityUnitTest {
 
         // expected
         assertThatThrownBy(() -> quantity1.minus(quantity2))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("재고보다 많은 양을 소비할 수 없습니다.");
+            .isInstanceOf(CoreException.class)
+            .hasMessage(ErrorType.INVALID_REQUEST.getMessage());
     }
 
     @Test
@@ -142,8 +144,8 @@ public class QuantityUnitTest {
     void amount가_음수이면_예외가_발생한다() {
         // expected
         assertThatThrownBy(() -> Quantity.register(new BigDecimal("-0.01"), Unit.KG))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("수량은 음수일 수 없습니다.");
+            .isInstanceOf(CoreException.class)
+            .hasMessage(ErrorType.INVALID_REQUEST.getMessage());
     }
 
     @Test
