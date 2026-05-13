@@ -2,6 +2,7 @@ package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,8 @@ public class FoodStatusScheduler {
 
     private final FoodStatusProcessor foodStatusProcessor;
 
-    /**
-     * 매일 자정 유통기한 기반 FoodStatus 일괄 갱신
-     */
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @SchedulerLock(name = "FoodStatusScheduler.updateFoodStatuses", lockAtLeastFor = "PT10S", lockAtMostFor = "PT5M")
     public BatchResult updateFoodStatuses() {
         LocalDate today = LocalDate.now();
 

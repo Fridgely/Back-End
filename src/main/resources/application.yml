@@ -16,7 +16,12 @@ spring:
 
   # 공통 애플리케이션 설정
   cache:
-    type: caffeine
+    type: redis
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
   task:
     scheduling:
