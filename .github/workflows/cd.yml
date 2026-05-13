@@ -107,7 +107,7 @@ jobs:
             fi
 
             git reset --hard origin/master
-            git clean -fd -e .env -e .env.local -e fridgely.jar -e fridgely.jar.bak
+            git clean -fd -e .env -e .env.local -e fridgely.jar -e fridgely.jar.bak -e mysql_data -e mysql -e certbot -e logs
 
             docker compose up -d --no-build --force-recreate --wait app
             curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
