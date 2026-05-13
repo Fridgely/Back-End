@@ -5,6 +5,8 @@ import lombok.*;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 import static java.util.Objects.requireNonNull;
 
@@ -53,7 +55,7 @@ public class Category extends BaseEntity {
 
     public void updateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("name는 비어 있을 수 없습니다.");
+            throw new CoreException(ErrorType.INVALID_REQUEST);
         }
 
         this.name = name;

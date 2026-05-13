@@ -28,16 +28,6 @@ public class FoodFinder {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
     }
 
-    /**
-     * 특정 냉장고의 음식 목록을 조회
-     *
-     * @param refrigeratorId 냉장고 ID
-     * @param cursorId       커서 ID (페이지네이션)
-     * @param pageable       페이지 정보
-     * @param sortType       정렬 타입 (EXPIRATION, CREATED, NAME)
-     * @param storageType    저장 위치 필터 (nullable)
-     * @return 음식 목록 (Slice)
-     */
     @Transactional(readOnly = true)
     public Slice<Food> findAll(
         long refrigeratorId,
