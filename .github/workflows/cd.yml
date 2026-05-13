@@ -110,6 +110,7 @@ jobs:
             git clean -fd -e .env -e .env.local -e fridgely.jar
 
             docker compose up -d --no-build --force-recreate --wait app
+            curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
 
             if [ "$NGINX_CHANGED" -eq 1 ]; then
               echo "nginx 설정 변경 감지 → nginx 컨테이너 재생성"
@@ -134,6 +135,7 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_MAIN }}
             --weight 1 --drain false --backup false --offline false
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
 
       - name: 배포 실패 시 이전 버전 롤백 (Main)
         if: failure()
@@ -147,6 +149,7 @@ jobs:
             if [ -f fridgely.jar.bak ]; then
               cp fridgely.jar.bak fridgely.jar
               docker compose up -d --no-build --force-recreate app
+              docker exec nginx nginx -s reload
               echo "이전 버전으로 롤백 완료"
             else
               echo "백업 파일 없음 — 롤백 불가"
@@ -168,6 +171,7 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_MAIN }}
             --weight 1 --drain false --backup false --offline false
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
 
   deploy-sub:
     name: Sub 서버 배포
@@ -206,6 +210,7 @@ jobs:
             --backend-name ${{ secrets.LB_BACKEND_SUB }}
             --weight 1 --drain true --backup false --offline false
             --wait-for-state SUCCEEDED --max-wait-seconds 120
+          silent: false
 
       - name: 기존 연결 drain 대기 (30s)
         run: sleep 30
@@ -257,7 +262,10 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_SUB }}
             --weight 1 --drain false --backup false --offline false
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
 
+      # Sub 배포 실패 시 Main(신규)과 Sub(구 버전)이 혼재할 수 있음.
+      # 두 버전 간 하위 호환성이 보장되므로 Sub만 롤백하는 현재 전략을 허용 위험으로 수용.
       - name: 배포 실패 시 이전 버전 롤백 (Sub)
         if: failure()
         uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
@@ -291,3 +299,4 @@ jobs:
             --backend-set-name ${{ secrets.LB_BACKEND_SET }}
             --backend-name ${{ secrets.LB_BACKEND_SUB }}
             --weight 1 --drain false --backup false --offline false
+            --wait-for-state SUCCEEDED --max-wait-seconds 120
