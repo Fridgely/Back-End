@@ -9,6 +9,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -36,7 +39,7 @@ public class Quantity {
         amount = amount.setScale(2, RoundingMode.HALF_UP);
 
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("수량은 음수일 수 없습니다.");
+            throw new CoreException(ErrorType.INVALID_REQUEST);
         }
 
         this.amount = amount;
@@ -60,7 +63,7 @@ public class Quantity {
 
         BigDecimal result = this.amount.subtract(other.amount);
         if (result.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("재고보다 많은 양을 소비할 수 없습니다.");
+            throw new CoreException(ErrorType.INVALID_REQUEST);
         }
 
         return new Quantity(result, this.unit);
@@ -68,7 +71,7 @@ public class Quantity {
 
     private void validateUnit(Quantity other) {
         if (this.unit != other.unit) {
-            throw new IllegalArgumentException("동일한 단위끼리만 계산할 수 있습니다.");
+            throw new CoreException(ErrorType.INVALID_REQUEST);
         }
     }
 
