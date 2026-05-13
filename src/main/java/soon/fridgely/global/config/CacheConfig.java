@@ -1,49 +1,48 @@
 package soon.fridgely.global.config;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.Map;
 
 @Slf4j
 @EnableCaching
 @Configuration
-@ConditionalOnProperty(name = "spring.cache.type", havingValue = "caffeine")
+@ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
 public class CacheConfig {
 
-    private static final int CATEGORIES_TTL_HOURS = 24;
-    private static final int CATEGORIES_MAX_SIZE = 100;
-
-    private static final int REFRIGERATORS_TTL_HOURS = 1;
-    private static final int REFRIGERATORS_MAX_SIZE = 1000;
+    private static final Duration CATEGORIES_TTL = Duration.ofHours(24);
+    private static final Duration REFRIGERATORS_TTL = Duration.ofHours(1);
 
     @Bean
-    public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+            .disableCachingNullValues();
 
-        Cache<Object, Object> categoriesCache = buildCache(CATEGORIES_TTL_HOURS, CATEGORIES_MAX_SIZE);
-        Cache<Object, Object> refrigeratorsCache = buildCache(REFRIGERATORS_TTL_HOURS, REFRIGERATORS_MAX_SIZE);
+        Map<String, RedisCacheConfiguration> cacheConfigurations = Map.of(
+            "categories", defaults.entryTtl(CATEGORIES_TTL),
+            "myRefrigerators", defaults.entryTtl(REFRIGERATORS_TTL)
+        );
 
-        cacheManager.registerCustomCache("categories", categoriesCache);
-        cacheManager.registerCustomCache("myRefrigerators", refrigeratorsCache);
+        log.info("[CacheConfig] Redis 캐시 설정 완료 (categories: {}h, myRefrigerators: {}h)",
+            CATEGORIES_TTL.toHours(), REFRIGERATORS_TTL.toHours());
 
-        log.info("[CacheConfig] Caffeine 캐시 설정 완료 (categories: {}h, myRefrigerators: {}h)", CATEGORIES_TTL_HOURS, REFRIGERATORS_TTL_HOURS);
-
-        return cacheManager;
-    }
-
-    private Cache<Object, Object> buildCache(int ttlHours, int maxSize) {
-        return Caffeine.newBuilder()
-            .expireAfterWrite(ttlHours, TimeUnit.HOURS)
-            .maximumSize(maxSize)
-            .recordStats()
+        return RedisCacheManager.builder(connectionFactory)
+            .cacheDefaults(defaults)
+            .withInitialCacheConfigurations(cacheConfigurations)
             .build();
     }
 
