@@ -109,17 +109,16 @@ jobs:
             git reset --hard origin/master
             git clean -fd -e .env -e .env.local -e fridgely.jar -e fridgely.jar.bak -e mysql_data -e mysql -e certbot -e logs
 
+            docker rm -f spring-app 2>/dev/null || true
             docker compose up -d --no-build --force-recreate --wait app
             curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
 
             if [ "$NGINX_CHANGED" -eq 1 ]; then
               echo "nginx 설정 변경 감지 → nginx 컨테이너 재생성"
-              docker compose up -d --force-recreate nginx
             else
-              echo "nginx 설정 변경 없음 → reload만 수행"
-              docker compose up -d nginx
-              docker exec nginx nginx -s reload
+              echo "nginx 설정 변경 없음"
             fi
+            docker compose up -d --force-recreate nginx
 
       - name: LB Main 백엔드 복구
         uses: oracle-actions/run-oci-cli-command@v1.3.2
@@ -246,6 +245,7 @@ jobs:
             mkdir -p /home/${{ secrets.USERNAME }}/fridgely-project/logs
             mkdir -p /home/${{ secrets.USERNAME }}/fridgely-project/nginx
             cd /home/${{ secrets.USERNAME }}/fridgely-project
+            docker rm -f spring-app 2>/dev/null || true
             docker compose -f docker-compose.sub.yml up -d --no-build --force-recreate --wait
             curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
 
