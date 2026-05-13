@@ -107,7 +107,7 @@ jobs:
             fi
 
             git reset --hard origin/master
-            git clean -fd -e .env -e .env.local -e fridgely.jar
+            git clean -fd -e .env -e .env.local -e fridgely.jar -e fridgely.jar.bak
 
             docker compose up -d --no-build --force-recreate --wait app
             curl -fsSL --retry 5 --retry-delay 5 http://127.0.0.1:8080/actuator/health
@@ -117,6 +117,7 @@ jobs:
               docker compose up -d --force-recreate nginx
             else
               echo "nginx 설정 변경 없음 → reload만 수행"
+              docker compose up -d nginx
               docker exec nginx nginx -s reload
             fi
 
@@ -149,6 +150,7 @@ jobs:
             if [ -f fridgely.jar.bak ]; then
               cp fridgely.jar.bak fridgely.jar
               docker compose up -d --no-build --force-recreate app
+              docker compose up -d nginx
               docker exec nginx nginx -s reload
               echo "이전 버전으로 롤백 완료"
             else
