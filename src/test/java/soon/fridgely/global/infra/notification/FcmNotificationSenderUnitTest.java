@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
@@ -58,7 +59,7 @@ class FcmNotificationSenderUnitTest {
         var body = fixtureMonkey.giveMeOne(String.class);
         MemberDevice device2 = memberDevice(fixtureMonkey, member).sample();
 
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice, device2));
+        given(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
 
         // when
@@ -75,7 +76,7 @@ class FcmNotificationSenderUnitTest {
         var body = fixtureMonkey.giveMeOne(String.class);
         var memberId = 1L;
 
-        given(memberDeviceRepository.findAllByMemberId(memberId)).willReturn(Collections.emptyList());
+        given(memberDeviceRepository.findAllByMemberIdAndStatus(memberId, EntityStatus.ACTIVE)).willReturn(Collections.emptyList());
 
         // when
         fcmNotificationSender.send(memberId, title, body);
@@ -91,7 +92,7 @@ class FcmNotificationSenderUnitTest {
         var body = fixtureMonkey.giveMeOne(String.class);
         var device2 = memberDevice(fixtureMonkey, member).sample();
 
-        given(memberDeviceRepository.findAllByMemberId(member.getId())).willReturn(List.of(memberDevice, device2));
+        given(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class)))
             .willThrow(mock(FirebaseMessagingException.class))
             .willReturn("messageId");
