@@ -2,6 +2,7 @@ package soon.fridgely.domain.notification.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class NotificationService {
     private final NotificationProcessor notificationProcessor;
 
     @Scheduled(cron = "0 0 * * * *") // 매 정각마다 실행
+    @SchedulerLock(name = "NotificationService.sendScheduledAlerts", lockAtLeastFor = "PT50S", lockAtMostFor = "PT5M")
     public BatchResult sendScheduledAlerts() {
         LocalTime now = LocalTime.now();
 
@@ -45,6 +47,7 @@ public class NotificationService {
     }
 
     @Scheduled(cron = "0 30 10 * * *") // 매일 오전 10시 30분에 실행
+    @SchedulerLock(name = "NotificationService.sendOutOfStockSummaries", lockAtLeastFor = "PT50S", lockAtMostFor = "PT5M")
     public BatchResult sendOutOfStockSummaries() {
         BatchResult result = notificationBatchExecutor.executeForStockSummary(
             setting -> {

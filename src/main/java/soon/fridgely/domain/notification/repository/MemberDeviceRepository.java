@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface MemberDeviceRepository extends JpaRepository<MemberDevice, Long> {
 
-    List<MemberDevice> findAllByMemberId(long memberId);
+    List<MemberDevice> findAllByMemberIdAndStatus(long memberId, EntityStatus status);
 
     Optional<MemberDevice> findByMemberIdAndTokenAndStatus(long memberId, String token, EntityStatus status);
 

@@ -56,7 +56,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
                 .sample()
         );
 
-        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberId(member.getId());
+        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE);
         List<Long> deviceIds = devices.stream().map(MemberDevice::getId).toList();
 
         // when
@@ -66,8 +66,8 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         assertThat(memberDeviceRepository.findById(device1.getId()).orElseThrow().getStatus())
             .isEqualTo(EntityStatus.DELETED);
 
-        List<MemberDevice> allDevices = memberDeviceRepository.findAllByMemberId(member.getId());
-        assertThat(allDevices).hasSize(3)
+        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.DELETED);
+        assertThat(deletedDevices).hasSize(3)
             .allMatch(device -> device.getStatus() == EntityStatus.DELETED);
     }
 
@@ -91,7 +91,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         deviceCleanupProcessor.bulkDelete(deviceIds);
 
         // then
-        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberId(member.getId());
+        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.DELETED);
         assertThat(deletedDevices).hasSize(1000)
             .allMatch(device -> device.isDeleted());
     }
@@ -118,7 +118,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         deviceCleanupProcessor.bulkDelete(List.of());
 
         // then
-        assertThat(memberDeviceRepository.findAllByMemberId(member.getId())).isEmpty();
+        assertThat(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).isEmpty();
     }
 
 }

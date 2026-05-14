@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import soon.fridgely.global.support.notification.NotificationSender;
@@ -28,7 +29,7 @@ public class FcmNotificationSender implements NotificationSender {
 
     @Override
     public void send(long memberId, String title, String body) {
-        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberId(memberId);
+        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberIdAndStatus(memberId, EntityStatus.ACTIVE);
         if (devices.isEmpty()) {
             log.debug("[FcmSender] 등록된 디바이스가 없어 알림을 전송하지 않음. (MemberId={})", memberId);
             return;
