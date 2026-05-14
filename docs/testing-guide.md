@@ -145,6 +145,15 @@ MemberRefrigerator mr = memberRefrigeratorRepository.save(
 
 새 도메인 추가 시 반드시 Fixture 헬퍼를 작성한다.
 
+## 캐시 통합 테스트 실행 조건
+
+`CategoryCacheIntegrationTest`, `RefrigeratorCacheIntegrationTest` 는 Redis에 의존한다.
+Docker가 실행 중이지 않으면 컨텍스트 로딩 단계에서 실패하므로, 로컬에서 전체 테스트를 돌리기 전에 Docker를 먼저 기동해야 한다.
+
+```bash
+docker compose up -d redis
+```
+
 ## 테이블 초기화
 
 `IntegrationTestSupport`에 포함된 `@TruncateTables` 어노테이션이 각 테스트 후 모든 테이블을 TRUNCATE한다.

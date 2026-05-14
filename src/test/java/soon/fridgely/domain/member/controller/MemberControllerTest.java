@@ -7,12 +7,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.global.security.annotation.TestLoginMember;
-import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.ControllerTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
@@ -47,29 +48,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.data").value(1));
-    }
-
-    @Test
-    void 회원_등록_요청이_제한_횟수를_초과하면_예외가_발생한다() throws Exception {
-        // given
-        var request = fixtureMonkey.giveMeBuilder(MemberRegisterRequest.class)
-            .set("loginId", "testId")
-            .set("password", "testPassword")
-            .set("nickname", "testNickname")
-            .sample();
-        willThrow(new CoreException(ErrorType.TOO_MANY_REQUESTS))
-            .given(rateLimitGuard).check(eq(RateLimitInstance.REGISTER), any());
-
-        // expected
-        mockMvc.perform(
-                post(BASE_URL)
-                    .content(objectMapper.writeValueAsString(request))
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-            .andDo(print())
-            .andExpect(status().isTooManyRequests())
-            .andExpect(jsonPath("$.result").value("ERROR"))
-            .andExpect(jsonPath("$.error.message").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
     }
 
     @TestLoginMember

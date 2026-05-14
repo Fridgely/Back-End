@@ -44,17 +44,3 @@ resilience4j:
     instances:
       invitationCodeGeneration:
         max-attempts: 1 # 재시도 없음
-  ratelimiter:
-    instances:
-      login:
-        limit-for-period: 10000
-        limit-refresh-period: 1m
-        timeout-duration: 0s
-      register:
-        limit-for-period: 10000
-        limit-refresh-period: 1m
-        timeout-duration: 0s
-      auth:
-        limit-for-period: 10000
-        limit-refresh-period: 1m
-        timeout-duration: 0s
