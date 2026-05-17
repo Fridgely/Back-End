@@ -3,6 +3,7 @@ package soon.fridgely.domain.category.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +69,10 @@ public class CategoryService {
         try {
             categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {
-            throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME, addCategory.name());
+            if (e.getCause() instanceof ConstraintViolationException) {
+                throw new CoreException(ErrorType.DUPLICATE_CATEGORY_NAME, addCategory.name());
+            }
+            throw e;
         }
     }
 
