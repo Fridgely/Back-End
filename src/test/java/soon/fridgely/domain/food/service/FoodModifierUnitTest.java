@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.service.CategoryFinder;
+import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.repository.FoodRepository;
@@ -42,7 +42,7 @@ class FoodModifierUnitTest {
     private FoodRepository foodRepository;
 
     @Mock
-    private CategoryFinder categoryFinder;
+    private CategoryRepository categoryRepository;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -134,7 +134,7 @@ class FoodModifierUnitTest {
         foodModifier.update(1L, updateInfo, key, mockCategory.getId());
 
         // then
-        then(categoryFinder).shouldHaveNoInteractions();
+        then(categoryRepository).shouldHaveNoInteractions();
     }
 
     @Test
