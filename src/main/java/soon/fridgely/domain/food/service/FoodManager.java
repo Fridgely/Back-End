@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.service.CategoryFinder;
+import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.repository.FoodRepository;
@@ -26,7 +26,7 @@ public class FoodManager {
     private final FoodRepository foodRepository;
     private final MemberRepository memberRepository;
     private final RefrigeratorRepository refrigeratorRepository;
-    private final CategoryFinder categoryFinder;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
@@ -34,7 +34,8 @@ public class FoodManager {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId());
+        Category category = categoryRepository.findByIdAndRefrigeratorIdAndStatus(categoryId, key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
 
         Food food = info.toEntity(member, refrigerator, category, LocalDate.now());
         foodRepository.save(food);

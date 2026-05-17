@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
-import soon.fridgely.domain.category.service.CategoryFinder;
+import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.entity.Food;
 import soon.fridgely.domain.food.entity.Quantity;
@@ -26,13 +26,17 @@ public class FoodModifier {
     private static final String FALLBACK_CATEGORY_NAME = "기타";
 
     private final FoodRepository foodRepository;
-    private final CategoryFinder categoryFinder;
+    private final CategoryRepository categoryRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void moveAllFoodsToFallback(long refrigeratorId, long categoryId) {
-        Category fallbackCategory = categoryFinder.findByName(FALLBACK_CATEGORY_NAME, refrigeratorId);
-        Category targetCategory = categoryFinder.findByRefrigerator(categoryId, refrigeratorId);
+        Category fallbackCategory = categoryRepository.findByNameAndRefrigeratorIdAndStatus(
+                FALLBACK_CATEGORY_NAME, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Category targetCategory = categoryRepository.findByIdAndRefrigeratorIdAndStatus(
+                categoryId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
         foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
     }
 
@@ -43,7 +47,8 @@ public class FoodModifier {
     public void update(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
         Food food = findFood(foodId, key.refrigeratorId());
         Category category = hasCategoryChanged(food, categoryId)
-            ? categoryFinder.findByRefrigerator(categoryId, key.refrigeratorId())
+            ? categoryRepository.findByIdAndRefrigeratorIdAndStatus(categoryId, key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA))
             : null;
 
         String newImageUrl = updateInfo.imageURL();

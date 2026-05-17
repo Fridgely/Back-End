@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import soon.fridgely.domain.category.service.CategoryRemover;
+import soon.fridgely.domain.category.service.CategoryService;
 import soon.fridgely.domain.food.service.FoodRemover;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
@@ -34,7 +34,7 @@ public class RefrigeratorService {
     private final MemberRefrigeratorFinder memberRefrigeratorFinder;
     private final InvitationCodeGenerator codeGenerator;
     private final FoodRemover foodRemover;
-    private final CategoryRemover categoryRemover;
+    private final CategoryService categoryService;
 
     @ValidateRefrigeratorAccess(key = "#key")
     public void updateRefrigeratorName(MemberRefrigeratorKey key, RefrigeratorUpdateRequest request) {
@@ -98,7 +98,7 @@ public class RefrigeratorService {
             throw new CoreException(ErrorType.ONLY_OWNER_CAN_DELETE_REFRIGERATOR);
         }
         foodRemover.removeAllByRefrigeratorId(key.refrigeratorId());
-        categoryRemover.removeAllByRefrigeratorId(key.refrigeratorId());
+        categoryService.removeAllByRefrigeratorId(key.refrigeratorId());
         memberRefrigeratorLinker.unlinkAll(key.refrigeratorId());
         refrigeratorManager.delete(key.refrigeratorId());
     }
