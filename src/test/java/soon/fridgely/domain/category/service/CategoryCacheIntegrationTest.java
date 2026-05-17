@@ -116,6 +116,7 @@ class CategoryCacheIntegrationTest extends RedisIntegrationTestSupport {
 
         // then
         Cache cache = cacheManager.getCache("categories");
+        assertThat(cache).isNotNull();
         assertThat(cache.get(refrigerator.getId())).isNull();
 
         CachedCategories categories = categoryService.findAll(refrigerator.getId());
@@ -206,6 +207,7 @@ class CategoryCacheIntegrationTest extends RedisIntegrationTestSupport {
         categoryService.findAll(refrigerator2.getId());
 
         Cache cache = cacheManager.getCache("categories");
+        assertThat(cache).isNotNull();
         assertThat(cache.get(refrigerator.getId())).isNotNull();
         assertThat(cache.get(refrigerator2.getId())).isNotNull();
 
