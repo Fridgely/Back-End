@@ -115,7 +115,7 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
 
-        verify(memberService).updateProfileImage(eq(1L), any());
+        verify(memberService).updateProfileImage(eq(1L), any(org.springframework.web.multipart.MultipartFile.class));
     }
 
     @TestLoginMember
@@ -129,7 +129,7 @@ class MemberControllerTest extends ControllerTestSupport {
             "image-bytes".getBytes()
         );
         willThrow(new CoreException(ErrorType.STORAGE_UPLOAD_FAILED))
-            .given(memberService).updateProfileImage(anyLong(), any());
+            .given(memberService).updateProfileImage(anyLong(), any(org.springframework.web.multipart.MultipartFile.class));
 
         // expected
         mockMvc.perform(
