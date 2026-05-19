@@ -2,17 +2,12 @@ package soon.fridgely.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.service.NotificationSettingManager;
-import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
-import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.image.ImageManager;
@@ -27,22 +22,11 @@ public class MemberService {
 
     private final MemberManager memberManager;
     private final ImageManager imageManager;
-    private final RefrigeratorService refrigeratorService;
-    private final NotificationSettingManager notificationSettingManager;
     private final MemberDeviceManager memberDeviceManager;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public Long register(MemberInfo memberInfo) {
-        Member member = memberManager.register(memberInfo);
-        notificationSettingManager.createDefaultSetting(member);
-
-        Refrigerator refrigerator = refrigeratorService.register(member);
-        refrigeratorService.linkToOwner(member, refrigerator);
-
-        eventPublisher.publishEvent(new RefrigeratorCreatedEvent(refrigerator.getId(), member.getId()));
-
-        return member.getId();
+    public Member register(MemberInfo memberInfo) {
+        return memberManager.register(memberInfo);
     }
 
     @Transactional(readOnly = true)

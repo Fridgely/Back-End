@@ -16,6 +16,7 @@ import soon.fridgely.domain.food.controller.MyFoodController;
 import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
+import soon.fridgely.domain.member.service.MemberFacade;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.domain.notification.controller.NotificationSettingController;
 import soon.fridgely.domain.notification.service.NotificationSettingService;
@@ -46,6 +47,9 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockitoBean
+    protected MemberFacade memberFacade;
 
     @MockitoBean
     protected MemberService memberService;

@@ -18,7 +18,7 @@ public class CategoryEventListener {
     private final CategoryService categoryService;
 
     /**
-     * MemberService.register()의 @Transactional이 성공적으로 커밋된 이후에만 실행.
+     * MemberFacade.register()의 @Transactional이 성공적으로 커밋된 이후에만 실행.
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

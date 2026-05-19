@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
+import soon.fridgely.domain.member.service.MemberFacade;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
@@ -19,6 +20,7 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RestController
 public class MemberController implements MemberControllerDocs {
 
+    private final MemberFacade memberFacade;
     private final MemberService memberService;
 
     @Override
@@ -26,7 +28,7 @@ public class MemberController implements MemberControllerDocs {
     public ResponseEntity<ApiResponse<Long>> register(
         @RequestBody @Valid MemberRegisterRequest request
     ) {
-        Long memberId = memberService.register(request.toInfo());
+        Long memberId = memberFacade.register(request.toInfo());
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(memberId));

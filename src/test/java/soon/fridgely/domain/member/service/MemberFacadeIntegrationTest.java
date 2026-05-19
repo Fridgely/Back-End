@@ -19,10 +19,10 @@ import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MemberServiceIntegrationTest extends IntegrationTestSupport {
+class MemberFacadeIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private MemberService memberService;
+    private MemberFacade memberFacade;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -46,7 +46,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
             .sample();
 
         // when
-        long memberId = memberService.register(memberInfo);
+        long memberId = memberFacade.register(memberInfo);
 
         // then
         Member member = memberRepository.findById(memberId).orElseThrow();

@@ -226,7 +226,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 팀원이_없는_냉장고는_빈_목록을_반환한다() {
+    void 팀원이_없는_냉장고는_소유자만_반환한다() {
         // given
         Refrigerator emptyFridge = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
         memberRefrigeratorRepository.save(
