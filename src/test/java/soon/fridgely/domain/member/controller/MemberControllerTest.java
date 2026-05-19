@@ -66,7 +66,7 @@ class MemberControllerTest extends ControllerTestSupport {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
 
-        verify(memberService).syncToken(1L, request.token());
+        verify(memberDeviceService).syncToken(1L, request.token());
     }
 
     @TestLoginMember

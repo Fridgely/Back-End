@@ -29,8 +29,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
-    private final MemberDeviceManager memberDeviceManager;  // Task 6에서 제거
-    private final ImageManager imageManager;                // Task 8에서 제거
+    private final ImageManager imageManager;  // Task 8에서 제거
 
     @Transactional
     public Member register(MemberInfo memberInfo) {
@@ -81,11 +80,6 @@ public class MemberService {
             rollbackImageUpload(uploadedUrl);
             throw e;
         }
-    }
-
-    // Task 6에서 MemberDeviceService로 이전 후 제거
-    public void syncToken(long memberId, String token) {
-        memberDeviceManager.syncToken(memberId, token, java.time.LocalDateTime.now());
     }
 
     private void rollbackImageUpload(String imageUrl) {
