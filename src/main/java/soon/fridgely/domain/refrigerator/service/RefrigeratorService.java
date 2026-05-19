@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -85,7 +86,7 @@ public class RefrigeratorService {
         return memberRefrigeratorRepository.findAllMyRefrigerators(memberId, EntityStatus.ACTIVE)
             .stream()
             .map(RefrigeratorResponse::from)
-            .toList();
+            .collect(Collectors.toList());
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
