@@ -10,6 +10,7 @@ import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorMemberResponse;
 import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
+import soon.fridgely.domain.refrigerator.service.RefrigeratorFacade;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.annotation.LoginMember;
 import soon.fridgely.global.support.response.ApiResponse;
@@ -22,6 +23,7 @@ import java.util.List;
 public class RefrigeratorController implements RefrigeratorControllerDocs {
 
     private final RefrigeratorService refrigeratorService;
+    private final RefrigeratorFacade refrigeratorFacade;
 
     @Override
     @GetMapping("/{refrigeratorId}")
@@ -79,7 +81,7 @@ public class RefrigeratorController implements RefrigeratorControllerDocs {
         @LoginMember Long memberId,
         @PathVariable long refrigeratorId
     ) {
-        refrigeratorService.deleteRefrigerator(new MemberRefrigeratorKey(memberId, refrigeratorId));
+        refrigeratorFacade.deleteRefrigerator(new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success());
     }
 

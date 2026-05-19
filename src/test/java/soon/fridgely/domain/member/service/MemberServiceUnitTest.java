@@ -14,8 +14,7 @@ import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.service.NotificationSettingManager;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
-import soon.fridgely.domain.refrigerator.service.MemberRefrigeratorLinker;
-import soon.fridgely.domain.refrigerator.service.RefrigeratorManager;
+import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.image.ImageManager;
 
@@ -35,10 +34,7 @@ class MemberServiceUnitTest {
     private MemberManager memberManager;
 
     @Mock
-    private RefrigeratorManager refrigeratorManager;
-
-    @Mock
-    private MemberRefrigeratorLinker memberRefrigeratorLinker;
+    private RefrigeratorService refrigeratorService;
 
     @Mock
     private NotificationSettingManager notificationSettingManager;
@@ -64,21 +60,21 @@ class MemberServiceUnitTest {
         Refrigerator mockRefrigerator = fixtureMonkey.giveMeOne(Refrigerator.class);
 
         given(memberManager.register(any(MemberInfo.class))).willReturn(mockMember);
-        given(refrigeratorManager.register(any(Member.class))).willReturn(mockRefrigerator);
+        given(refrigeratorService.register(any(Member.class))).willReturn(mockRefrigerator);
 
         // when
         Long memberId = memberService.register(memberInfo);
 
         // then
-        InOrder inOrder = inOrder(memberManager, notificationSettingManager, refrigeratorManager, memberRefrigeratorLinker, eventPublisher);
+        InOrder inOrder = inOrder(memberManager, notificationSettingManager, refrigeratorService, eventPublisher);
 
         then(memberManager).should(inOrder)
             .register(memberInfo);
         then(notificationSettingManager).should(inOrder)
             .createDefaultSetting(mockMember);
-        then(refrigeratorManager).should(inOrder)
+        then(refrigeratorService).should(inOrder)
             .register(mockMember);
-        then(memberRefrigeratorLinker).should(inOrder)
+        then(refrigeratorService).should(inOrder)
             .linkToOwner(mockMember, mockRefrigerator);
         then(eventPublisher).should(inOrder)
             .publishEvent(any(RefrigeratorCreatedEvent.class));
@@ -178,5 +174,4 @@ class MemberServiceUnitTest {
 
         then(imageManager).should().delete(uploadedUrl);
     }
-
 }

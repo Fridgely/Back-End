@@ -25,10 +25,10 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
-class RefrigeratorServiceDeleteIntegrationTest extends IntegrationTestSupport {
+class RefrigeratorFacadeIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private RefrigeratorService refrigeratorService;
+    private RefrigeratorFacade refrigeratorFacade;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -75,14 +75,16 @@ class RefrigeratorServiceDeleteIntegrationTest extends IntegrationTestSupport {
         var key = new MemberRefrigeratorKey(owner.getId(), refrigerator.getId());
 
         // when
-        refrigeratorService.deleteRefrigerator(key);
+        refrigeratorFacade.deleteRefrigerator(key);
 
         // then
         assertThat(refrigeratorRepository.findByIdAndStatus(refrigerator.getId(), EntityStatus.ACTIVE)).isEmpty();
         assertThat(foodRepository.findAllByRefrigeratorIdAndStatus(refrigerator.getId(), EntityStatus.ACTIVE)).isEmpty();
         assertThat(categoryRepository.findAllByRefrigeratorIdAndStatus(refrigerator.getId(), EntityStatus.ACTIVE)).isEmpty();
-        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigerator.getId(), owner.getId(), EntityStatus.ACTIVE)).isFalse();
-        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isFalse();
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
+            refrigerator.getId(), owner.getId(), EntityStatus.ACTIVE)).isFalse();
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
+            refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isFalse();
     }
 
     @Test
@@ -97,7 +99,7 @@ class RefrigeratorServiceDeleteIntegrationTest extends IntegrationTestSupport {
         var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
 
         // expected
-        assertThatThrownBy(() -> refrigeratorService.deleteRefrigerator(key))
+        assertThatThrownBy(() -> refrigeratorFacade.deleteRefrigerator(key))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.ONLY_OWNER_CAN_DELETE_REFRIGERATOR);
@@ -110,10 +112,9 @@ class RefrigeratorServiceDeleteIntegrationTest extends IntegrationTestSupport {
         var key = new MemberRefrigeratorKey(outsider.getId(), refrigerator.getId());
 
         // expected
-        assertThatThrownBy(() -> refrigeratorService.deleteRefrigerator(key))
+        assertThatThrownBy(() -> refrigeratorFacade.deleteRefrigerator(key))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.AUTHORIZATION_FAILED);
     }
-
 }
