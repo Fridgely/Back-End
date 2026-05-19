@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.service.FoodFinder;
+import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.notification.dto.command.NotificationMessage;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.global.support.notification.NotificationSender;
+import soon.fridgely.global.support.utils.TimeRangeUtils;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
 @Component
 public class NotificationProcessor {
 
-    private final FoodFinder foodFinder;
+    private final FoodRepository foodRepository;
     private final NotificationSettingFinder notificationSettingFinder;
     private final NotificationMessageGenerator messageGenerator;
     private final NotificationSender notificationSender;
@@ -40,7 +41,11 @@ public class NotificationProcessor {
             int daysBefore = setting.getAlertSchedule().getDaysBeforeExpiration();
             LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
 
-            List<Food> expiringFoods = foodFinder.findMyFoodsExpiringOnDate(memberId, targetDate);
+            List<Food> expiringFoods = foodRepository.findMyFoodsExpiringBetween(
+                memberId,
+                TimeRangeUtils.startOfDay(targetDate),
+                TimeRangeUtils.endOfDay(targetDate)
+            );
             if (expiringFoods.isEmpty()) {
                 return;
             }
@@ -65,7 +70,7 @@ public class NotificationProcessor {
                 return;
             }
 
-            List<Food> outOfStockFoods = foodFinder.findAllOutOfStock(memberId);
+            List<Food> outOfStockFoods = foodRepository.findAllOutOfStock(memberId);
             if (outOfStockFoods.isEmpty()) {
                 return;
             }
