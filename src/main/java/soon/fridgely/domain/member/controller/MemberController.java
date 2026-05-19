@@ -59,7 +59,7 @@ public class MemberController implements MemberControllerDocs {
         @RequestPart("file") MultipartFile file,
         @LoginMember Long memberId
     ) {
-        memberService.updateProfileImage(memberId, file);
+        memberFacade.updateProfileImage(memberId, file);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
