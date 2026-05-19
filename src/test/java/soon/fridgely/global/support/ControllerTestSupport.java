@@ -13,6 +13,7 @@ import soon.fridgely.domain.category.controller.CategoryController;
 import soon.fridgely.domain.category.service.CategoryService;
 import soon.fridgely.domain.food.controller.FoodController;
 import soon.fridgely.domain.food.controller.MyFoodController;
+import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
 import soon.fridgely.domain.member.service.MemberService;
@@ -53,6 +54,9 @@ public abstract class ControllerTestSupport {
 
     @MockitoBean
     protected CategoryService categoryService;
+
+    @MockitoBean
+    protected FoodFacade foodFacade;
 
     @MockitoBean
     protected FoodService foodService;

@@ -14,6 +14,7 @@ import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
+import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
@@ -24,6 +25,7 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RestController
 public class FoodController implements FoodControllerDocs {
 
+    private final FoodFacade foodFacade;
     private final FoodService foodService;
 
     @Override
@@ -34,7 +36,7 @@ public class FoodController implements FoodControllerDocs {
         @LoginMember Long memberId,
         @PathVariable long refrigeratorId
     ) {
-        foodService.createFood(request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        foodFacade.createFood(request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success());
     }
 
@@ -47,7 +49,7 @@ public class FoodController implements FoodControllerDocs {
         @PathVariable long refrigeratorId,
         @PathVariable long foodId
     ) {
-        foodService.updateFood(foodId, request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
+        foodFacade.updateFood(foodId, request, image, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -95,5 +97,4 @@ public class FoodController implements FoodControllerDocs {
         foodService.deleteFood(foodId, new MemberRefrigeratorKey(memberId, refrigeratorId));
         return ResponseEntity.ok(ApiResponse.success());
     }
-
 }

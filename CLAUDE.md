@@ -40,7 +40,9 @@ Controller → Facade → Service → Repository
 ```
 
 - Controller는 Service 또는 Facade만 호출
-- Facade는 2개 이상 도메인의 상태 변경을 오케스트레이션할 때만 생성
+- Facade는 다음 두 경우에만 생성:
+  1. 2개 이상 도메인 Service의 상태 변경이 한 요청에서 발생할 때
+  2. 외부 시스템(S3 등) 오케스트레이션과 도메인 상태 변경이 함께 필요할 때 (트랜잭션 밖에서 외부 I/O를 처리하기 위해)
 - Service는 자기 도메인 Repository + 필요 시 다른 도메인 Repository 직접 주입 가능
 - Service가 다른 도메인 Service를 직접 호출하는 것은 금지 (크로스 도메인 상태 변경은 Facade 담당)
 - 역방향 의존성 절대 금지
@@ -51,14 +53,14 @@ food/refrigerator/member/notification 도메인은 현재 기존 Executor 패턴
 마이그레이션 진행 중이므로 기존 Executor 클래스를 수정하는 작업은 허용하되, 새 Executor 클래스를 추가하는 것은 금지한다.
 마이그레이션 순서 및 전략은 [`docs/migration-service-facade.md`](docs/migration-service-facade.md) 참조.
 
-**완료**: category (CategoryService 단일 서비스로 통합)
-**진행 중**: food, refrigerator, member, notification
+**완료**: category (CategoryService 단일 서비스로 통합), food (FoodService + FoodFacade)
+**진행 중**: refrigerator, member, notification
 
 ## 핵심 규칙
 
 > 상세 내용은 [`docs/core-rules.md`](docs/core-rules.md) 참조
 
-- **트랜잭션**: Service에 선언, 조회 메서드는 `readOnly=true`, Controller 선언 금지
+- **트랜잭션**: Service에 선언, 조회 메서드는 `readOnly=true`, Controller 선언 금지; Facade는 목적에 따라 선택 — 외부 I/O 분리 목적이면 생략, 크로스 도메인 원자성이 필요하면 선언
 - **예외**: `CoreException(ErrorType.XXX)` 사용, `IllegalArgumentException` 금지
 - **엔티티**: `BaseEntity` 상속, 정적 팩토리 `register()`/`create()`, 소프트 딜리트(`entity.delete()`), 삭제는 멱등성 보장
 - **DTO**: 불변 `record`, `request.toCommand()` / `Response.of(entity)` 팩토리 통일

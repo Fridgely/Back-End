@@ -3,10 +3,14 @@ package soon.fridgely.domain.refrigerator.service;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.service.CategoryService;
-import soon.fridgely.domain.food.service.FoodRemover;
+import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest;
 import soon.fridgely.domain.refrigerator.dto.response.InvitationCodeResponse;
@@ -19,6 +23,7 @@ import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +38,8 @@ public class RefrigeratorService {
     private final MemberRefrigeratorLinker memberRefrigeratorLinker;
     private final MemberRefrigeratorFinder memberRefrigeratorFinder;
     private final InvitationCodeGenerator codeGenerator;
-    private final FoodRemover foodRemover;
+    private final FoodRepository foodRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final CategoryService categoryService;
 
     @ValidateRefrigeratorAccess(key = "#key")
@@ -97,7 +103,7 @@ public class RefrigeratorService {
         if (!memberRefrigerator.isOwner()) {
             throw new CoreException(ErrorType.ONLY_OWNER_CAN_DELETE_REFRIGERATOR);
         }
-        foodRemover.removeAllByRefrigeratorId(key.refrigeratorId());
+        removeAllFoodsByRefrigeratorId(key.refrigeratorId());
         categoryService.removeAllByRefrigeratorId(key.refrigeratorId());
         memberRefrigeratorLinker.unlinkAll(key.refrigeratorId());
         refrigeratorManager.delete(key.refrigeratorId());
@@ -110,6 +116,16 @@ public class RefrigeratorService {
             .stream()
             .map(RefrigeratorMemberResponse::from)
             .toList();
+    }
+
+    private void removeAllFoodsByRefrigeratorId(long refrigeratorId) {
+        List<Food> foods = foodRepository.findAllByRefrigeratorIdAndStatus(refrigeratorId, EntityStatus.ACTIVE);
+        for (Food food : foods) {
+            if (StringUtils.hasText(food.getImageURL())) {
+                eventPublisher.publishEvent(new ImageDeleteEvent(food.getImageURL()));
+            }
+            food.delete();
+        }
     }
 
     private InvitationCodeResponse generateInvitationCodeFallback(MemberRefrigeratorKey key, Exception e) {
