@@ -20,7 +20,9 @@ public class FoodFacade {
     private final ImageManager imageManager;
 
     public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        String uploadedUrl = imageManager.upload(file);
+        String uploadedUrl = file != null && !file.isEmpty()
+            ? imageManager.upload(file)
+            : null;
         try {
             foodService.createFood(request.toFoodInfo(uploadedUrl), key, request.categoryId());
         } catch (Exception e) {

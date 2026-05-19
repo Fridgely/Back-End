@@ -34,7 +34,7 @@ Executor 패턴(Finder/Manager/Modifier 등) → Service + Facade 패턴으로 �
 
 ### Facade 생성 판단
 
-```
+```text
 다음 중 하나라도 해당되는가?
   1. 이 요청에서 2개 이상 도메인 Service의 상태가 변경되는가?
   2. 외부 시스템(S3, Firebase 등) I/O와 DB 트랜잭션을 분리해야 하는가?
@@ -45,7 +45,7 @@ Executor 패턴(Finder/Manager/Modifier 등) → Service + Facade 패턴으로 �
 ```
 
 **외부 시스템 Facade 패턴 (트랜잭션 없음):**
-```
+```text
 Facade (@Transactional 없음):
   1. 외부 시스템 호출 (S3 업로드 등)
   2. Service 호출 (@Transactional) — DB 저장만
@@ -53,7 +53,7 @@ Facade (@Transactional 없음):
 ```
 
 **크로스 도메인 Facade 패턴 (@Transactional 선언):**
-```
+```text
 Facade (@Transactional):
   → ServiceA.methodA()   ┐
   → ServiceB.methodB()   ├ 동일 트랜잭션 참여 (REQUIRED)

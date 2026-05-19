@@ -181,7 +181,7 @@ public class FoodService {
     }
 
     private void deleteOldImageIfChanged(String oldImageUrl, String newImageUrl) {
-        if (!Objects.equals(oldImageUrl, newImageUrl) && oldImageUrl != null) {
+        if (StringUtils.hasText(oldImageUrl) && !Objects.equals(oldImageUrl, newImageUrl)) {
             eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
         }
     }

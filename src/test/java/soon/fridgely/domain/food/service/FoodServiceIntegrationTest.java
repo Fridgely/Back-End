@@ -292,7 +292,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 음식을_추가하면_변경된_재고가_반영된다() {
+    void 음식_재고를_추가하면_수량이_증가한다() {
         // given
         Quantity initialQuantity = Quantity.register(new BigDecimal("10.0"), Unit.L);
         Food saved = foodRepository.save(
@@ -315,7 +315,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 음식을_소비하면_변경된_재고가_반영된다() {
+    void 음식_재고를_소비하면_수량이_감소한다() {
         // given
         Quantity initialQuantity = Quantity.register(new BigDecimal("5.00"), Unit.PIECE);
         Food saved = foodRepository.save(
