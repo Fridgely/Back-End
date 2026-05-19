@@ -80,5 +80,4 @@ class InvitationCodeGeneratorUnitTest {
 
         verify(refrigeratorRepository, times(10)).existsByInvitationCode_codeAndStatus(anyString(), any());
     }
-
 }

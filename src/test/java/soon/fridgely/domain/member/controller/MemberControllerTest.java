@@ -11,9 +11,7 @@ import soon.fridgely.global.support.ControllerTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
@@ -35,7 +33,7 @@ class MemberControllerTest extends ControllerTestSupport {
             .set("nickname", "testNickname")
             .sample();
 
-        given(memberService.register(request.toInfo()))
+        given(memberFacade.register(request.toInfo()))
             .willReturn(1L);
 
         // expected
