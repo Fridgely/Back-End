@@ -70,7 +70,7 @@ reviews:
         ## 아키텍처
         - Service는 자기 도메인 Repository + 필요 시 다른 도메인 Repository를 직접 주입할 수 있다.
         - 다른 도메인 Service를 직접 호출하는 것은 금지다 (크로스 도메인 상태 변경은 Facade가 담당).
-        - Facade가 필요한 기준: 한 요청에서 2개 이상 도메인의 상태 변경이 발생할 때.
+        - Facade가 필요한 기준: (1) 한 요청에서 2개 이상 도메인의 상태 변경이 발생할 때, 또는 (2) 외부 시스템(S3 등) I/O와 DB 트랜잭션을 분리해야 할 때.
         - [마이그레이션 중] food/refrigerator/member/notification 도메인의 기존 Executor 클래스(*Finder, *Manager 등)는 마이그레이션 완료 전까지 수정은 허용하되, 새 Executor 클래스 추가는 금지한다.
 
         ## 트랜잭션
@@ -85,15 +85,17 @@ reviews:
     # ──────────────────────────────────────────
     # Facade 규칙
     # ──────────────────────────────────────────
-    - path: "src/main/java/**/service/**/*Facade.java"
+    - path: "src/main/java/**/*Facade.java"
       instructions: |
         ## 아키텍처
         - Facade는 Repository를 직접 주입하거나 호출하지 않는다.
         - 반드시 Service 메서드를 통해서만 데이터에 접근한다.
-        - 2개 이상 도메인 Service의 상태 변경을 오케스트레이션할 때만 Facade를 생성한다.
+        - 생성 기준: (1) 2개 이상 도메인 Service의 상태 변경 오케스트레이션, 또는 (2) 외부 시스템(S3 등) I/O와 DB 트랜잭션 분리.
 
         ## 트랜잭션
-        - `@Transactional` 선언 가능. 하위 Service의 트랜잭션이 참여한다.
+        - 목적에 따라 선택한다.
+        - 외부 I/O 분리 목적(S3 업로드 후 DB 저장 등): `@Transactional` 선언 금지. 외부 호출 → Service(@Transactional) → catch 외부 롤백 패턴을 사용한다.
+        - 크로스 도메인 원자성 목적(여러 Service 상태 변경이 함께 롤백되어야 할 때): `@Transactional` 선언. 하위 Service의 트랜잭션이 전파(REQUIRED)로 참여한다.
 
     # ──────────────────────────────────────────
     # Entity 규칙
