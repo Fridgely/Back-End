@@ -2,6 +2,8 @@ package soon.fridgely.domain.member.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
@@ -14,15 +16,24 @@ import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.ImageManager;
 
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.*;
+import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
 class MemberFacadeIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberFacade memberFacade;
+
+    @MockitoBean
+    private ImageManager imageManager;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -70,6 +81,52 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
         assertThat(notificationSetting)
             .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled", "member.id")
             .containsExactly(LocalTime.of(9, 0), 3, true, memberId);
+    }
+
+    @Test
+    void 프로필_이미지를_업로드하면_DB에_URL이_저장된다() {
+        // given
+        Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
+        MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[1024]);
+        String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
+        given(imageManager.upload(file)).willReturn(uploadedUrl);
+
+        // when
+        memberFacade.updateProfileImage(savedMember.getId(), file);
+
+        // then
+        Member updated = memberRepository.findById(savedMember.getId()).orElseThrow();
+        assertThat(updated.getProfileImageUrl()).isEqualTo(uploadedUrl);
+    }
+
+    @Test
+    void DB_저장_실패_시_업로드된_이미지를_삭제한다() {
+        // given
+        long nonExistentMemberId = Long.MAX_VALUE;
+        MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[1024]);
+        String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
+        given(imageManager.upload(file)).willReturn(uploadedUrl);
+
+        // expected
+        assertThatThrownBy(() -> memberFacade.updateProfileImage(nonExistentMemberId, file))
+            .isInstanceOf(CoreException.class);
+
+        then(imageManager).should().delete(uploadedUrl);
+    }
+
+    @Test
+    void 빈_파일로_프로필_이미지_업로드_시_예외가_발생한다() {
+        // given
+        Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
+        MockMultipartFile emptyFile = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[0]);
+
+        // expected
+        assertThatThrownBy(() -> memberFacade.updateProfileImage(savedMember.getId(), emptyFile))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.INVALID_REQUEST);
+
+        then(imageManager).shouldHaveNoInteractions();
     }
 
 }
