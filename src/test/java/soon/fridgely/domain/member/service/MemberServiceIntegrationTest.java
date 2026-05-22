@@ -19,10 +19,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
-class MemberManagerIntegrationTest extends IntegrationTestSupport {
+class MemberServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private MemberManager memberManager;
+    private MemberService memberService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -40,7 +40,7 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
             .sample();
 
         // when
-        Member member = memberManager.register(memberInfo);
+        Member member = memberService.register(memberInfo);
 
         // then
         assertThat(member)
@@ -58,12 +58,35 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
             .sample();
 
         // when
-        Member member = memberManager.register(memberInfo);
+        Member member = memberService.register(memberInfo);
 
         // then
         assertThat(member.getPassword())
             .isNotNull()
             .isNotEqualTo("testPassword");
+    }
+
+    @Test
+    void 중복된_아이디로_회원_생성을_시도하면_예외가_발생한다() {
+        // given
+        var memberInfo1 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword1")
+            .set("nickname", "testNickname1")
+            .sample();
+        var memberInfo2 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
+            .set("loginId", "duplicateId")
+            .set("password", "testPassword2")
+            .set("nickname", "testNickname2")
+            .sample();
+
+        memberService.register(memberInfo1);
+
+        // expected
+        assertThatThrownBy(() -> memberService.register(memberInfo2))
+            .isInstanceOf(CoreException.class)
+            .extracting("errorType")
+            .isEqualTo(ErrorType.DUPLICATE_LOGIN_ID);
     }
 
     @Test
@@ -75,7 +98,7 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-profile.jpg";
 
         // when
-        memberManager.updateProfileImage(saved.getId(), newImageUrl);
+        memberService.updateProfileImage(saved.getId(), newImageUrl);
 
         // then
         Member updated = memberRepository.findById(saved.getId()).orElseThrow();
@@ -93,7 +116,7 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         );
 
         // when
-        memberManager.updateProfileImage(saved.getId(), newImageUrl);
+        memberService.updateProfileImage(saved.getId(), newImageUrl);
 
         // then
         Member updated = memberRepository.findById(saved.getId()).orElseThrow();
@@ -107,34 +130,9 @@ class MemberManagerIntegrationTest extends IntegrationTestSupport {
         long nonExistentMemberId = 999L;
 
         // expected
-        assertThatThrownBy(() -> memberManager.updateProfileImage(nonExistentMemberId, "https://s3.amazonaws.com/bucket/images/image.jpg"))
+        assertThatThrownBy(() -> memberService.updateProfileImage(nonExistentMemberId, "https://s3.amazonaws.com/bucket/images/image.jpg"))
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.NOT_FOUND_DATA);
     }
-
-    @Test
-    void 중복된_아이디로_회원_생성을_시도하면_예외가_발생한다() {
-        // given
-        var memberInfo1 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
-            .set("loginId", "duplicateId")
-            .set("password", "testPassword1")
-            .set("nickname", "testNickname1")
-            .sample();
-        var memberInfo2 = fixtureMonkey.giveMeBuilder(MemberInfo.class)
-            .set("loginId", "duplicateId")
-            .set("password", "testPassword2")
-            .set("nickname", "testNickname2")
-            .sample();
-
-        // when
-        memberManager.register(memberInfo1);
-
-        // then
-        assertThatThrownBy(() -> memberManager.register(memberInfo2))
-            .isInstanceOf(CoreException.class)
-            .extracting("errorType")
-            .isEqualTo(ErrorType.DUPLICATE_LOGIN_ID);
-    }
-
 }

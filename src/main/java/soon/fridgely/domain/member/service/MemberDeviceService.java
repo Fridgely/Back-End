@@ -2,7 +2,7 @@ package soon.fridgely.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -11,14 +11,15 @@ import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
-@Component
-public class MemberDeviceManager {
+@Service
+public class MemberDeviceService {
 
     private final MemberDeviceRepository memberDeviceRepository;
     private final MemberDeviceAppender memberDeviceAppender;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void syncToken(long memberId, String token, LocalDateTime now) {
+    public void syncToken(long memberId, String token) {
+        LocalDateTime now = LocalDateTime.now();
         memberDeviceRepository.findByMemberIdAndTokenAndStatus(memberId, token, EntityStatus.ACTIVE)
             .ifPresentOrElse(
                 device -> device.refreshLastUsedAt(now),
@@ -34,5 +35,4 @@ public class MemberDeviceManager {
                 .ifPresent(device -> device.refreshLastUsedAt(now));
         }
     }
-
 }

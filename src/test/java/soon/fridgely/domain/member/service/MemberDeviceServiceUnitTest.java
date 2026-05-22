@@ -10,17 +10,18 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-class MemberDeviceManagerUnitTest {
+class MemberDeviceServiceUnitTest {
 
     @InjectMocks
-    private MemberDeviceManager memberDeviceManager;
+    private MemberDeviceService memberDeviceService;
 
     @Mock
     private MemberDeviceRepository memberDeviceRepository;
@@ -33,8 +34,6 @@ class MemberDeviceManagerUnitTest {
         // given
         long memberId = 1L;
         String token = "duplicateToken";
-        LocalDateTime now = LocalDateTime.now();
-
         MemberDevice existingDevice = mock(MemberDevice.class);
 
         // 첫 조회: 없음 → 신규 등록 시도 / 두 번째 조회(fallback): 다른 스레드가 먼저 등록한 디바이스 반환
@@ -43,13 +42,12 @@ class MemberDeviceManagerUnitTest {
             .willReturn(Optional.of(existingDevice));
 
         willThrow(new DataIntegrityViolationException("unique constraint violation"))
-            .given(memberDeviceAppender).registerNewDevice(memberId, token, now);
+            .given(memberDeviceAppender).registerNewDevice(eq(memberId), eq(token), any());
 
         // when
-        memberDeviceManager.syncToken(memberId, token, now);
+        memberDeviceService.syncToken(memberId, token);
 
-        // then - fallback에서 기존 디바이스의 마지막 사용 시간 갱신
-        then(existingDevice).should().refreshLastUsedAt(now);
+        // then
+        then(existingDevice).should().refreshLastUsedAt(any());
     }
-
 }
