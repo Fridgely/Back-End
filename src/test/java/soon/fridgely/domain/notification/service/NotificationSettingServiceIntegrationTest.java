@@ -52,15 +52,15 @@ class NotificationSettingServiceIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void 이미_알림_설정이_존재하면_중복_생성하지_않는다() {
-        // when
+        // given
         notificationSettingService.createDefaultSetting(member);
         long countBefore = notificationSettingRepository.count();
 
+        // when
         notificationSettingService.createDefaultSetting(member);
-        long countAfter = notificationSettingRepository.count();
 
         // then
-        assertThat(countBefore).isEqualTo(countAfter);
+        assertThat(notificationSettingRepository.count()).isEqualTo(countBefore);
     }
 
     @Test
