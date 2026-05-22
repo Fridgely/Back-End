@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
-import soon.fridgely.domain.notification.service.NotificationSettingFinder;
+import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 
@@ -35,12 +35,12 @@ class NotificationBatchExecutorUnitTest {
     private NotificationBatchExecutor executor;
 
     @Mock
-    private NotificationSettingFinder finder;
+    private NotificationSettingService notificationSettingService;
 
     @Test
     void 빈_결과인_경우_작업을_실행하지_않는다() {
         // given
-        given(finder.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
+        given(notificationSettingService.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
             .willReturn(new SliceImpl<>(List.of()));
 
         Consumer<NotificationSetting> task = mockTask();
@@ -67,9 +67,9 @@ class NotificationBatchExecutorUnitTest {
         Slice<NotificationSetting> firstPage = new SliceImpl<>(List.of(setting1, setting2), Pageable.ofSize(2), true);
         Slice<NotificationSetting> secondPage = new SliceImpl<>(List.of(setting3), Pageable.ofSize(2), false);
 
-        given(finder.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
+        given(notificationSettingService.findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any()))
             .willReturn(firstPage);
-        given(finder.findAllActiveByTime(any(), any(), eq(20L), any()))
+        given(notificationSettingService.findAllActiveByTime(any(), any(), eq(20L), any()))
             .willReturn(secondPage);
 
         Consumer<NotificationSetting> task = mockTask();
@@ -80,9 +80,9 @@ class NotificationBatchExecutorUnitTest {
         BatchResult result = executor.executeForExpiration(startTime, endTime, task);
 
         // then
-        then(finder).should()
+        then(notificationSettingService).should()
             .findAllActiveByTime(any(), any(), eq(Long.MAX_VALUE), any());
-        then(finder).should()
+        then(notificationSettingService).should()
             .findAllActiveByTime(any(), any(), eq(20L), any());
 
         assertThat(result.submittedCount()).isEqualTo(3);
@@ -96,7 +96,7 @@ class NotificationBatchExecutorUnitTest {
         NotificationSetting setting = mock(NotificationSetting.class);
         Slice<NotificationSetting> page = new SliceImpl<>(List.of(setting), Pageable.ofSize(10), false);
 
-        given(finder.findAllActive(eq(Long.MAX_VALUE), any()))
+        given(notificationSettingService.findAllActive(eq(Long.MAX_VALUE), any()))
             .willReturn(page);
 
         Consumer<NotificationSetting> task = mockTask();
@@ -107,7 +107,7 @@ class NotificationBatchExecutorUnitTest {
         // then
         assertThat(result.submittedCount()).isEqualTo(1);
 
-        then(finder).should()
+        then(notificationSettingService).should()
             .findAllActive(eq(Long.MAX_VALUE), any());
         then(task).should(times(1))
             .accept(any());
