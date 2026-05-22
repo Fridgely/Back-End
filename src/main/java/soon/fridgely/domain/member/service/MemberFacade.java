@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
-import soon.fridgely.domain.notification.service.NotificationSettingManager;
+import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.event.RefrigeratorCreatedEvent;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
@@ -24,14 +24,14 @@ public class MemberFacade {
 
     private final MemberService memberService;
     private final RefrigeratorService refrigeratorService;
-    private final NotificationSettingManager notificationSettingManager;
+    private final NotificationSettingService notificationSettingService;
     private final ApplicationEventPublisher eventPublisher;
     private final ImageManager imageManager;
 
     @Transactional
     public Long register(MemberInfo memberInfo) {
         Member member = memberService.register(memberInfo);
-        notificationSettingManager.createDefaultSetting(member);
+        notificationSettingService.createDefaultSetting(member);
         Refrigerator refrigerator = refrigeratorService.register(member);
         refrigeratorService.linkToOwner(member, refrigerator);
         eventPublisher.publishEvent(new RefrigeratorCreatedEvent(refrigerator.getId(), member.getId()));

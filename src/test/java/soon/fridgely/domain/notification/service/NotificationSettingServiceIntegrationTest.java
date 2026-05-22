@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.notification.entity.AlertSchedule;
+import soon.fridgely.domain.notification.dto.request.NotificationSettingUpdateRequest;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.NotificationSettingFixture.notificationSetting;
 
-class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
+class NotificationSettingServiceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
-    private NotificationSettingManager notificationSettingManager;
+    private NotificationSettingService notificationSettingService;
 
     @Autowired
     private NotificationSettingRepository notificationSettingRepository;
@@ -39,9 +39,9 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 기본_알림_설정을_생성한다() {
+    void 회원_가입_시_기본_알림_설정이_생성된다() {
         // when
-        notificationSettingManager.createDefaultSetting(member);
+        notificationSettingService.createDefaultSetting(member);
 
         // then
         NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
@@ -51,38 +51,33 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 이미_설정이_존재하면_새로_생성하지_않는다() {
-        // when
-        notificationSettingManager.createDefaultSetting(member);
+    void 이미_알림_설정이_존재하면_중복_생성하지_않는다() {
+        // given
+        notificationSettingService.createDefaultSetting(member);
         long countBefore = notificationSettingRepository.count();
 
-        notificationSettingManager.createDefaultSetting(member);
-        long countAfter = notificationSettingRepository.count();
+        // when
+        notificationSettingService.createDefaultSetting(member);
 
         // then
-        assertThat(countBefore).isEqualTo(countAfter);
+        assertThat(notificationSettingRepository.count()).isEqualTo(countBefore);
     }
 
     @Test
-    void 다른_회원에_대해서는_각각_설정이_생성된다() {
+    void 회원마다_독립적으로_알림_설정이_생성된다() {
         // given
         Member member2 = memberRepository.save(
             member(fixtureMonkey).sample()
         );
 
         // when
-        notificationSettingManager.createDefaultSetting(member);
-        notificationSettingManager.createDefaultSetting(member2);
+        notificationSettingService.createDefaultSetting(member);
+        notificationSettingService.createDefaultSetting(member2);
 
         // then
-        NotificationSetting setting1 = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
-        assertThat(setting1).isNotNull();
-
-        NotificationSetting setting2 = notificationSettingRepository.findByMemberId(member2.getId()).orElseThrow();
-        assertThat(setting2).isNotNull();
-
-        long savedCount = notificationSettingRepository.count();
-        assertThat(savedCount).isEqualTo(2);
+        assertThat(notificationSettingRepository.findByMemberId(member.getId())).isPresent();
+        assertThat(notificationSettingRepository.findByMemberId(member2.getId())).isPresent();
+        assertThat(notificationSettingRepository.count()).isEqualTo(2);
     }
 
     @ParameterizedTest
@@ -92,20 +87,20 @@ class NotificationSettingManagerIntegrationTest extends IntegrationTestSupport {
         "14, 30, 15, true",
         "23, 59, 30, false"
     })
-    void 알림_설정을_수정한다(int hour, int minute, int days, boolean enabled) {
+    void 알림_설정을_수정하면_변경_사항이_저장된다(int hour, int minute, int days, boolean enabled) {
         // given
         notificationSettingRepository.save(
             notificationSetting(fixtureMonkey, member).sample()
         );
 
-        var newSchedule = AlertSchedule.of(LocalTime.of(hour, minute), days);
+        var request = new NotificationSettingUpdateRequest(LocalTime.of(hour, minute), days, enabled);
 
         // when
-        notificationSettingManager.update(member.getId(), newSchedule, enabled);
+        notificationSettingService.updateNotificationSetting(member.getId(), request);
 
         // then
         NotificationSetting setting = notificationSettingRepository.findByMemberId(member.getId()).orElseThrow();
-        assertThat(setting).isNotNull()
+        assertThat(setting)
             .extracting("alertSchedule.notificationTime", "alertSchedule.daysBeforeExpiration", "enabled")
             .containsExactly(LocalTime.of(hour, minute), days, enabled);
     }
