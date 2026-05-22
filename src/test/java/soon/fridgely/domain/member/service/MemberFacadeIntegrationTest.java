@@ -1,9 +1,13 @@
 package soon.fridgely.domain.member.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.entity.Member;
@@ -18,22 +22,31 @@ import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
-import soon.fridgely.global.support.image.ImageManager;
+import soon.fridgely.global.support.fake.FakeImageManager;
 
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.mockito.BDDMockito.*;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
+@Import(MemberFacadeIntegrationTest.FakeConfig.class)
 class MemberFacadeIntegrationTest extends IntegrationTestSupport {
+
+    @TestConfiguration
+    static class FakeConfig {
+        @Bean
+        @Primary
+        public FakeImageManager fakeImageManager() {
+            return new FakeImageManager();
+        }
+    }
 
     @Autowired
     private MemberFacade memberFacade;
 
-    @MockitoBean
-    private ImageManager imageManager;
+    @Autowired
+    private FakeImageManager fakeImageManager;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -46,6 +59,11 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MemberRefrigeratorRepository memberRefrigeratorRepository;
+
+    @BeforeEach
+    void setUp() {
+        fakeImageManager.reset();
+    }
 
     @Test
     void 회원가입_시_회원_기본_냉장고_알림_설정_연결이_모두_생성된다() {
@@ -89,7 +107,7 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
         Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
         MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[1024]);
         String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
-        given(imageManager.upload(file)).willReturn(uploadedUrl);
+        fakeImageManager.setUploadResult(uploadedUrl);
 
         // when
         memberFacade.updateProfileImage(savedMember.getId(), file);
@@ -105,14 +123,14 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
         long nonExistentMemberId = Long.MAX_VALUE;
         MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[1024]);
         String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
-        given(imageManager.upload(file)).willReturn(uploadedUrl);
+        fakeImageManager.setUploadResult(uploadedUrl);
 
         // when
         var actualException = catchThrowable(() -> memberFacade.updateProfileImage(nonExistentMemberId, file));
 
         // expected
         assertThat(actualException).isInstanceOf(CoreException.class);
-        then(imageManager).should().delete(uploadedUrl);
+        assertThat(fakeImageManager.getDeletedUrls()).contains(uploadedUrl);
     }
 
     @Test
@@ -129,7 +147,7 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.INVALID_REQUEST);
-        then(imageManager).shouldHaveNoInteractions();
+        assertThat(fakeImageManager.getDeletedUrls()).isEmpty();
     }
 
 }
