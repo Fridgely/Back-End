@@ -58,7 +58,7 @@ public class MemberFacade {
             try {
                 imageManager.delete(imageUrl);
             } catch (Exception e) {
-                log.warn(SlackMarkers.SYSTEM, "[Member] 이미지 롤백 실패 - 수동 정리 필요 (ImageUrl={})", imageUrl, e);
+                log.warn(SlackMarkers.SYSTEM, "[Member] 이미지 롤백 실패. (ImageUrl={})", imageUrl, e);
             }
         }
     }

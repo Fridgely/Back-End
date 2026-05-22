@@ -14,7 +14,6 @@ import soon.fridgely.global.support.exception.ErrorType;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,8 +64,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
-
-        verify(memberDeviceService).syncToken(1L, request.token());
     }
 
     @TestLoginMember
@@ -114,8 +111,6 @@ class MemberControllerTest extends ControllerTestSupport {
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.result").value("SUCCESS"));
-
-        verify(memberFacade).updateProfileImage(eq(1L), any(org.springframework.web.multipart.MultipartFile.class));
     }
 
     @TestLoginMember

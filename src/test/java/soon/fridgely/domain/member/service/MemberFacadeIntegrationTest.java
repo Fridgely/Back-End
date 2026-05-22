@@ -23,7 +23,7 @@ import soon.fridgely.global.support.image.ImageManager;
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.BDDMockito.*;
 import static soon.fridgely.global.support.fixture.MemberFixture.member;
 
@@ -107,10 +107,11 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
         String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
         given(imageManager.upload(file)).willReturn(uploadedUrl);
 
-        // expected
-        assertThatThrownBy(() -> memberFacade.updateProfileImage(nonExistentMemberId, file))
-            .isInstanceOf(CoreException.class);
+        // when
+        var actualException = catchThrowable(() -> memberFacade.updateProfileImage(nonExistentMemberId, file));
 
+        // expected
+        assertThat(actualException).isInstanceOf(CoreException.class);
         then(imageManager).should().delete(uploadedUrl);
     }
 
@@ -120,12 +121,14 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
         Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
         MockMultipartFile emptyFile = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[0]);
 
+        // when
+        var actualException = catchThrowable(() -> memberFacade.updateProfileImage(savedMember.getId(), emptyFile));
+
         // expected
-        assertThatThrownBy(() -> memberFacade.updateProfileImage(savedMember.getId(), emptyFile))
+        assertThat(actualException)
             .isInstanceOf(CoreException.class)
             .extracting("errorType")
             .isEqualTo(ErrorType.INVALID_REQUEST);
-
         then(imageManager).shouldHaveNoInteractions();
     }
 
