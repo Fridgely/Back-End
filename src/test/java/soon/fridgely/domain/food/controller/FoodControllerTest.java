@@ -13,7 +13,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
-import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
@@ -23,6 +22,7 @@ import soon.fridgely.domain.food.entity.StockActionType;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.TestLoginMember;
 import soon.fridgely.global.support.ControllerTestSupport;
+import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ResultType;
@@ -200,7 +200,7 @@ class FoodControllerTest extends ControllerTestSupport {
         List<FoodListResponse> content = List.of(foodResponse);
         Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
-        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(CursorPageRequest.class), any()))
             .willReturn(mockSlice);
 
         // expected
@@ -231,8 +231,9 @@ class FoodControllerTest extends ControllerTestSupport {
         List<FoodListResponse> content = List.of(foodResponse);
         Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), true);
 
-        ArgumentCaptor<FoodCursorPageRequest> requestCaptor = ArgumentCaptor.forClass(FoodCursorPageRequest.class);
-        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), requestCaptor.capture()))
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<CursorPageRequest<FoodSortType>> requestCaptor = ArgumentCaptor.forClass((Class) CursorPageRequest.class);
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), requestCaptor.capture(), any()))
             .willReturn(mockSlice);
 
         // when
@@ -247,7 +248,7 @@ class FoodControllerTest extends ControllerTestSupport {
             .andExpect(jsonPath("$.result").value("SUCCESS"));
 
         // then
-        FoodCursorPageRequest capturedRequest = requestCaptor.getValue();
+        CursorPageRequest<FoodSortType> capturedRequest = requestCaptor.getValue();
         assertThat(capturedRequest).isNotNull();
         assertThat(capturedRequest.getSortBy()).isEqualTo(FoodSortType.NAME);
     }
@@ -263,7 +264,7 @@ class FoodControllerTest extends ControllerTestSupport {
         List<FoodListResponse> content = List.of(foodResponse);
         Slice<FoodListResponse> mockSlice = new SliceImpl<>(content, Pageable.ofSize(size), false);
 
-        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(FoodCursorPageRequest.class)))
+        given(foodService.findAllFoods(any(MemberRefrigeratorKey.class), any(CursorPageRequest.class), any()))
             .willReturn(mockSlice);
 
         // expected

@@ -9,7 +9,6 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.entity.CategoryType;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
-import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
@@ -22,6 +21,7 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
+import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.IntegrationTestSupport;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
@@ -124,10 +124,10 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
                 .sample()
         );
 
-        FoodCursorPageRequest request = new FoodCursorPageRequest(null, 10, null, StorageType.REFRIGERATION);
+        CursorPageRequest<FoodSortType> request = new CursorPageRequest<>(null, 10, null);
 
         // when
-        Slice<FoodListResponse> result = foodService.findAllFoods(key, request);
+        Slice<FoodListResponse> result = foodService.findAllFoods(key, request, StorageType.REFRIGERATION);
 
         // then
         assertThat(result.getContent()).hasSize(1);
