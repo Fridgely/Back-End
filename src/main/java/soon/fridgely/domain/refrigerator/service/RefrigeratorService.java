@@ -157,7 +157,7 @@ public class RefrigeratorService {
         refrigerator.delete();
     }
 
-    private InvitationCodeResponse generateInvitationCodeFallback(MemberRefrigeratorKey key, Exception e) {
+    InvitationCodeResponse generateInvitationCodeFallback(MemberRefrigeratorKey key, Exception e) {
         log.warn("초대 코드 생성 재시도 횟수 초과 - refrigeratorId: {}", key.refrigeratorId(), e);
         throw new CoreException(ErrorType.CONCURRENT_UPDATE_LIMIT_EXCEEDED);
     }
