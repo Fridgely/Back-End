@@ -6,18 +6,21 @@ import net.jqwik.api.Arbitraries;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberRole;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 /**
  * FixtureMonkey를 사용하여 Member 엔티티의 테스트 데이터를 생성하는 유틸리티 클래스
  */
 public final class MemberFixture {
 
+    private static final FixtureMonkey FIXTURE_MONKEY = FixtureMonkeyFactory.get();
+
     private MemberFixture() {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static ArbitraryBuilder<Member> member(FixtureMonkey fixtureMonkey) {
-        return fixtureMonkey.giveMeBuilder(Member.class)
+    public static ArbitraryBuilder<Member> member() {
+        return FIXTURE_MONKEY.giveMeBuilder(Member.class)
             .set("nickname", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(20))
             .set("loginId", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(100))
             .set("password", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(100))

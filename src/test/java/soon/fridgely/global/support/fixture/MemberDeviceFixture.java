@@ -6,6 +6,7 @@ import net.jqwik.api.Arbitraries;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberDevice;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,12 +16,14 @@ import java.util.UUID;
  */
 public final class MemberDeviceFixture {
 
+    private static final FixtureMonkey FIXTURE_MONKEY = FixtureMonkeyFactory.get();
+
     private MemberDeviceFixture() {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static ArbitraryBuilder<MemberDevice> memberDevice(FixtureMonkey fixtureMonkey, Member member) {
-        return fixtureMonkey.giveMeBuilder(MemberDevice.class)
+    public static ArbitraryBuilder<MemberDevice> memberDevice(Member member) {
+        return FIXTURE_MONKEY.giveMeBuilder(MemberDevice.class)
             .set("member", member)
             .set("token", Arbitraries.create(() -> UUID.randomUUID().toString()))
             .set("lastUsedAt", LocalDateTime.of(2024, 1, 1, 0, 0))
