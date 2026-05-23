@@ -15,7 +15,7 @@ import soon.fridgely.domain.member.entity.Member;
 @Import(TestSecurityConfig.class)
 @TruncateTables
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public abstract class E2ETestSupport {
+public abstract class AcceptanceTestSupport {
 
     protected final FixtureMonkey fixtureMonkey = FixtureMonkeyFactory.get();
 
@@ -25,9 +25,6 @@ public abstract class E2ETestSupport {
     @Autowired
     protected TokenProvider tokenProvider;
 
-    /**
-     * 인증 헤더가 포함된 HttpHeaders 생성
-     */
     protected HttpHeaders createAuthHeaders(Member member) {
         String token = tokenProvider.generateAllToken(member.getId(), member.getRole()).accessToken();
         HttpHeaders headers = new HttpHeaders();
@@ -35,16 +32,10 @@ public abstract class E2ETestSupport {
         return headers;
     }
 
-    /**
-     * 인증 헤더가 포함된 HttpEntity 생성 (body 없음)
-     */
     protected HttpEntity<Void> createAuthEntity(Member member) {
         return new HttpEntity<>(createAuthHeaders(member));
     }
 
-    /**
-     * 인증 헤더가 포함된 HttpEntity 생성 (body 포함)
-     */
     protected <T> HttpEntity<T> createAuthEntity(T body, Member member) {
         return new HttpEntity<>(body, createAuthHeaders(member));
     }
