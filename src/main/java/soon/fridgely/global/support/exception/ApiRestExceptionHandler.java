@@ -26,9 +26,9 @@ public class ApiRestExceptionHandler {
         Object data = e.getData();
 
         if (Objects.requireNonNull(errorType.getLogLevel()) == LogLevel.ERROR) {
-            log.error("[{}] {} (Data={})", errorType.name(), e.getMessage(), data, e);
+            log.error("[{}] {}. (Data={})", errorType.name(), e.getMessage(), data, e);
         } else {
-            log.warn("[{}] {} (Data={})", errorType.name(), e.getMessage(), data);
+            log.warn("[{}] {}. (Data={})", errorType.name(), e.getMessage(), data);
         }
 
         return buildResponse(errorType, data);

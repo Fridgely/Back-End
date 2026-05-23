@@ -54,9 +54,9 @@ public class JwtProvider implements TokenProvider {
         } catch (ExpiredJwtException e) {
             log.debug("[JWT] 만료된 토큰. (Exception={})", e.getClass().getSimpleName());
         } catch (UnsupportedJwtException e) {
-            log.debug("[JWT] 지원되지 않는 토큰. (Exception={})", e.getClass().getSimpleName());
+            log.warn("[JWT] 지원되지 않는 토큰. (Exception={})", e.getClass().getSimpleName());
         } catch (IllegalArgumentException e) {
-            log.debug("[JWT] 잘못된 토큰. (Exception={})", e.getClass().getSimpleName());
+            log.warn("[JWT] 잘못된 토큰. (Exception={})", e.getClass().getSimpleName());
         }
         return false;
     }

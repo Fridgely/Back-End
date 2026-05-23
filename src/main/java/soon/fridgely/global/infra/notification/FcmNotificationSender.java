@@ -53,8 +53,13 @@ public class FcmNotificationSender implements NotificationSender {
 
             firebaseMessaging.send(message);
         } catch (FirebaseMessagingException e) {
-            log.error("[FcmSender] 알림 전송 실패. (MemberId={}, Token={})", device.getMember().getId(), device.getToken(), e);
+            log.error("[FcmSender] 알림 전송 실패. (MemberId={}, Token={})", device.getMember().getId(), maskToken(device.getToken()), e);
         }
+    }
+
+    private static String maskToken(String token) {
+        if (token == null || token.length() <= 4) return "****";
+        return "****" + token.substring(token.length() - 4);
     }
 
 }
