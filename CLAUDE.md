@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 커맨드
+
+```bash
+# 빌드
+./gradlew build
+
+# 전체 테스트
+./gradlew test
+
+# 단일 테스트 클래스
+./gradlew test --tests "soon.fridgely.domain.food.service.FoodServiceIntegrationTest"
+
+# 단일 테스트 메서드
+./gradlew test --tests "soon.fridgely.domain.food.service.FoodServiceIntegrationTest.메서드명"
+```
+
+> **캐시 테스트** (`CategoryCacheIntegrationTest`, `RefrigeratorCacheIntegrationTest`)는 Redis 의존성이 있어 Docker 없이 실행하면 컨텍스트 로딩 단계에서 실패한다.
+> 로컬에서 전체 테스트를 돌리기 전에 `docker compose up -d redis` 필요.
+
 ## 아키텍처
 
 **스택**: Spring Boot 3.5.7, Java 17, JPA/QueryDSL, MySQL 8 (로컬/테스트는 H2), Spring Security 6 + JWT, Resilience4j, Firebase FCM, AWS S3
@@ -65,7 +84,7 @@ food/refrigerator/member/notification 도메인은 현재 기존 Executor 패턴
 - **엔티티**: `BaseEntity` 상속, 정적 팩토리 `register()`/`create()`, 소프트 딜리트(`entity.delete()`), 삭제는 멱등성 보장
 - **DTO**: 불변 `record`, `request.toCommand()` / `Response.of(entity)` 팩토리 통일
 - **보안**: `@LoginMember`(Controller), `@ValidateRefrigeratorAccess`(Service)
-- **이벤트**: `@TransactionalEventListener(AFTER_COMMIT)` + `REQUIRES_NEW`
+- **이벤트**: `@TransactionalEventListener(AFTER_COMMIT)` — DB 쓰기가 있는 리스너만 `REQUIRES_NEW` 추가, 외부 API 호출(FCM 등) 단독은 불필요
 - **로깅**: `[Domain] 메시지. (key=value)`, 중요 이벤트에 `SlackMarkers` 사용
 - **테스트**: 한글 메서드명, BDD 구조, 테스트 간 독립성 보장 — 상세 규칙은 [`docs/testing-rules.md`](docs/testing-rules.md) 참조
 

@@ -34,6 +34,40 @@
   2. fixture를 수정해도 모든 테스트에 영향을 주지 않는다
 - 위 조건을 만족하지 않으면 각 테스트마다 독립적으로 생성한다
 
+## 검증 패턴
+
+동일한 대상의 여러 필드를 검증할 때는 `assertThat`을 반복하는 대신 `extracting`으로 한 번에 뽑아 검증한다.
+
+```java
+// ❌ 반복 assertThat
+assertThat(response.blackCount()).isEqualTo(2);
+assertThat(response.redCount()).isEqualTo(3);
+assertThat(response.yellowCount()).isEqualTo(1);
+
+// ✅ extracting으로 한 번에
+assertThat(response)
+    .extracting(
+        FoodStatusResponse::blackCount,
+        FoodStatusResponse::redCount,
+        FoodStatusResponse::yellowCount
+    )
+    .containsExactly(2, 3, 1);
+```
+
+컬렉션 요소 전체에 동일 조건이 성립하는 경우:
+
+```java
+// ❌ 반복 assertThat
+assertThat(result.get(FoodStatus.BLACK)).isEmpty();
+assertThat(result.get(FoodStatus.RED)).isEmpty();
+assertThat(result.get(FoodStatus.YELLOW)).isEmpty();
+
+// ✅ extracting + containsOnly
+assertThat(List.of(FoodStatus.BLACK, FoodStatus.RED, FoodStatus.YELLOW))
+    .extracting(status -> result.get(status).size())
+    .containsOnly(0);
+```
+
 ## 테스트 클래스 종류
 
 | 클래스 | 용도 |
