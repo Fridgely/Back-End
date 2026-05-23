@@ -1,10 +1,8 @@
 package soon.fridgely.domain.food.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import soon.fridgely.domain.food.entity.FoodStatus;
 
 import java.util.List;
-import java.util.Map;
 
 @Schema(description = "유통기한 상태별 식재료 목록")
 public record FoodStatusResponse(
@@ -34,21 +32,4 @@ public record FoodStatusResponse(
     int greenCount
 
 ) {
-    public static FoodStatusResponse from(Map<FoodStatus, List<FoodResponse>> map) {
-        List<FoodResponse> blackList = map.getOrDefault(FoodStatus.BLACK, List.of());
-        List<FoodResponse> redList = map.getOrDefault(FoodStatus.RED, List.of());
-        List<FoodResponse> yellowList = map.getOrDefault(FoodStatus.YELLOW, List.of());
-        List<FoodResponse> greenList = map.getOrDefault(FoodStatus.GREEN, List.of());
-
-        return new FoodStatusResponse(
-            blackList,
-            blackList.size(),
-            redList,
-            redList.size(),
-            yellowList,
-            yellowList.size(),
-            greenList,
-            greenList.size()
-        );
-    }
 }

@@ -14,10 +14,9 @@ import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
+import soon.fridgely.domain.food.dto.response.FoodsByStatus;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.Quantity;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
@@ -32,9 +31,7 @@ import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -112,11 +109,7 @@ public class FoodService {
     @Transactional(readOnly = true)
     public FoodStatusResponse findAllMyFoodsGroupedByStatus(long memberId) {
         List<Food> allFoods = foodRepository.findAllMyFoods(memberId);
-        LocalDate now = LocalDate.now();
-        Map<FoodStatus, List<FoodResponse>> groupedMap = allFoods.stream()
-            .map(food -> FoodResponse.of(food, now))
-            .collect(Collectors.groupingBy(response -> response.condition().foodStatus()));
-        return FoodStatusResponse.from(groupedMap);
+        return FoodsByStatus.of(allFoods, LocalDate.now()).toStatusResponse();
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
