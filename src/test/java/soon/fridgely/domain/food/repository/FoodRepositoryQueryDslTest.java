@@ -46,13 +46,13 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
     }
 
@@ -61,15 +61,15 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
         // given
         LocalDate now = LocalDate.now();
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "음식3")
                 .set("expirationDate", now.plusDays(30).atStartOfDay())
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "음식1")
                 .set("expirationDate", now.plusDays(5).atStartOfDay())
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "음식2")
                 .set("expirationDate", now.plusDays(10).atStartOfDay())
                 .sample()
@@ -94,9 +94,9 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void 등록일_내림차순_정렬로_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category).set("name", "음식1").sample(),
-            food(fixtureMonkey, refrigerator, member, category).set("name", "음식2").sample(),
-            food(fixtureMonkey, refrigerator, member, category).set("name", "음식3").sample()
+            food(refrigerator, member, category).set("name", "음식1").sample(),
+            food(refrigerator, member, category).set("name", "음식2").sample(),
+            food(refrigerator, member, category).set("name", "음식3").sample()
         ));
 
         // when
@@ -118,9 +118,9 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void 이름_오름차순_정렬로_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category).set("name", "치킨").sample(),
-            food(fixtureMonkey, refrigerator, member, category).set("name", "김치").sample(),
-            food(fixtureMonkey, refrigerator, member, category).set("name", "사과").sample()
+            food(refrigerator, member, category).set("name", "치킨").sample(),
+            food(refrigerator, member, category).set("name", "김치").sample(),
+            food(refrigerator, member, category).set("name", "사과").sample()
         ));
 
         // when
@@ -143,17 +143,17 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
         // given
         LocalDate now = LocalDate.now();
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉장음식1")
                 .set("storageType", StorageType.REFRIGERATION)
                 .set("expirationDate", now.plusDays(5).atStartOfDay())
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉동음식")
                 .set("storageType", StorageType.FROZEN)
                 .set("expirationDate", now.plusDays(1).atStartOfDay())
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉장음식2")
                 .set("storageType", StorageType.REFRIGERATION)
                 .set("expirationDate", now.plusDays(3).atStartOfDay())
@@ -179,15 +179,15 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void 저장_위치로_필터링하고_이름_오름차순으로_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "치킨")
                 .set("storageType", StorageType.FROZEN)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "우유")
                 .set("storageType", StorageType.REFRIGERATION)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "만두")
                 .set("storageType", StorageType.FROZEN)
                 .sample()
@@ -212,15 +212,15 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void 저장_위치로_필터링하고_등록일_내림차순으로_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "음식1")
                 .set("storageType", StorageType.ROOM_TEMPERATURE)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "음식2")
                 .set("storageType", StorageType.ROOM_TEMPERATURE)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉장음식")
                 .set("storageType", StorageType.REFRIGERATION)
                 .sample()
@@ -245,13 +245,13 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void storageType이_null이면_전체_음식을_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("storageType", StorageType.REFRIGERATION)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("storageType", StorageType.FROZEN)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("storageType", StorageType.ROOM_TEMPERATURE)
                 .sample()
         ));
@@ -273,8 +273,8 @@ class FoodRepositoryQueryDslTest extends IntegrationTestSupport {
     void 카테고리가_Fetch_Join되어_N플러스1_문제가_발생하지_않는다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category).sample(),
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(refrigerator, member, category).sample(),
+            food(refrigerator, member, category).sample()
         ));
 
         // when

@@ -39,7 +39,7 @@ class FoodsByStatusUnitTest {
     }
 
     private ArbitraryBuilder<Food> foodOf(FoodStatus status) {
-        return food(fixtureMonkey, refrigerator, member, category, expirationDayFor(status, today), status)
+        return food(refrigerator, member, category, expirationDayFor(status, today), status)
             .set("id", idSeq.getAndIncrement());
     }
 

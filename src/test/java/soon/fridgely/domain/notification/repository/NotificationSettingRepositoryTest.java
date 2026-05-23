@@ -33,19 +33,19 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
     @MethodSource("provideTimesForScheduledAlerts")
     void 특정_시간대에_활성화된_알림_설정을_조회한다(LocalTime startTime, LocalTime endTime, int expectedCount) {
         // given
-        Member member1 = member(fixtureMonkey).sample();
-        Member member2 = member(fixtureMonkey).sample();
-        Member member3 = member(fixtureMonkey).sample();
+        Member member1 = member().sample();
+        Member member2 = member().sample();
+        Member member3 = member().sample();
         memberRepository.saveAll(List.of(member1, member2, member3));
 
         notificationSettingRepository.saveAll(List.of(
-            notificationSetting(fixtureMonkey, member1)
+            notificationSetting(member1)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
                 .sample(),
-            notificationSetting(fixtureMonkey, member2)
+            notificationSetting(member2)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 30), 5))
                 .sample(),
-            notificationSetting(fixtureMonkey, member3)
+            notificationSetting(member3)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(10, 0), 1))
                 .sample()
         ));
@@ -65,15 +65,15 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
     @Test
     void 비활성화된_알림_설정은_조회되지_않는다() {
         // given
-        Member member1 = member(fixtureMonkey).sample();
-        Member member2 = member(fixtureMonkey).sample();
+        Member member1 = member().sample();
+        Member member2 = member().sample();
         memberRepository.saveAll(List.of(member1, member2));
 
         notificationSettingRepository.saveAll(List.of(
-            notificationSetting(fixtureMonkey, member1)
+            notificationSetting(member1)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
                 .sample(),
-            notificationSetting(fixtureMonkey, member2)
+            notificationSetting(member2)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 30), 5))
                 .set("enabled", false)
                 .sample()
@@ -97,14 +97,14 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
     @Test
     void cursor_기반_페이징이_ID_내림차순으로_조회된다() {
         // given
-        Member member1 = member(fixtureMonkey).sample();
-        Member member2 = member(fixtureMonkey).sample();
-        Member member3 = member(fixtureMonkey).sample();
+        Member member1 = member().sample();
+        Member member2 = member().sample();
+        Member member3 = member().sample();
         memberRepository.saveAll(List.of(member1, member2, member3));
 
-        NotificationSetting setting1 = notificationSetting(fixtureMonkey, member1).sample();
-        NotificationSetting setting2 = notificationSetting(fixtureMonkey, member2).sample();
-        NotificationSetting setting3 = notificationSetting(fixtureMonkey, member3).sample();
+        NotificationSetting setting1 = notificationSetting(member1).sample();
+        NotificationSetting setting2 = notificationSetting(member2).sample();
+        NotificationSetting setting3 = notificationSetting(member3).sample();
         notificationSettingRepository.saveAll(List.of(setting1, setting2, setting3));
 
         // when
@@ -139,11 +139,11 @@ class NotificationSettingRepositoryTest extends IntegrationTestSupport {
     void 시간_범위에_해당하는_알림_설정이_없으면_빈_Slice를_반환한다() {
         // given
         Member member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
 
         notificationSettingRepository.save(
-            notificationSetting(fixtureMonkey, member)
+            notificationSetting(member)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(10, 0), 3))
                 .sample()
         );

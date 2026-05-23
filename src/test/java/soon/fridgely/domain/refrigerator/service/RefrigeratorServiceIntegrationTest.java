@@ -45,10 +45,10 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.member = memberRepository.save(member(fixtureMonkey).sample());
-        this.refrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        this.member = memberRepository.save(member().sample());
+        this.refrigerator = refrigeratorRepository.save(refrigerator().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member)
+            memberRefrigerator(refrigerator, member)
                 .set("role", RefrigeratorRole.OWNER)
                 .sample()
         );
@@ -60,7 +60,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     void 냉장고를_생성한다() {
         // given
         Member newMember = memberRepository.save(
-            member(fixtureMonkey).set("nickname", "nickname").sample()
+            member().set("nickname", "nickname").sample()
         );
 
         // when
@@ -107,7 +107,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 유효한_초대_코드로_냉장고에_참여한다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
         var response = refrigeratorService.generateInvitationCode(key);
 
@@ -137,14 +137,14 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 내가_속한_모든_냉장고_목록을_조회한다() {
         // given
-        Member otherMember = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator myRefrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
-        Refrigerator otherFridge = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member otherMember = memberRepository.save(member().sample());
+        Refrigerator myRefrigerator2 = refrigeratorRepository.save(refrigerator().sample());
+        Refrigerator otherFridge = refrigeratorRepository.save(refrigerator().sample());
 
         memberRefrigeratorRepository.saveAll(List.of(
-            memberRefrigerator(fixtureMonkey, myRefrigerator2, member)
+            memberRefrigerator(myRefrigerator2, member)
                 .set("role", RefrigeratorRole.MEMBER).sample(),
-            memberRefrigerator(fixtureMonkey, otherFridge, otherMember).sample()
+            memberRefrigerator(otherFridge, otherMember).sample()
         ));
 
         // when
@@ -172,7 +172,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 멤버십_정보가_존재하지_않으면_예외가_발생한다() {
         // given
-        Member outsider = memberRepository.save(member(fixtureMonkey).sample());
+        Member outsider = memberRepository.save(member().sample());
 
         // expected
         assertThatThrownBy(() -> refrigeratorService.findMemberRefrigerator(outsider.getId(), refrigerator.getId()))
@@ -194,7 +194,7 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 연결되지_않은_냉장고는_false를_반환한다() {
         // given
-        Member outsider = memberRepository.save(member(fixtureMonkey).sample());
+        Member outsider = memberRepository.save(member().sample());
 
         // when
         boolean exists = memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
@@ -209,9 +209,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 냉장고에_속한_팀원_목록을_조회한다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER).sample()
         );
         var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
@@ -228,9 +228,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 팀원이_없는_냉장고는_소유자만_반환한다() {
         // given
-        Refrigerator emptyFridge = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Refrigerator emptyFridge = refrigeratorRepository.save(refrigerator().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, emptyFridge, member)
+            memberRefrigerator(emptyFridge, member)
                 .set("role", RefrigeratorRole.OWNER).sample()
         );
         // emptyFridge를 setUp의 member가 소유 (멤버십만 있고 게스트 없음)
@@ -246,9 +246,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void MemberRefrigerator가_삭제_상태이면_팀원_목록에서_제외된다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER)
                 .set("status", EntityStatus.DELETED)
                 .sample()
@@ -267,8 +267,8 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 회원과_냉장고를_OWNER로_연결한다() {
         // given
-        Member newMember = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator newRefrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member newMember = memberRepository.save(member().sample());
+        Refrigerator newRefrigerator = refrigeratorRepository.save(refrigerator().sample());
 
         // when
         refrigeratorService.linkToOwner(newMember, newRefrigerator);
@@ -286,9 +286,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void MEMBER가_냉장고를_나가면_연결이_해제된다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER).sample()
         );
         var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
@@ -304,9 +304,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 이미_나간_냉장고에_다시_나가기를_시도해도_예외가_발생하지_않는다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER).sample()
         );
         var key = new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId());
@@ -336,9 +336,9 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 냉장고의_모든_멤버_연결을_해제한다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER).sample()
         );
 

@@ -59,13 +59,13 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+            memberRefrigerator(refrigerator, member).sample()
         );
     }
 
@@ -148,9 +148,9 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 냉장고에_속한_모든_카테고리를_조회한다() {
         // given
         categoryRepository.saveAll(List.of(
-            category(fixtureMonkey, refrigerator, member).set("name", "카테고리1").sample(),
-            category(fixtureMonkey, refrigerator, member).set("name", "카테고리2").sample(),
-            category(fixtureMonkey, refrigerator, member).set("name", "카테고리3").sample()
+            category(refrigerator, member).set("name", "카테고리1").sample(),
+            category(refrigerator, member).set("name", "카테고리2").sample(),
+            category(refrigerator, member).set("name", "카테고리3").sample()
         ));
         var key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
 
@@ -167,7 +167,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 커스텀_카테고리의_이름을_수정한다() {
         // given
         Category savedCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기존 카테고리")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
@@ -186,7 +186,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 기본_카테고리는_수정할_수_없다() {
         // given
         Category defaultCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기본 카테고리")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
@@ -204,7 +204,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 동일한_이름으로_수정하면_변경되지_않는다() {
         // given
         Category savedCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기존 카테고리")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
@@ -223,13 +223,13 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 이미_존재하는_카테고리_이름으로_수정하면_예외가_발생한다() {
         // given
         Category category1 = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기존1")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
         Category category2 = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기존2")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
@@ -258,11 +258,11 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 권한_없는_냉장고의_카테고리는_수정할_수_없다() {
         // given
-        Member otherMember = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator otherRefrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member otherMember = memberRepository.save(member().sample());
+        Refrigerator otherRefrigerator = refrigeratorRepository.save(refrigerator().sample());
 
         Category myCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "내 카테고리")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
@@ -286,13 +286,13 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 커스텀_카테고리를_삭제하면_연결된_음식이_기타_카테고리로_이동한다() {
         // given
         Category customCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "삭제 대상")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
         Category fallbackCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
@@ -317,13 +317,13 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     void 카테고리를_중복_삭제해도_예외가_발생하지_않는다() {
         // given
         Category targetCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "삭제 대상")
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
         categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
@@ -343,12 +343,12 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
     @Test
     void 권한_없는_냉장고의_카테고리는_삭제할_수_없다() {
         // given
-        Member otherMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member otherMember = memberRepository.save(member().sample());
         Refrigerator otherRefrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).set("name", "남의 냉장고").sample()
+            refrigerator().set("name", "남의 냉장고").sample()
         );
         Category otherCategory = categoryRepository.save(
-            category(fixtureMonkey, otherRefrigerator, otherMember).sample()
+            category(otherRefrigerator, otherMember).sample()
         );
 
         var deleteCategory = new DeleteCategory(member.getId(), otherRefrigerator.getId(), otherCategory.getId());
@@ -371,7 +371,7 @@ class CategoryServiceIntegrationTest extends IntegrationTestSupport {
 
     private void createFoods(int count, Category category) {
         List<Food> foods = IntStream.range(0, count)
-            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, category).sample())
+            .mapToObj(i -> food(refrigerator, member, category).sample())
             .toList();
         foodRepository.saveAll(foods);
     }

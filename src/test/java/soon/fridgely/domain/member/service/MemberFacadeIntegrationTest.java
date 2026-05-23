@@ -104,7 +104,7 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
     @Test
     void 프로필_이미지를_업로드하면_DB에_URL이_저장된다() {
         // given
-        Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member savedMember = memberRepository.save(member().sample());
         MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[1024]);
         String uploadedUrl = "https://s3.amazonaws.com/bucket/images/profile.jpg";
         fakeImageManager.setUploadResult(uploadedUrl);
@@ -136,7 +136,7 @@ class MemberFacadeIntegrationTest extends IntegrationTestSupport {
     @Test
     void 빈_파일로_프로필_이미지_업로드_시_예외가_발생한다() {
         // given
-        Member savedMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member savedMember = memberRepository.save(member().sample());
         MockMultipartFile emptyFile = new MockMultipartFile("file", "profile.jpg", "image/jpeg", new byte[0]);
 
         // when

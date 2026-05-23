@@ -93,7 +93,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
     void 프로필_이미지가_없는_회원의_이미지를_업데이트한다() {
         // given
         Member saved = memberRepository.save(
-            member(fixtureMonkey).setNull("profileImageUrl").sample()
+            member().setNull("profileImageUrl").sample()
         );
         String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-profile.jpg";
 
@@ -112,7 +112,7 @@ class MemberServiceIntegrationTest extends IntegrationTestSupport {
         String oldImageUrl = "https://s3.amazonaws.com/bucket/images/old-profile.jpg";
         String newImageUrl = "https://s3.amazonaws.com/bucket/images/new-profile.jpg";
         Member saved = memberRepository.save(
-            member(fixtureMonkey).set("profileImageUrl", oldImageUrl).sample()
+            member().set("profileImageUrl", oldImageUrl).sample()
         );
 
         // when

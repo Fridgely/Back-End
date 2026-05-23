@@ -33,7 +33,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
     }
 
@@ -41,17 +41,17 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     void 벌크_삭제는_여러_디바이스를_한_번에_처리한다() {
         // given
         MemberDevice device1 = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
@@ -76,7 +76,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         // given 1000개의 디바이스 생성
         List<MemberDevice> devices = IntStream.range(0, 1000)
             .mapToObj(i -> memberDeviceRepository.save(
-                memberDevice(fixtureMonkey, member)
+                memberDevice(member)
                     .set("token", "test-token-" + i)  // 유니크한 토큰
                     .set("status", EntityStatus.ACTIVE)
                     .sample()
@@ -100,7 +100,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     void 단건_삭제도_정상_동작한다() {
         // given
         MemberDevice device = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .sample()
         );
 

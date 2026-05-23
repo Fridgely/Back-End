@@ -44,8 +44,8 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.member = memberRepository.save(member(fixtureMonkey).sample());
-        this.refrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        this.member = memberRepository.save(member().sample());
+        this.refrigerator = refrigeratorRepository.save(refrigerator().sample());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         if (cache != null) {
@@ -80,7 +80,7 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
         assertThat(cachedResult).hasSize(1);
 
         // when
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
         refrigeratorService.linkToOwner(member, refrigerator2);
 
         // then
@@ -93,7 +93,7 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 초대_코드로_냉장고_참여시_해당_멤버의_캐시만_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
         refrigeratorService.linkToOwner(member, refrigerator);
 
         var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
@@ -122,7 +122,7 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 냉장고_이름_수정시_모든_멤버의_캐시가_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
         refrigeratorService.linkToOwner(member, refrigerator);
 
         var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
@@ -159,8 +159,8 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 서로_다른_멤버의_냉장고_목록_캐시는_독립적으로_동작한다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
 
         refrigeratorService.linkToOwner(member, refrigerator);
         refrigeratorService.linkToOwner(member2, refrigerator2);
@@ -173,7 +173,7 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
         assertThat(cache.get(member2.getId())).isNotNull();
 
         // when
-        Refrigerator refrigerator3 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Refrigerator refrigerator3 = refrigeratorRepository.save(refrigerator().sample());
         refrigeratorService.linkToOwner(member, refrigerator3);
 
         // then
@@ -204,9 +204,9 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void allEntries_true로_전체_캐시가_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        Member member3 = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
+        Member member3 = memberRepository.save(member().sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
 
         refrigeratorService.linkToOwner(member, refrigerator);
         refrigeratorService.linkToOwner(member2, refrigerator2);

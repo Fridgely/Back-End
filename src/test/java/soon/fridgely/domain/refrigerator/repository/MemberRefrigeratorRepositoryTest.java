@@ -36,10 +36,10 @@ class MemberRefrigeratorRepositoryTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
     }
 
@@ -47,26 +47,26 @@ class MemberRefrigeratorRepositoryTest extends IntegrationTestSupport {
     void 내가_속한_냉장고_목록을_조회한다() {
         // given
         Member other = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
 
         Refrigerator myRefrigerator2 = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
 
         Refrigerator otherRefrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
 
         memberRefrigeratorRepository.saveAll(
             List.of(
-                memberRefrigerator(fixtureMonkey, refrigerator, member)
+                memberRefrigerator(refrigerator, member)
                     .set("role", RefrigeratorRole.OWNER)
                     .sample(),
-                memberRefrigerator(fixtureMonkey, myRefrigerator2, member)
+                memberRefrigerator(myRefrigerator2, member)
                     .set("role", RefrigeratorRole.MEMBER)
                     .sample(),
-                memberRefrigerator(fixtureMonkey, otherRefrigerator, other) // 다른 사람의 냉장고
+                memberRefrigerator(otherRefrigerator, other) // 다른 사람의 냉장고
                     .sample()
             )
         );
@@ -87,7 +87,7 @@ class MemberRefrigeratorRepositoryTest extends IntegrationTestSupport {
     void 특정_냉장고에_대한_내_정보를_조회한다() {
         // given
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member)
+            memberRefrigerator(refrigerator, member)
                 .set("role", RefrigeratorRole.OWNER)
                 .sample()
         );

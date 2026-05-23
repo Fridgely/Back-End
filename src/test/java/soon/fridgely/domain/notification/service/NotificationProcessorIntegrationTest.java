@@ -69,16 +69,16 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
             MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER)
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
     }
 
@@ -86,12 +86,12 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     void 만료_예정_음식이_있으면_알림을_발송한다() {
         // given
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", LocalDateTime.now().plusDays(3L))
                 .sample()
         );
 
-        var setting = notificationSetting(fixtureMonkey, member)
+        var setting = notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
             .sample();
         notificationSettingRepository.save(setting);
@@ -107,7 +107,7 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 만료_예정_음식이_없으면_알림을_발송하지_않는다() throws InterruptedException {
         // given
-        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+        notificationSettingRepository.save(notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
             .sample()
         );
@@ -125,17 +125,17 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     void 알림_스케줄의_일수에_따라_정확한_날짜의_음식을_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "사과")
                 .set("expirationDate", LocalDateTime.now().plusDays(7L))
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "바나나")
                 .set("expirationDate", LocalDateTime.now().plusDays(3L))
                 .sample()
         ));
 
-        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+        notificationSettingRepository.save(notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 7))
             .sample());
 
@@ -154,18 +154,18 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
         // given
         LocalDateTime expiryDateTime = LocalDateTime.now().plusDays(1L);
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", expiryDateTime)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", expiryDateTime)
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", expiryDateTime)
                 .sample()
         ));
 
-        var setting = notificationSetting(fixtureMonkey, member)
+        var setting = notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 1))
             .sample();
         notificationSettingRepository.save(setting);
@@ -182,28 +182,28 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     void 다른_회원의_음식은_알림에_포함되지_않는다() {
         // given
         Member otherMember = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
 
         Refrigerator otherRefrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
 
         Category otherCategory = categoryRepository.save(
-            category(fixtureMonkey, otherRefrigerator, otherMember).sample()
+            category(otherRefrigerator, otherMember).sample()
         );
 
         LocalDateTime expiryDateTime = LocalDateTime.now().plusDays(3L);
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", expiryDateTime)
                 .sample(),
-            food(fixtureMonkey, otherRefrigerator, otherMember, otherCategory)
+            food(otherRefrigerator, otherMember, otherCategory)
                 .set("expirationDate", expiryDateTime)
                 .sample()
         ));
 
-        var setting = notificationSetting(fixtureMonkey, member)
+        var setting = notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
             .sample();
         notificationSettingRepository.save(setting);
@@ -222,21 +222,21 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     void 정확히_N일_후_만료되는_음식만_조회한다() {
         // given
         foodRepository.saveAll(List.of(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "우유")
                 .set("expirationDate", LocalDateTime.now().plusDays(3L))
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "계란")
                 .set("expirationDate", LocalDateTime.now().plusDays(2L))
                 .sample(),
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "치즈")
                 .set("expirationDate", LocalDateTime.now().plusDays(4L))
                 .sample()
         ));
 
-        var setting = notificationSetting(fixtureMonkey, member)
+        var setting = notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
             .sample();
         notificationSettingRepository.save(setting);
@@ -257,14 +257,14 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 재고_소진_알림이_켜져있으면_알림을_발송한다() {
         // given
-        foodRepository.save(food(fixtureMonkey, refrigerator, member, category)
+        foodRepository.save(food(refrigerator, member, category)
             .set("name", "우유")
             .set("expirationDate", LocalDateTime.now())
             .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.G))
             .sample());
 
         notificationSettingRepository.save(
-            notificationSetting(fixtureMonkey, member)
+            notificationSetting(member)
                 .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
                 .sample()
         );
@@ -283,12 +283,12 @@ class NotificationProcessorIntegrationTest extends IntegrationTestSupport {
     @Test
     void 재고_소진_알림이_꺼져있으면_알림을_발송하지_않는다() throws InterruptedException {
         // given
-        notificationSettingRepository.save(notificationSetting(fixtureMonkey, member)
+        notificationSettingRepository.save(notificationSetting(member)
             .set("alertSchedule", AlertSchedule.of(LocalTime.of(9, 0), 3))
             .set("enabled", false)
             .sample());
 
-        foodRepository.save(food(fixtureMonkey, refrigerator, member, category)
+        foodRepository.save(food(refrigerator, member, category)
             .set("name", "음식")
             .set("expirationDate", LocalDateTime.now())
             .sample());

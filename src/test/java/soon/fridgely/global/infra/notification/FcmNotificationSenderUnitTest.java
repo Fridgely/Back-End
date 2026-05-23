@@ -45,10 +45,10 @@ class FcmNotificationSenderUnitTest {
 
     @BeforeEach
     void setUp() {
-        this.member = member(fixtureMonkey)
+        this.member = member()
             .set("id", 1L)
             .sample();
-        this.memberDevice = memberDevice(fixtureMonkey, member)
+        this.memberDevice = memberDevice(member)
             .sample();
     }
 
@@ -57,7 +57,7 @@ class FcmNotificationSenderUnitTest {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
-        MemberDevice device2 = memberDevice(fixtureMonkey, member).sample();
+        MemberDevice device2 = memberDevice(member).sample();
 
         given(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class))).willReturn("messageId");
@@ -90,7 +90,7 @@ class FcmNotificationSenderUnitTest {
         // given
         var title = fixtureMonkey.giveMeOne(String.class);
         var body = fixtureMonkey.giveMeOne(String.class);
-        var device2 = memberDevice(fixtureMonkey, member).sample();
+        var device2 = memberDevice(member).sample();
 
         given(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).willReturn(List.of(memberDevice, device2));
         given(firebaseMessaging.send(any(Message.class)))
