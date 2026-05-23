@@ -6,7 +6,7 @@
 
 - **단위 테스트**: Entity 내부의 순수 비즈니스 정책 검증. Spring 없이 빠르게 실행.
 - **통합 테스트**: Service 유스케이스를 실제 DB + 실제 객체로 검증. 계층 전체를 한 번에 커버. **가장 중심**.
-- **E2E 테스트**: API 엔드포인트를 사용자 관점에서 블랙박스 검증. 핵심 시나리오 20%에만 작성.
+- **인수 테스트**: API 엔드포인트를 사용자 관점에서 블랙박스 검증. 핵심 시나리오 20%에만 작성.
 
 모든 API를 커버하는 것이 목표가 아니다. 버그 가능성이 높고 변경이 잦은 핵심 기능에 집중한다.
 
@@ -16,7 +16,7 @@
 |--------|-------------|-----------|
 | 단위 테스트 | `@ExtendWith(MockitoExtension.class)` | Entity 도메인 정책, 외부 의존 없는 순수 로직 |
 | 통합 테스트 | `IntegrationTestSupport` | Service 유스케이스, 실제 DB(H2) + 실제 객체 |
-| E2E 테스트 | `E2ETestSupport` | 핵심 API 시나리오, 사용자 관점 블랙박스 |
+| 인수 테스트 | `AcceptanceTestSupport` | 핵심 API 시나리오, 사용자 관점 블랙박스 |
 | Controller 테스트 | `ControllerTestSupport` | 요청 직렬화/역직렬화, 응답 포맷 검증에 한정 |
 
 ## 테스트 작성 패턴
@@ -102,9 +102,9 @@ class CategoryControllerTest extends ControllerTestSupport {
 }
 ```
 
-### E2E 테스트 예시
+### 인수 테스트 예시
 ```java
-class CategoryControllerE2ETest extends E2ETestSupport {
+class CategoryControllerAcceptanceTest extends AcceptanceTestSupport {
 
     @Test
     void 카테고리_추가_후_목록에서_조회된다() {

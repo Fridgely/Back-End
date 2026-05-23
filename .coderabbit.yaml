@@ -192,7 +192,7 @@ reviews:
         ## 테스트 계층
         - 통합 테스트: `IntegrationTestSupport` 상속 (실제 DB + 실제 객체, Service 유스케이스 검증).
         - Controller 테스트: `ControllerTestSupport` 상속 (요청 직렬화/역직렬화, HTTP 상태 코드 검증에만 한정).
-        - E2E 테스트: `E2ETestSupport` 상속 (핵심 API 시나리오, 사용자 관점 블랙박스).
+        - 인수 테스트: `AcceptanceTestSupport` 상속 (핵심 API 시나리오, 사용자 관점 블랙박스).
 
         ## Mock 사용 기준
         - S3, FCM 등 외부 서비스는 Fake 객체로 대체한다.
