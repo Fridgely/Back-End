@@ -8,12 +8,9 @@ import org.springframework.cache.CacheManager;
 import org.springframework.test.context.TestPropertySource;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.domain.refrigerator.dto.command.CachedMemberRefrigerators;
-import soon.fridgely.domain.refrigerator.dto.command.CachedRefrigeratorInfo;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
-import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
+import soon.fridgely.domain.refrigerator.dto.response.RefrigeratorResponse;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
-import soon.fridgely.domain.refrigerator.entity.RefrigeratorRole;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.support.RedisIntegrationTestSupport;
@@ -28,13 +25,7 @@ import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigera
 class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
 
     @Autowired
-    private MemberRefrigeratorFinder memberRefrigeratorFinder;
-
-    @Autowired
-    private MemberRefrigeratorLinker memberRefrigeratorLinker;
-
-    @Autowired
-    private RefrigeratorManager refrigeratorManager;
+    private RefrigeratorService refrigeratorService;
 
     @Autowired
     private MemberRepository memberRepository;
@@ -53,8 +44,8 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.member = memberRepository.save(member(fixtureMonkey).sample());
-        this.refrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        this.member = memberRepository.save(member().sample());
+        this.refrigerator = refrigeratorRepository.save(refrigerator().sample());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         if (cache != null) {
@@ -65,77 +56,81 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 냉장고_목록_조회_시_캐시가_적용된다() {
         // given
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
+        refrigeratorService.linkToOwner(member, refrigerator);
 
         // when
-        CachedMemberRefrigerators firstResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        List<RefrigeratorResponse> firstResult = refrigeratorService.findAllMyRefrigerators(member.getId());
 
         // then
-        assertThat(firstResult.refrigerators()).hasSize(1);
+        assertThat(firstResult).hasSize(1);
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache).isNotNull();
         assertThat(cache.get(member.getId())).isNotNull();
 
-        CachedMemberRefrigerators secondResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(secondResult.refrigerators()).hasSize(1);
+        List<RefrigeratorResponse> secondResult = refrigeratorService.findAllMyRefrigerators(member.getId());
+        assertThat(secondResult).hasSize(1);
         assertThat(firstResult).isEqualTo(secondResult);
     }
 
     @Test
     void 냉장고_생성시_캐시가_무효화된다() {
         // given
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
-        CachedMemberRefrigerators cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(cachedResult.refrigerators()).hasSize(1);
+        refrigeratorService.linkToOwner(member, refrigerator);
+        List<RefrigeratorResponse> cachedResult = refrigeratorService.findAllMyRefrigerators(member.getId());
+        assertThat(cachedResult).hasSize(1);
 
         // when
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator2);
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
+        refrigeratorService.linkToOwner(member, refrigerator2);
 
         // then
-        CachedMemberRefrigerators updatedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(updatedResult.refrigerators()).hasSize(2)
-            .extracting(CachedRefrigeratorInfo::id)
+        List<RefrigeratorResponse> updatedResult = refrigeratorService.findAllMyRefrigerators(member.getId());
+        assertThat(updatedResult).hasSize(2)
+            .extracting(RefrigeratorResponse::id)
             .containsExactlyInAnyOrder(refrigerator.getId(), refrigerator2.getId());
     }
 
     @Test
     void 초대_코드로_냉장고_참여시_해당_멤버의_캐시만_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
+        Member member2 = memberRepository.save(member().sample());
+        refrigeratorService.linkToOwner(member, refrigerator);
 
-        memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var invCode = refrigeratorService.generateInvitationCode(ownerKey);
+
+        refrigeratorService.findAllMyRefrigerators(member.getId());
+        refrigeratorService.findAllMyRefrigerators(member2.getId());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache.get(member.getId())).isNotNull();
         assertThat(cache.get(member2.getId())).isNotNull();
 
         // when
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member2.getId(), refrigerator.getId());
-        memberRefrigeratorLinker.linkMemberToRefrigerator(key, RefrigeratorRole.MEMBER);
+        refrigeratorService.joinByInvitationCode(member2.getId(), invCode.code());
 
         // then
         assertThat(cache.get(member.getId())).isNotNull();
         assertThat(cache.get(member2.getId())).isNull();
 
-        CachedMemberRefrigerators member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
-        assertThat(member2Refrigerators.refrigerators()).hasSize(1)
-            .extracting(CachedRefrigeratorInfo::id)
+        List<RefrigeratorResponse> member2Refrigerators = refrigeratorService.findAllMyRefrigerators(member2.getId());
+        assertThat(member2Refrigerators).hasSize(1)
+            .extracting(RefrigeratorResponse::id)
             .containsExactly(refrigerator.getId());
     }
 
     @Test
     void 냉장고_이름_수정시_모든_멤버의_캐시가_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
-        MemberRefrigeratorKey key = new MemberRefrigeratorKey(member2.getId(), refrigerator.getId());
-        memberRefrigeratorLinker.linkMemberToRefrigerator(key, RefrigeratorRole.MEMBER);
+        Member member2 = memberRepository.save(member().sample());
+        refrigeratorService.linkToOwner(member, refrigerator);
 
-        memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var invCode = refrigeratorService.generateInvitationCode(ownerKey);
+        refrigeratorService.joinByInvitationCode(member2.getId(), invCode.code());
+
+        refrigeratorService.findAllMyRefrigerators(member.getId());
+        refrigeratorService.findAllMyRefrigerators(member2.getId());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache.get(member.getId())).isNotNull();
@@ -143,90 +138,93 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
 
         // when
         String newName = "새로운 냉장고 이름";
-        refrigeratorManager.update(refrigerator.getId(), newName);
+        refrigeratorService.updateRefrigeratorName(ownerKey,
+            new soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest(newName));
 
         // then
         assertThat(cache.get(member.getId())).isNull();
         assertThat(cache.get(member2.getId())).isNull();
 
-        CachedMemberRefrigerators member1Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        CachedMemberRefrigerators member2Refrigerators = memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        List<RefrigeratorResponse> member1Refrigerators = refrigeratorService.findAllMyRefrigerators(member.getId());
+        List<RefrigeratorResponse> member2Refrigerators = refrigeratorService.findAllMyRefrigerators(member2.getId());
 
-        assertThat(member1Refrigerators.refrigerators())
-            .extracting(CachedRefrigeratorInfo::name)
+        assertThat(member1Refrigerators)
+            .extracting(RefrigeratorResponse::name)
             .containsExactly(newName);
-        assertThat(member2Refrigerators.refrigerators())
-            .extracting(CachedRefrigeratorInfo::name)
+        assertThat(member2Refrigerators)
+            .extracting(RefrigeratorResponse::name)
             .containsExactly(newName);
     }
 
     @Test
     void 서로_다른_멤버의_냉장고_목록_캐시는_독립적으로_동작한다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
 
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
-        memberRefrigeratorLinker.linkToOwner(member2, refrigerator2);
+        refrigeratorService.linkToOwner(member, refrigerator);
+        refrigeratorService.linkToOwner(member2, refrigerator2);
 
-        memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        memberRefrigeratorFinder.findAllByMemberId(member2.getId());
+        refrigeratorService.findAllMyRefrigerators(member.getId());
+        refrigeratorService.findAllMyRefrigerators(member2.getId());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache.get(member.getId())).isNotNull();
         assertThat(cache.get(member2.getId())).isNotNull();
 
         // when
-        Refrigerator refrigerator3 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator3);
+        Refrigerator refrigerator3 = refrigeratorRepository.save(refrigerator().sample());
+        refrigeratorService.linkToOwner(member, refrigerator3);
 
         // then
         assertThat(cache.get(member.getId())).isNull();
         assertThat(cache.get(member2.getId())).isNotNull();
 
-        CachedMemberRefrigerators memberRefrigerators = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        assertThat(memberRefrigerators.refrigerators()).hasSize(2)
-            .extracting(CachedRefrigeratorInfo::id)
+        List<RefrigeratorResponse> memberRefrigerators = refrigeratorService.findAllMyRefrigerators(member.getId());
+        assertThat(memberRefrigerators).hasSize(2)
+            .extracting(RefrigeratorResponse::id)
             .containsExactlyInAnyOrder(refrigerator.getId(), refrigerator3.getId());
     }
 
     @Test
     void 캐시_키가_memberId로_정확하게_생성된다() {
         // given
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
+        refrigeratorService.linkToOwner(member, refrigerator);
 
         // when
-        memberRefrigeratorFinder.findAllByMemberId(member.getId());
+        refrigeratorService.findAllMyRefrigerators(member.getId());
 
         // then
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache).isNotNull();
         assertThat(cache.get(member.getId())).isNotNull();
-        assertThat(cache.get(member.getId()).get()).isInstanceOf(CachedMemberRefrigerators.class);
+        assertThat(cache.get(member.getId()).get()).isInstanceOf(List.class);
     }
 
     @Test
     void allEntries_true로_전체_캐시가_무효화된다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        Member member3 = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
+        Member member3 = memberRepository.save(member().sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
 
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
-        memberRefrigeratorLinker.linkToOwner(member2, refrigerator2);
-        memberRefrigeratorLinker.linkToOwner(member3, refrigerator2);
+        refrigeratorService.linkToOwner(member, refrigerator);
+        refrigeratorService.linkToOwner(member2, refrigerator2);
+        refrigeratorService.linkToOwner(member3, refrigerator2);
 
-        memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        memberRefrigeratorFinder.findAllByMemberId(member2.getId());
-        memberRefrigeratorFinder.findAllByMemberId(member3.getId());
+        refrigeratorService.findAllMyRefrigerators(member.getId());
+        refrigeratorService.findAllMyRefrigerators(member2.getId());
+        refrigeratorService.findAllMyRefrigerators(member3.getId());
 
         Cache cache = cacheManager.getCache("myRefrigerators");
         assertThat(cache.get(member.getId())).isNotNull();
         assertThat(cache.get(member2.getId())).isNotNull();
         assertThat(cache.get(member3.getId())).isNotNull();
 
-        // when
-        refrigeratorManager.update(refrigerator2.getId(), "업데이트된 냉장고");
+        // when: member2가 소유한 refrigerator2의 이름 수정 (allEntries=true evict 발생)
+        var member2Key = new MemberRefrigeratorKey(member2.getId(), refrigerator2.getId());
+        refrigeratorService.updateRefrigeratorName(member2Key,
+            new soon.fridgely.domain.refrigerator.dto.request.RefrigeratorUpdateRequest("업데이트된 냉장고"));
 
         // then
         assertThat(cache.get(member.getId())).isNull();
@@ -237,22 +235,22 @@ class RefrigeratorCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 캐시된_데이터와_DB_데이터가_일치한다() {
         // given
-        memberRefrigeratorLinker.linkToOwner(member, refrigerator);
+        refrigeratorService.linkToOwner(member, refrigerator);
 
         // when
-        CachedMemberRefrigerators cachedResult = memberRefrigeratorFinder.findAllByMemberId(member.getId());
-        List<MemberRefrigerator> dbResult = memberRefrigeratorRepository.findAllMyRefrigerators(
-            member.getId(),
-            soon.fridgely.domain.EntityStatus.ACTIVE
-        );
+        List<RefrigeratorResponse> cachedResult = refrigeratorService.findAllMyRefrigerators(member.getId());
+        List<RefrigeratorResponse> freshResult = memberRefrigeratorRepository
+            .findAllMyRefrigerators(member.getId(), soon.fridgely.domain.EntityStatus.ACTIVE)
+            .stream()
+            .map(RefrigeratorResponse::from)
+            .toList();
 
         // then
-        assertThat(cachedResult.refrigerators()).hasSize(dbResult.size());
-        assertThat(cachedResult.refrigerators())
-            .extracting(CachedRefrigeratorInfo::id)
+        assertThat(cachedResult).hasSize(freshResult.size());
+        assertThat(cachedResult)
+            .extracting(RefrigeratorResponse::id)
             .containsExactlyInAnyOrderElementsOf(
-                dbResult.stream().map(mr -> mr.getRefrigerator().getId()).toList()
+                freshResult.stream().map(RefrigeratorResponse::id).toList()
             );
     }
-
 }

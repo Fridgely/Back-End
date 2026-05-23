@@ -35,7 +35,7 @@ class DeviceCleanupBatchExecutorIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
     }
 
@@ -47,12 +47,12 @@ class DeviceCleanupBatchExecutorIntegrationTest extends IntegrationTestSupport {
         LocalDateTime recentDate = LocalDateTime.now().minusDays(60);
 
         MemberDevice oldDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", oldDate)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", recentDate)
                 .sample()
         );
@@ -77,12 +77,12 @@ class DeviceCleanupBatchExecutorIntegrationTest extends IntegrationTestSupport {
         LocalDateTime oldDate = LocalDateTime.now().minusDays(120);
 
         MemberDevice activeDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", oldDate)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", oldDate)
                 .set("status", EntityStatus.DELETED)
                 .sample()

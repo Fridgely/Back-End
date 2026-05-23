@@ -33,7 +33,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
     }
 
@@ -41,22 +41,22 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     void 벌크_삭제는_여러_디바이스를_한_번에_처리한다() {
         // given
         MemberDevice device1 = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("status", EntityStatus.ACTIVE)
                 .sample()
         );
 
-        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberId(member.getId());
+        List<MemberDevice> devices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE);
         List<Long> deviceIds = devices.stream().map(MemberDevice::getId).toList();
 
         // when
@@ -66,8 +66,8 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         assertThat(memberDeviceRepository.findById(device1.getId()).orElseThrow().getStatus())
             .isEqualTo(EntityStatus.DELETED);
 
-        List<MemberDevice> allDevices = memberDeviceRepository.findAllByMemberId(member.getId());
-        assertThat(allDevices).hasSize(3)
+        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.DELETED);
+        assertThat(deletedDevices).hasSize(3)
             .allMatch(device -> device.getStatus() == EntityStatus.DELETED);
     }
 
@@ -76,7 +76,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         // given 1000개의 디바이스 생성
         List<MemberDevice> devices = IntStream.range(0, 1000)
             .mapToObj(i -> memberDeviceRepository.save(
-                memberDevice(fixtureMonkey, member)
+                memberDevice(member)
                     .set("token", "test-token-" + i)  // 유니크한 토큰
                     .set("status", EntityStatus.ACTIVE)
                     .sample()
@@ -91,7 +91,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         deviceCleanupProcessor.bulkDelete(deviceIds);
 
         // then
-        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberId(member.getId());
+        List<MemberDevice> deletedDevices = memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.DELETED);
         assertThat(deletedDevices).hasSize(1000)
             .allMatch(device -> device.isDeleted());
     }
@@ -100,7 +100,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
     void 단건_삭제도_정상_동작한다() {
         // given
         MemberDevice device = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .sample()
         );
 
@@ -118,7 +118,7 @@ class DeviceCleanupProcessorIntegrationTest extends IntegrationTestSupport {
         deviceCleanupProcessor.bulkDelete(List.of());
 
         // then
-        assertThat(memberDeviceRepository.findAllByMemberId(member.getId())).isEmpty();
+        assertThat(memberDeviceRepository.findAllByMemberIdAndStatus(member.getId(), EntityStatus.ACTIVE)).isEmpty();
     }
 
 }

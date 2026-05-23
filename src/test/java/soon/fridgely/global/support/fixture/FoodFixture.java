@@ -8,6 +8,7 @@ import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.food.entity.*;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,17 +19,18 @@ import java.time.LocalDateTime;
  */
 public final class FoodFixture {
 
+    private static final FixtureMonkey FIXTURE_MONKEY = FixtureMonkeyFactory.get();
+
     private FoodFixture() {
         throw new UnsupportedOperationException("Utility class");
     }
 
     public static ArbitraryBuilder<Food> food(
-        FixtureMonkey fixtureMonkey,
         Refrigerator refrigerator,
         Member member,
         Category category
     ) {
-        return fixtureMonkey.giveMeBuilder(Food.class)
+        return FIXTURE_MONKEY.giveMeBuilder(Food.class)
             .set("name", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(50))
             .set("imageURL", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(512))
             .set("description", Arbitraries.strings().alpha().ofMaxLength(255))
@@ -46,14 +48,13 @@ public final class FoodFixture {
     }
 
     public static ArbitraryBuilder<Food> food(
-        FixtureMonkey fixtureMonkey,
         Refrigerator refrigerator,
         Member member,
         Category category,
         LocalDateTime expirationDate,
         FoodStatus foodStatus
     ) {
-        return food(fixtureMonkey, refrigerator, member, category)
+        return food(refrigerator, member, category)
             .set("expirationDate", expirationDate)
             .set("foodStatus", foodStatus);
     }

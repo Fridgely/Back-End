@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
@@ -27,8 +26,7 @@ public interface AuthControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> login(
-        @Parameter(description = "로그인 요청 정보") LoginRequest request,
-        @Parameter(hidden = true) HttpServletRequest httpRequest
+        @Parameter(description = "로그인 요청 정보") LoginRequest request
     );
 
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 이용하여 새로운 Access Token을 발급받습니다.")
@@ -42,8 +40,7 @@ public interface AuthControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<TokenResponse>> reissue(
-        @Parameter(description = "토큰 재발급 요청 정보") ReissueTokenRequest request,
-        @Parameter(hidden = true) HttpServletRequest httpRequest
+        @Parameter(description = "토큰 재발급 요청 정보") ReissueTokenRequest request
     );
 
     @Operation(summary = "로그아웃", description = "현재 로그인된 사용자를 로그아웃 처리합니다.")

@@ -1,128 +1,185 @@
 package soon.fridgely.domain.food.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
+import org.springframework.util.StringUtils;
+import soon.fridgely.domain.EntityStatus;
+import soon.fridgely.domain.category.entity.Category;
+import soon.fridgely.domain.category.repository.CategoryRepository;
+import soon.fridgely.domain.food.dto.command.FoodInfo;
 import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
-import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
-import soon.fridgely.domain.food.dto.response.FoodResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
+import soon.fridgely.domain.food.dto.response.FoodsByStatus;
 import soon.fridgely.domain.food.entity.Food;
-import soon.fridgely.domain.food.entity.FoodStatus;
 import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.repository.FoodRepository;
+import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
+import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
-import soon.fridgely.global.support.image.ImageManager;
-import soon.fridgely.global.support.logging.SlackMarkers;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FoodService {
 
-    private final FoodFinder foodFinder;
-    private final FoodManager foodManager;
-    private final FoodModifier foodModifier;
-    private final FoodRemover foodRemover;
-    private final ImageManager imageManager;
+    private static final String FALLBACK_CATEGORY_NAME = "기타";
+
+    private final FoodRepository foodRepository;
+    private final CategoryRepository categoryRepository;
+    private final MemberRepository memberRepository;
+    private final RefrigeratorRepository refrigeratorRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @ValidateRefrigeratorAccess(key = "#key")
-    public void createFood(FoodCreateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        String uploadedUrl = imageManager.upload(file);
-
-        try {
-            foodManager.createFood(request.toFoodInfo(uploadedUrl), key, request.categoryId());
-        } catch (Exception e) {
-            rollbackImageUpload(uploadedUrl);
-            throw e;
-        }
+    @Transactional
+    public void createFood(FoodInfo info, MemberRefrigeratorKey key, long categoryId) {
+        Member member = memberRepository.findByIdAndStatus(key.memberId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Refrigerator refrigerator = refrigeratorRepository.findByIdAndStatus(key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Category category = categoryRepository.findByIdAndRefrigeratorIdAndStatus(categoryId, key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        foodRepository.save(info.toEntity(member, refrigerator, category, LocalDate.now()));
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
-    public void updateFood(long foodId, FoodUpdateRequest request, MultipartFile file, MemberRefrigeratorKey key) {
-        String uploadedUrl = file != null && !file.isEmpty()
-            ? imageManager.upload(file)
+    @Transactional
+    public void updateFood(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
+        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Category category = hasCategoryChanged(food, categoryId)
+            ? categoryRepository.findByIdAndRefrigeratorIdAndStatus(categoryId, key.refrigeratorId(), EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA))
             : null;
 
-        try {
-            foodModifier.update(foodId, request.toFoodInfo(uploadedUrl), key, request.categoryId());
-        } catch (Exception e) {
-            rollbackImageUpload(uploadedUrl);
-            throw e;
+        String newImageUrl = updateInfo.imageURL();
+        if (newImageUrl != null) {
+            deleteOldImageIfChanged(food.getImageURL(), newImageUrl);
         }
+
+        food.update(
+            updateInfo.name(),
+            category,
+            updateInfo.quantity(),
+            updateInfo.condition().expirationDate(),
+            updateInfo.condition().storageType(),
+            updateInfo.description(),
+            (newImageUrl != null) ? newImageUrl : food.getImageURL(),
+            LocalDate.now()
+        );
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public FoodDetailResponse findFood(long foodId, MemberRefrigeratorKey key) {
-        Food found = foodFinder.find(foodId, key.refrigeratorId());
-        LocalDate now = LocalDate.now();
-        return FoodDetailResponse.of(found, now);
+        Food found = foodRepository.findByIdAndRefrigeratorIdWithCategory(foodId, key.refrigeratorId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        return FoodDetailResponse.of(found, LocalDate.now());
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
     public Slice<FoodListResponse> findAllFoods(MemberRefrigeratorKey key, FoodCursorPageRequest request) {
         LocalDate now = LocalDate.now();
-        return foodFinder.findAll(
+        return foodRepository.findAllDynamic(
                 key.refrigeratorId(),
                 request.getCursorId(),
-                request.toPageable(),
                 request.getSortBy(),
-                request.storageType()
+                request.storageType(),
+                request.toPageable()
             )
             .map(food -> FoodListResponse.of(food, now));
     }
 
     @Transactional(readOnly = true)
     public FoodStatusResponse findAllMyFoodsGroupedByStatus(long memberId) {
-        List<Food> allFoods = foodFinder.findAllMyFoods(memberId);
-        LocalDate now = LocalDate.now();
-
-        Map<FoodStatus, List<FoodResponse>> groupedMap = allFoods.stream()
-            .map(food -> FoodResponse.of(food, now))
-            .collect(Collectors.groupingBy(response ->
-                response.condition().foodStatus() // 음식 상태별로 그룹화
-            ));
-
-        return FoodStatusResponse.from(groupedMap);
+        List<Food> allFoods = foodRepository.findAllMyFoods(memberId);
+        return FoodsByStatus.of(allFoods, LocalDate.now()).toStatusResponse();
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
+    @Transactional
     public void deleteFood(long foodId, MemberRefrigeratorKey key) {
-        foodRemover.remove(foodId, key.refrigeratorId());
+        Food food = foodRepository.findByIdAndRefrigeratorId(foodId, key.refrigeratorId())
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        if (food.isDeleted()) {
+            return;
+        }
+        publishImageDeleteEventIfPresent(food);
+        food.delete();
     }
 
     @ValidateRefrigeratorAccess(key = "#key")
+    @Transactional
     public void updateFoodStock(long foodId, FoodStockUpdateRequest request, MemberRefrigeratorKey key) {
         Quantity quantity = request.toQuantity();
-
         switch (request.action()) {
-            case ADD -> foodModifier.add(foodId, key.refrigeratorId(), quantity);
-            case CONSUME -> foodModifier.consume(foodId, key.refrigeratorId(), quantity);
+            case ADD -> addStock(foodId, key.refrigeratorId(), quantity);
+            case CONSUME -> consumeStock(foodId, key.refrigeratorId(), quantity);
         }
     }
 
-    private void rollbackImageUpload(String imageUrl) {
-        if (imageUrl != null) {
-            try {
-                imageManager.delete(imageUrl);
-            } catch (Exception e) {
-                log.warn(SlackMarkers.SYSTEM, "[Food] 이미지 롤백 실패 - 수동 정리 필요 (ImageUrl={})", imageUrl, e);
-            }
+    @Transactional
+    public void removeAllByRefrigeratorId(long refrigeratorId) {
+        List<Food> foods = foodRepository.findAllByRefrigeratorIdAndStatus(refrigeratorId, EntityStatus.ACTIVE);
+        for (Food food : foods) {
+            publishImageDeleteEventIfPresent(food);
+            food.delete();
         }
     }
 
+    @Transactional
+    public void moveAllFoodsToFallback(long refrigeratorId, long categoryId) {
+        Category fallbackCategory = categoryRepository.findByNameAndRefrigeratorIdAndStatus(
+                FALLBACK_CATEGORY_NAME, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        Category targetCategory = categoryRepository.findByIdAndRefrigeratorIdAndStatus(
+                categoryId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        foodRepository.moveAllFoodsToFallbackCategory(targetCategory, fallbackCategory);
+    }
+
+    private void addStock(long foodId, long refrigeratorId, Quantity amount) {
+        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        food.add(amount);
+    }
+
+    private void consumeStock(long foodId, long refrigeratorId, Quantity amount) {
+        Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, refrigeratorId, EntityStatus.ACTIVE)
+            .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
+        food.consume(amount);
+    }
+
+    private void publishImageDeleteEventIfPresent(Food food) {
+        String imageUrl = food.getImageURL();
+        if (StringUtils.hasText(imageUrl)) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
+        }
+    }
+
+    private void deleteOldImageIfChanged(String oldImageUrl, String newImageUrl) {
+        if (StringUtils.hasText(oldImageUrl) && !Objects.equals(oldImageUrl, newImageUrl)) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
+        }
+    }
+
+    private boolean hasCategoryChanged(Food food, long newCategoryId) {
+        return food.getCategory().getId() != newCategoryId;
+    }
 }

@@ -7,12 +7,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
+import soon.fridgely.domain.member.batch.DeviceIdBuffer;
 import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,23 +32,13 @@ public class DeviceCleanupScheduler {
 
         log.debug("[DeviceCleanup] 시작 (Threshold={}, InactiveDays={})", threshold, INACTIVE_DAYS_THRESHOLD);
 
-        // 100개씩 조회하면서 1000개 단위로 모아서 벌크 삭제
-        List<Long> buffer = new ArrayList<>(DeviceCleanupProcessor.CHUNK_SIZE);
+        DeviceIdBuffer buffer = new DeviceIdBuffer();
 
         BatchResult result = deviceCleanupBatchExecutor.executeCleanup(
-            threshold, device -> {
-                buffer.add(device.getId());
-                if (buffer.size() >= DeviceCleanupProcessor.CHUNK_SIZE) {
-                    deviceCleanupProcessor.bulkDelete(new ArrayList<>(buffer));
-                    buffer.clear();
-                }
-            }
+            threshold, device -> buffer.add(device.getId(), deviceCleanupProcessor::bulkDelete)
         );
 
-        // 버퍼에 남은 데이터 최종 처리
-        if (!buffer.isEmpty()) {
-            deviceCleanupProcessor.bulkDelete(buffer);
-        }
+        buffer.flush(deviceCleanupProcessor::bulkDelete);
 
         log.info(SlackMarkers.BATCH,
             "[DeviceCleanup 배치 완료] 처리: {}건, 소요: {}ms",

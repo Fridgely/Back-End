@@ -88,7 +88,7 @@ class FoodUnitTest {
         LocalDate fixedNow = LocalDate.of(2025, 1, 1);
         LocalDateTime oldExpirationDate = fixedNow.minusDays(1).atStartOfDay();
 
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("expirationDate", oldExpirationDate)
             .set("foodStatus", FoodStatus.BLACK)
             .sample();
@@ -121,7 +121,7 @@ class FoodUnitTest {
         LocalDate fixedNow = LocalDate.of(2025, 1, 1);
         String originalImage = "http://example.com/image.jpg";
 
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("imageURL", originalImage)
             .sample();
 
@@ -150,7 +150,7 @@ class FoodUnitTest {
         // given
         LocalDate fixedNow = LocalDate.of(2025, 1, 1);
 
-        Food food = food(fixtureMonkey, refrigerator, member, category).sample();
+        Food food = food(refrigerator, member, category).sample();
 
         // expected
         assertThatThrownBy(() -> food.update(
@@ -193,7 +193,7 @@ class FoodUnitTest {
         // given
         LocalDate now = LocalDate.of(2025, 1, 1);
         LocalDateTime expirationAtEndOfDay = LocalDateTime.of(2025, 1, 1, 23, 59, 59);
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("expirationDate", expirationAtEndOfDay)
             .sample();
 
@@ -208,7 +208,7 @@ class FoodUnitTest {
     void 음식을_소비하면_재고가_차감된다() {
         // given
         Quantity initial = Quantity.register(new BigDecimal("5.00"), Unit.PIECE);
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
@@ -226,7 +226,7 @@ class FoodUnitTest {
     void 음식을_추가하면_재고가_증가한다() {
         // given
         Quantity initial = Quantity.register(new BigDecimal("1.0"), Unit.PIECE);
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
@@ -244,7 +244,7 @@ class FoodUnitTest {
     void 재고가_0이면_소진_상태로_판단한다() {
         // given
         Quantity initial = Quantity.register(new BigDecimal("1.0"), Unit.PIECE);
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 
@@ -259,7 +259,7 @@ class FoodUnitTest {
     void 재고가_남아있으면_소진_상태가_아니다() {
         // given
         Quantity initial = Quantity.register(new BigDecimal("2.00"), Unit.PIECE);
-        Food food = food(fixtureMonkey, refrigerator, member, category)
+        Food food = food(refrigerator, member, category)
             .set("quantity", initial)
             .sample();
 

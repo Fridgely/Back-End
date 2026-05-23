@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 커맨드
+
+```bash
+# 빌드
+./gradlew build
+
+# 전체 테스트
+./gradlew test
+
+# 단일 테스트 클래스
+./gradlew test --tests "soon.fridgely.domain.food.service.FoodServiceIntegrationTest"
+
+# 단일 테스트 메서드
+./gradlew test --tests "soon.fridgely.domain.food.service.FoodServiceIntegrationTest.메서드명"
+```
+
+> **캐시 테스트** (`CategoryCacheIntegrationTest`, `RefrigeratorCacheIntegrationTest`)는 Testcontainers로 Redis 컨테이너를 자동 기동한다.
+> 별도 `docker compose` 불필요 — Docker 엔진(Docker Desktop 등)만 실행 중이면 된다.
+
 ## 아키텍처
 
 **스택**: Spring Boot 3.5.7, Java 17, JPA/QueryDSL, MySQL 8 (로컬/테스트는 H2), Spring Security 6 + JWT, Resilience4j, Firebase FCM, AWS S3
@@ -35,38 +54,37 @@ controller/ / dto/{command,request,response}/ / entity/ / repository/ / service/
 ### 의존성 방향
 
 ```
-Controller → Service → Executor(Finder/Manager/...) → Repository
+Controller → Service → Repository
+Controller → Facade → Service → Repository
 ```
 
-- Controller는 Service만 호출 (Executor 직접 호출 금지)
-- Service는 Repository 직접 호출 금지, 항상 Executor를 통해 접근
+- Controller는 Service 또는 Facade만 호출
+- Facade는 다음 두 경우에만 생성:
+  1. 2개 이상 도메인 Service의 상태 변경이 한 요청에서 발생할 때
+  2. 외부 시스템(S3 등) 오케스트레이션과 도메인 상태 변경이 함께 필요할 때 (트랜잭션 밖에서 외부 I/O를 처리하기 위해)
+- Service는 자기 도메인 Repository + 필요 시 다른 도메인 Repository 직접 주입 가능
+- Service가 다른 도메인 Service를 직접 호출하는 것은 금지 (크로스 도메인 상태 변경은 Facade 담당)
 - 역방향 의존성 절대 금지
 
-### Executor 패턴
+### 마이그레이션 중인 도메인 (Executor → Service+Facade)
 
-Service는 역할별 컴포넌트에 위임한다. 기본적으로 `*Manager`를 사용하며, 특정 역할의 메서드가 2개 이상이 되면 해당 역할의 컴포넌트로 분리한다.
+food/refrigerator/member/notification 도메인은 현재 기존 Executor 패턴(`*Finder`, `*Manager`, `*Modifier`, `*Remover`, `*Appender`, `*Linker`, `*Generator`) 클래스가 남아 있다.
+마이그레이션 진행 중이므로 기존 Executor 클래스를 수정하는 작업은 허용하되, 새 Executor 클래스를 추가하는 것은 금지한다.
+마이그레이션 순서 및 전략은 [`docs/migration-service-facade.md`](docs/migration-service-facade.md) 참조.
 
-| 컴포넌트 | 역할 |
-|----------|------|
-| `*Manager` | 기본 컴포넌트 |
-| `*Finder` | 조회 메서드가 2개 이상일 때 분리 |
-| `*Modifier` | 수정 메서드가 2개 이상일 때 분리 |
-| `*Appender` | 추가 메서드가 2개 이상일 때 분리 |
-| `*Remover` | 삭제 메서드가 2개 이상일 때 분리 |
-| `*Linker` | 연관관계 메서드가 2개 이상일 때 분리 |
-| `*Generator` | 생성 알고리즘 메서드가 2개 이상일 때 분리 |
-| `*Validator` | 검증 로직이 2개 이상일 때 분리 |
+**완료**: category (CategoryService 단일 서비스로 통합), food (FoodService + FoodFacade)
+**진행 중**: refrigerator, member, notification
 
 ## 핵심 규칙
 
 > 상세 내용은 [`docs/core-rules.md`](docs/core-rules.md) 참조
 
-- **트랜잭션**: Service/Executor에 선언, `Finder`는 `readOnly=true`, Controller 선언 금지
+- **트랜잭션**: Service에 선언, 조회 메서드는 `readOnly=true`, Controller 선언 금지; Facade는 목적에 따라 선택 — 외부 I/O 분리 목적이면 생략, 크로스 도메인 원자성이 필요하면 선언
 - **예외**: `CoreException(ErrorType.XXX)` 사용, `IllegalArgumentException` 금지
 - **엔티티**: `BaseEntity` 상속, 정적 팩토리 `register()`/`create()`, 소프트 딜리트(`entity.delete()`), 삭제는 멱등성 보장
 - **DTO**: 불변 `record`, `request.toCommand()` / `Response.of(entity)` 팩토리 통일
 - **보안**: `@LoginMember`(Controller), `@ValidateRefrigeratorAccess`(Service)
-- **이벤트**: `@TransactionalEventListener(AFTER_COMMIT)` + `REQUIRES_NEW`
+- **이벤트**: `@TransactionalEventListener(AFTER_COMMIT)` — DB 쓰기가 있는 리스너만 `REQUIRES_NEW` 추가, 외부 API 호출(FCM 등) 단독은 불필요
 - **로깅**: `[Domain] 메시지. (key=value)`, 중요 이벤트에 `SlackMarkers` 사용
 - **테스트**: 한글 메서드명, BDD 구조, 테스트 간 독립성 보장 — 상세 규칙은 [`docs/testing-rules.md`](docs/testing-rules.md) 참조
 
@@ -79,3 +97,4 @@ Service는 역할별 컴포넌트에 위임한다. 기본적으로 `*Manager`를
 | `docs/testing-guide.md` | 테스트 작성 패턴 및 FixtureMonkey 활용 |
 | `docs/core-rules.md` | 트랜잭션·예외·엔티티·DTO·이벤트·로깅 상세 규칙 |
 | `docs/testing-rules.md` | 테스트 원칙 및 Fixture 규칙 |
+| `docs/migration-service-facade.md` | Service + Facade 마이그레이션 전략 및 순서 |

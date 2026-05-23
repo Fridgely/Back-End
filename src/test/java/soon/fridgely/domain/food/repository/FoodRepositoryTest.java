@@ -65,13 +65,13 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         setupBasicEnvironment();
 
         Category targetCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
 
         Category fallbackCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
@@ -96,15 +96,15 @@ class FoodRepositoryTest extends IntegrationTestSupport {
         createFoods(3, category);
 
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("status", EntityStatus.DELETED)
                 .sample()
         );
 
-        Refrigerator otherFridge = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
-        Category otherCategory = categoryRepository.save(category(fixtureMonkey, otherFridge, member).sample());
+        Refrigerator otherFridge = refrigeratorRepository.save(refrigerator().sample());
+        Category otherCategory = categoryRepository.save(category(otherFridge, member).sample());
         foodRepository.save(
-            food(fixtureMonkey, otherFridge, member, otherCategory).sample()
+            food(otherFridge, member, otherCategory).sample()
         );
 
         // when
@@ -207,44 +207,44 @@ class FoodRepositoryTest extends IntegrationTestSupport {
     void 내가_참여한_냉장고의_음식들만_유통기한_오름차순으로_조회된다() {
         // given
         Member me = memberRepository.save(
-            member(fixtureMonkey)
+            member()
                 .set("name", "me")
                 .sample()
         );
         Member other = memberRepository.save(
-            member(fixtureMonkey)
+            member()
                 .set("name", "other")
                 .sample()
         );
 
         Refrigerator myFridge = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         Refrigerator otherFridge = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
 
         memberRefrigeratorRepository.saveAll(List.of(
-            memberRefrigerator(fixtureMonkey, myFridge, me).sample(),
-            memberRefrigerator(fixtureMonkey, otherFridge, other).sample()
+            memberRefrigerator(myFridge, me).sample(),
+            memberRefrigerator(otherFridge, other).sample()
         ));
 
         Category myCategory = categoryRepository.save(
-            category(fixtureMonkey, myFridge, me).sample()
+            category(myFridge, me).sample()
         );
         Category otherCategory = categoryRepository.save(
-            category(fixtureMonkey, otherFridge, other).sample()
+            category(otherFridge, other).sample()
         );
 
         LocalDate now = LocalDate.now();
         List<Food> foods = foodRepository.saveAll(List.of(
-            food(fixtureMonkey, myFridge, me, myCategory)
+            food(myFridge, me, myCategory)
                 .set("expirationDate", expirationDayFor(FoodStatus.YELLOW, now)) // 나중에 만료
                 .sample(),
-            food(fixtureMonkey, myFridge, me, myCategory)
+            food(myFridge, me, myCategory)
                 .set("expirationDate", expirationDayFor(FoodStatus.RED, now))    // 먼저 만료
                 .sample(),
-            food(fixtureMonkey, otherFridge, other, otherCategory).sample()
+            food(otherFridge, other, otherCategory).sample()
         ));
 
         // when
@@ -264,7 +264,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
     void 특정_회원의_음식_중_지정된_날짜_범위에_만료되는_음식을_조회한다() {
         // given
         setupBasicEnvironment();
-        memberRefrigeratorRepository.save(memberRefrigerator(fixtureMonkey, refrigerator, member).sample());
+        memberRefrigeratorRepository.save(memberRefrigerator(refrigerator, member).sample());
 
         LocalDate targetDate = LocalDate.of(2025, 12, 25);
         Food inRange1 = createFoodWithExpirationDate(targetDate.atTime(10, 0));
@@ -289,22 +289,22 @@ class FoodRepositoryTest extends IntegrationTestSupport {
     void 특정_회원의_음식_중_재고가_0인_음식을_조회한다() {
         // given
         setupBasicEnvironment();
-        memberRefrigeratorRepository.save(memberRefrigerator(fixtureMonkey, refrigerator, member).sample());
+        memberRefrigeratorRepository.save(memberRefrigerator(refrigerator, member).sample());
 
         Food outOfStock = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.PIECE))
                 .sample()
         );
         // 재고 있음
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", Quantity.register(BigDecimal.ONE, Unit.PIECE))
                 .sample()
         );
         // 재고는 0이지만 삭제된 음식
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", Quantity.register(BigDecimal.ZERO, Unit.PIECE))
                 .set("status", EntityStatus.DELETED)
                 .sample()
@@ -398,19 +398,19 @@ class FoodRepositoryTest extends IntegrationTestSupport {
 
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
     }
 
     private List<Food> createFoods(int count, Category targetCategory) {
         List<Food> foods = IntStream.range(0, count)
-            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory).sample())
+            .mapToObj(i -> food(refrigerator, member, targetCategory).sample())
             .toList();
         return foodRepository.saveAll(foods);
     }
@@ -429,7 +429,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
      */
     private Food createFoodExpiringIn(LocalDate today, FoodStatus targetStatus, FoodStatus initialStatus) {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", resolveExpirationDate(today, targetStatus))
                 .set("foodStatus", initialStatus)
                 .sample()
@@ -451,7 +451,7 @@ class FoodRepositoryTest extends IntegrationTestSupport {
      */
     private Food createFoodWithExpirationDate(LocalDateTime expirationDate) {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("expirationDate", expirationDate)
                 .set("foodStatus", FoodStatus.GREEN)
                 .sample()

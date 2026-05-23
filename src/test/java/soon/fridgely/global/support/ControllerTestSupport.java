@@ -13,15 +13,18 @@ import soon.fridgely.domain.category.controller.CategoryController;
 import soon.fridgely.domain.category.service.CategoryService;
 import soon.fridgely.domain.food.controller.FoodController;
 import soon.fridgely.domain.food.controller.MyFoodController;
+import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.member.controller.MemberController;
+import soon.fridgely.domain.member.service.MemberDeviceService;
+import soon.fridgely.domain.member.service.MemberFacade;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.domain.notification.controller.NotificationSettingController;
 import soon.fridgely.domain.notification.service.NotificationSettingService;
 import soon.fridgely.domain.refrigerator.controller.RefrigeratorController;
+import soon.fridgely.domain.refrigerator.service.RefrigeratorFacade;
 import soon.fridgely.domain.refrigerator.service.RefrigeratorService;
 import soon.fridgely.global.security.filter.JwtAuthenticationFilter;
-import soon.fridgely.global.security.ratelimit.RateLimitGuard;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = {
@@ -47,10 +50,13 @@ public abstract class ControllerTestSupport {
     protected JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @MockitoBean
-    protected RateLimitGuard rateLimitGuard;
+    protected MemberFacade memberFacade;
 
     @MockitoBean
     protected MemberService memberService;
+
+    @MockitoBean
+    protected MemberDeviceService memberDeviceService;
 
     @MockitoBean
     protected AuthService authService;
@@ -59,10 +65,16 @@ public abstract class ControllerTestSupport {
     protected CategoryService categoryService;
 
     @MockitoBean
+    protected FoodFacade foodFacade;
+
+    @MockitoBean
     protected FoodService foodService;
 
     @MockitoBean
     protected RefrigeratorService refrigeratorService;
+
+    @MockitoBean
+    protected RefrigeratorFacade refrigeratorFacade;
 
     @MockitoBean
     protected NotificationSettingService notificationSettingService;

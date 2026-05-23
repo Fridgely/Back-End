@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
@@ -28,8 +27,7 @@ public interface MemberControllerDocs {
             content = @Content(schema = @Schema(implementation = soon.fridgely.global.support.response.ApiResponse.class)))
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Long>> register(
-        @Parameter(description = "회원 가입 요청 정보") MemberRegisterRequest request,
-        @Parameter(hidden = true) HttpServletRequest httpRequest
+        @Parameter(description = "회원 가입 요청 정보") MemberRegisterRequest request
     );
 
     @Operation(summary = "마이페이지 조회", description = "현재 로그인한 회원의 프로필 정보를 조회합니다.")

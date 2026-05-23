@@ -21,7 +21,7 @@ class NotificationSettingTest {
 
     @BeforeEach
     void setUp() {
-        this.member = member(fixtureMonkey).sample();
+        this.member = member().sample();
     }
 
     @Test

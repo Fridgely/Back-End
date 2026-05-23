@@ -10,9 +10,6 @@ import soon.fridgely.global.support.exception.ErrorType;
 
 import java.security.SecureRandom;
 
-/**
- * 냉장고 초대 코드 생성
- */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -25,9 +22,6 @@ public class InvitationCodeGenerator {
     private final SecureRandom random = new SecureRandom();
     private final RefrigeratorRepository refrigeratorRepository;
 
-    /**
-     * 고유한 초대 코드 생성
-     */
     public String generateUnique() {
         for (int attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
             String code = generate();
@@ -49,10 +43,8 @@ public class InvitationCodeGenerator {
     private String generate() {
         StringBuilder sb = new StringBuilder(CODE_LENGTH);
         for (int i = 0; i < CODE_LENGTH; i++) {
-            int randomIndex = random.nextInt(CHARACTERS.length());
-            sb.append(CHARACTERS.charAt(randomIndex));
+            sb.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
         }
         return sb.toString();
     }
-
 }

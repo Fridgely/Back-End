@@ -1,6 +1,5 @@
 package soon.fridgely.domain.member.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,10 +10,10 @@ import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.member.dto.request.DeviceTokenSyncRequest;
 import soon.fridgely.domain.member.dto.request.MemberRegisterRequest;
 import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
+import soon.fridgely.domain.member.service.MemberDeviceService;
+import soon.fridgely.domain.member.service.MemberFacade;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.annotation.LoginMember;
-import soon.fridgely.global.security.ratelimit.RateLimitGuard;
-import soon.fridgely.global.security.ratelimit.RateLimitInstance;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -22,17 +21,16 @@ import soon.fridgely.global.support.response.ApiResponse;
 @RestController
 public class MemberController implements MemberControllerDocs {
 
+    private final MemberFacade memberFacade;
     private final MemberService memberService;
-    private final RateLimitGuard rateLimitGuard;
+    private final MemberDeviceService memberDeviceService;
 
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<Long>> register(
-        @RequestBody @Valid MemberRegisterRequest request,
-        HttpServletRequest httpRequest
+        @RequestBody @Valid MemberRegisterRequest request
     ) {
-        rateLimitGuard.check(RateLimitInstance.REGISTER, rateLimitGuard.extractClientIp(httpRequest));
-        Long memberId = memberService.register(request.toInfo());
+        Long memberId = memberFacade.register(request.toInfo());
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(ApiResponse.success(memberId));
@@ -51,7 +49,7 @@ public class MemberController implements MemberControllerDocs {
         @RequestBody @Valid DeviceTokenSyncRequest request,
         @LoginMember Long memberId
     ) {
-        memberService.syncToken(memberId, request.token());
+        memberDeviceService.syncToken(memberId, request.token());
         return ResponseEntity.ok(ApiResponse.success());
     }
 
@@ -61,7 +59,7 @@ public class MemberController implements MemberControllerDocs {
         @RequestPart("file") MultipartFile file,
         @LoginMember Long memberId
     ) {
-        memberService.updateProfileImage(memberId, file);
+        memberFacade.updateProfileImage(memberId, file);
         return ResponseEntity.ok(ApiResponse.success());
     }
 

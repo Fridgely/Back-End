@@ -54,3 +54,6 @@ nginx/.htpasswd
 fridgely.jar
 
 .claude
+
+# Superpowers design docs (local only)
+docs/superpowers/
