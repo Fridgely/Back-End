@@ -14,6 +14,7 @@ import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.logging.SlackMarkers;
 import soon.fridgely.global.support.notification.NotificationSender;
 import soon.fridgely.global.support.utils.TimeRangeUtils;
 
@@ -84,8 +85,10 @@ public class NotificationProcessor {
 
             NotificationMessage message = messageGenerator.apply(setting, foods);
             notificationSender.send(memberId, message.title(), message.body());
-        } catch (Exception e) {
+        } catch (CoreException e) {
             log.error("[Notification] {} 처리 중 오류 발생. (MemberId={})", errorLabel, memberId, e);
+        } catch (Exception e) {
+            log.error(SlackMarkers.SYSTEM, "[Notification] {} 처리 중 시스템 오류 발생. (MemberId={})", errorLabel, memberId, e);
         }
     }
 
