@@ -52,7 +52,7 @@ public class RefrigeratorService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Retry(name = "invitationCodeGeneration", fallbackMethod = "generateInvitationCodeFallback")
-    @Transactional
+    @Transactional // ObjectOptimisticLockingFailureException은 커밋 시점에 발생 — 재시도마다 새 트랜잭션이 필요
     public InvitationCodeResponse generateInvitationCode(MemberRefrigeratorKey key) {
         String newCode = codeGenerator.generateUnique();
         LocalDateTime now = LocalDateTime.now();

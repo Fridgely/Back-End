@@ -16,10 +16,7 @@ import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
-/**
- * 냉장고 접근 권한을 검증하는 AOP
- * Order=100으로 설정하여 Resilience4j RetryAspect보다 먼저 실행
- */
+// @Order(100): Resilience4j RetryAspect(Ordered.LOWEST_PRECEDENCE - 5)보다 우선 — 재시도 루프 바깥에서 접근 권한을 1회만 검증
 @RequiredArgsConstructor
 @Aspect
 @Component
