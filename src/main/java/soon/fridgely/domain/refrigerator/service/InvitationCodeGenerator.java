@@ -36,7 +36,7 @@ public class InvitationCodeGenerator {
             log.debug("[InvitationCode] 중복 발생, 재생성. (Attempt={})", attempt);
         }
 
-        log.error("[InvitationCode] {}회 재시도 후에도 고유 코드 생성 실패.", MAX_GENERATION_ATTEMPTS);
+        log.error("[InvitationCode] 고유 코드 생성 실패. (MaxAttempts={})", MAX_GENERATION_ATTEMPTS);
         throw new CoreException(ErrorType.INVITATION_CODE_GENERATION_FAILED);
     }
 

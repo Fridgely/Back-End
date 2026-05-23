@@ -79,7 +79,7 @@ public class NotificationProcessor {
             NotificationMessage message = generateForOutOfStockSummary(outOfStockFoods);
             notificationSender.send(memberId, message.title(), message.body());
         } catch (Exception e) {
-            log.error("[Notification] 재고 소진 알림 처리 중 오류 발생 (MemberId={})", memberId, e);
+            log.error("[Notification] 재고 소진 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
         }
     }
 

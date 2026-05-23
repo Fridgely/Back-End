@@ -12,9 +12,7 @@ public class LogNotificationSender implements NotificationSender {
 
     @Override
     public void send(long memberId, String title, String body) {
-        log.info("[Notification] Send to MemberId={}", memberId);
-        log.info(" - Title: {}", title);
-        log.info(" - Body : {}", body);
+        log.info("[Notification] 알림 전송. (MemberId={}, Title={}, Body={})", memberId, title, body);
     }
 
 }

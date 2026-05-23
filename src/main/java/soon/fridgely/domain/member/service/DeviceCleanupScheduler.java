@@ -30,7 +30,7 @@ public class DeviceCleanupScheduler {
     public BatchResult cleanupInactiveDevices() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(INACTIVE_DAYS_THRESHOLD);
 
-        log.debug("[DeviceCleanup] 시작 (Threshold={}, InactiveDays={})", threshold, INACTIVE_DAYS_THRESHOLD);
+        log.debug("[DeviceCleanup] 시작. (Threshold={}, InactiveDays={})", threshold, INACTIVE_DAYS_THRESHOLD);
 
         DeviceIdBuffer buffer = new DeviceIdBuffer();
 
@@ -41,7 +41,7 @@ public class DeviceCleanupScheduler {
         buffer.flush(deviceCleanupProcessor::bulkDelete);
 
         log.info(SlackMarkers.BATCH,
-            "[DeviceCleanup 배치 완료] 처리: {}건, 소요: {}ms",
+            "[DeviceCleanup] 배치 완료. (Count={}, DurationMs={})",
             result.submittedCount(),
             result.durationMillis()
         );

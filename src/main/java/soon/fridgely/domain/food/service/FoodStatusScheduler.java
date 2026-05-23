@@ -25,7 +25,7 @@ public class FoodStatusScheduler {
     public BatchResult updateFoodStatuses() {
         LocalDate today = LocalDate.now();
 
-        log.debug("[FoodStatusScheduler] 시작 (기준일={})", today);
+        log.debug("[FoodStatusScheduler] 시작. (Today={})", today);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -35,7 +35,7 @@ public class FoodStatusScheduler {
         BatchResult result = BatchResult.of(totalUpdated, stopWatch.getTotalTimeMillis());
 
         log.info(SlackMarkers.BATCH,
-            "[FoodStatusScheduler 배치 완료] 기준일: {}, 총 변경: {}건, 소요: {}ms",
+            "[FoodStatusScheduler] 배치 완료. (Today={}, Count={}, DurationMs={})",
             today, result.submittedCount(), result.durationMillis()
         );
 

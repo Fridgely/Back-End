@@ -17,18 +17,18 @@ public class MockStorageProvider implements StorageProvider {
 
     @Override
     public String upload(String key, InputStream inputStream, long contentLength, String contentType) {
-        log.info("[MockStorage] Upload - Key: {}, ContentLength: {}, ContentType: {}", key, contentLength, contentType);
+        log.info("[MockStorage] 업로드. (Key={}, ContentLength={}, ContentType={})", key, contentLength, contentType);
         return MOCK_URL_PREFIX + key;
     }
 
     @Override
     public void delete(String key) {
-        log.info("[MockStorage] Delete - Key: {}", key);
+        log.info("[MockStorage] 삭제. (Key={})", key);
     }
 
     @Override
     public String generatePresignedUrl(String key, Duration expiration) {
-        log.info("[MockStorage] GeneratePresignedUrl - Key: {}, Expiration: {}", key, expiration);
+        log.info("[MockStorage] Presigned URL 생성. (Key={}, Expiration={})", key, expiration);
         return MOCK_URL_PREFIX + key + "?token=" + UUID.randomUUID();
     }
 

@@ -50,7 +50,7 @@ public class AsyncConfig implements AsyncConfigurer {
     private static class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
         @Override
         public void handleUncaughtException(Throwable throwable, Method method, Object... objects) {
-            log.error("비동기 작업 중 오류 발생 - Method: {}, Args: {}, Error: {}", method.getName(), objects, throwable.getMessage(), throwable);
+            log.error("[Async] 비동기 작업 중 오류 발생. (Method={}, Args={}, Error={})", method.getName(), objects, throwable.getMessage(), throwable);
         }
     }
 
