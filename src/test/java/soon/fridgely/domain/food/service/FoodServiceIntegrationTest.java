@@ -66,10 +66,10 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.member = memberRepository.save(member(fixtureMonkey).sample());
-        this.refrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
-        memberRefrigeratorRepository.save(memberRefrigerator(fixtureMonkey, refrigerator, member).sample());
-        this.category = categoryRepository.save(category(fixtureMonkey, refrigerator, member).sample());
+        this.member = memberRepository.save(member().sample());
+        this.refrigerator = refrigeratorRepository.save(refrigerator().sample());
+        memberRefrigeratorRepository.save(memberRefrigerator(refrigerator, member).sample());
+        this.category = categoryRepository.save(category(refrigerator, member).sample());
         this.key = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
     }
 
@@ -77,7 +77,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     void 음식을_조회한다() {
         // given
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "testFood")
                 .set("description", "testDescription")
                 .sample()
@@ -112,13 +112,13 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     void 저장_위치로_필터링하여_음식을_조회한다() {
         // given
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉장음식")
                 .set("storageType", StorageType.REFRIGERATION)
                 .sample()
         );
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", "냉동음식")
                 .set("storageType", StorageType.FROZEN)
                 .sample()
@@ -189,7 +189,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         // given
         String imageUrl = "https://s3.example.com/images/test-food.jpg";
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", imageUrl)
                 .sample()
         );
@@ -208,7 +208,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     void 음식_삭제_시_이미지_URL이_빈_문자열이면_정상_삭제된다() {
         // given
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", "")
                 .sample()
         );
@@ -225,18 +225,18 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
     void 카테고리의_모든_음식을_기본_카테고리로_이동한다() {
         // given
         Category customCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
         Category fallbackCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
         );
         List<Food> foods = IntStream.range(0, 3)
-            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, customCategory).sample())
+            .mapToObj(i -> food(refrigerator, member, customCategory).sample())
             .toList();
         foodRepository.saveAll(foods);
 
@@ -276,7 +276,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         // given
         Food saved = createFood();
         Category newCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
         FoodInfo updateInfo = fixtureMonkey.giveMeBuilder(FoodInfo.class)
             .set("name", "수정된 홈런볼")
@@ -296,7 +296,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         // given
         Quantity initialQuantity = Quantity.register(new BigDecimal("10.0"), Unit.L);
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", initialQuantity)
                 .sample()
         );
@@ -319,7 +319,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         // given
         Quantity initialQuantity = Quantity.register(new BigDecimal("5.00"), Unit.PIECE);
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", initialQuantity)
                 .sample()
         );
@@ -344,7 +344,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         String newImageUrl = "https://s3.example.com/images/new.jpg";
 
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", oldImageUrl)
                 .sample()
         );
@@ -367,7 +367,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         String sameImageUrl = "https://s3.example.com/images/same.jpg";
 
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", sameImageUrl)
                 .sample()
         );
@@ -390,7 +390,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
         String existingImageUrl = "https://s3.example.com/images/existing.jpg";
 
         Food saved = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", existingImageUrl)
                 .sample()
         );
@@ -425,7 +425,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
 
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("imageURL", "https://s3.example.com/images/uuid-test.jpg")
                 .sample()
         );
@@ -433,7 +433,7 @@ class FoodServiceIntegrationTest extends IntegrationTestSupport {
 
     private void createFoodWithStatus(FoodStatus status) {
         foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("foodStatus", status)
                 .sample()
         );

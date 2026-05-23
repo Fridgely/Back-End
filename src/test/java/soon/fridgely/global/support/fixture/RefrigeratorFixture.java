@@ -5,18 +5,21 @@ import com.navercorp.fixturemonkey.FixtureMonkey;
 import net.jqwik.api.Arbitraries;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 /**
  * FixtureMonkey를 사용하여 Refrigerator 엔티티의 테스트 데이터를 생성하는 유틸리티 클래스
  */
 public final class RefrigeratorFixture {
 
+    private static final FixtureMonkey FIXTURE_MONKEY = FixtureMonkeyFactory.get();
+
     private RefrigeratorFixture() {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static ArbitraryBuilder<Refrigerator> refrigerator(FixtureMonkey fixtureMonkey) {
-        return fixtureMonkey.giveMeBuilder(Refrigerator.class)
+    public static ArbitraryBuilder<Refrigerator> refrigerator() {
+        return FIXTURE_MONKEY.giveMeBuilder(Refrigerator.class)
             .set("name", Arbitraries.strings().alpha().ofMinLength(1).ofMaxLength(50))
             .set("status", EntityStatus.ACTIVE) // DELETED 상태가 필요한 경우 사용시 지정
             .setNull("id"); // JPA 자동 생성 필드 null 처리

@@ -24,7 +24,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.AcceptanceTestSupport;
 import soon.fridgely.global.support.image.ImageManager;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
@@ -43,7 +43,7 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
-class FoodControllerE2ETest extends E2ETestSupport {
+class FoodControllerAcceptanceTest extends AcceptanceTestSupport {
 
     private static final String BASE_URL = "/api/v1/refrigerators";
 
@@ -201,7 +201,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
         Food food = createFood();
 
         Category newCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
 
         var updateRequest = fixtureMonkey.giveMeBuilder(FoodUpdateRequest.class)
@@ -268,7 +268,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
         Quantity initialQuantity = Quantity.register(new BigDecimal("5.0"), Unit.PIECE);
         Food food = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("quantity", initialQuantity)
                 .sample()
         );
@@ -367,16 +367,16 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+            memberRefrigerator(refrigerator, member).sample()
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
@@ -384,13 +384,13 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
     private Food createFood() {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category).sample()
+            food(refrigerator, member, category).sample()
         );
     }
 
     private Food createFoodWithName(String name) {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", name)
                 .sample()
         );
@@ -398,7 +398,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
     private Food createFoodWithExpiration(String name, LocalDate expirationDate) {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", name)
                 .set("expirationDate", expirationDate.atStartOfDay())
                 .sample()
@@ -407,7 +407,7 @@ class FoodControllerE2ETest extends E2ETestSupport {
 
     private Food createFoodWithStorageType(String name, StorageType storageType) {
         return foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category)
+            food(refrigerator, member, category)
                 .set("name", name)
                 .set("storageType", storageType)
                 .sample()

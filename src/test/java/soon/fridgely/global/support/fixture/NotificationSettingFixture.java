@@ -6,21 +6,23 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.notification.entity.AlertSchedule;
 import soon.fridgely.domain.notification.entity.NotificationSetting;
+import soon.fridgely.global.support.FixtureMonkeyFactory;
 
 /**
  * FixtureMonkey를 사용하여 NotificationSetting 엔티티의 테스트 데이터를 생성하는 유틸리티 클래스
  */
 public final class NotificationSettingFixture {
 
+    private static final FixtureMonkey FIXTURE_MONKEY = FixtureMonkeyFactory.get();
+
     private NotificationSettingFixture() {
         throw new UnsupportedOperationException("Utility class");
     }
 
     public static ArbitraryBuilder<NotificationSetting> notificationSetting(
-        FixtureMonkey fixtureMonkey,
         Member member
     ) {
-        return fixtureMonkey.giveMeBuilder(NotificationSetting.class)
+        return FIXTURE_MONKEY.giveMeBuilder(NotificationSetting.class)
             .set("member", member)
             .set("alertSchedule", AlertSchedule.createDefault())
             .set("enabled", true)

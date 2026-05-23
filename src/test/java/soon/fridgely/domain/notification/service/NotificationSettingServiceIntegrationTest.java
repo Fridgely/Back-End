@@ -34,7 +34,7 @@ class NotificationSettingServiceIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
     }
 
@@ -67,7 +67,7 @@ class NotificationSettingServiceIntegrationTest extends IntegrationTestSupport {
     void 회원마다_독립적으로_알림_설정이_생성된다() {
         // given
         Member member2 = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
 
         // when
@@ -90,7 +90,7 @@ class NotificationSettingServiceIntegrationTest extends IntegrationTestSupport {
     void 알림_설정을_수정하면_변경_사항이_저장된다(int hour, int minute, int days, boolean enabled) {
         // given
         notificationSettingRepository.save(
-            notificationSetting(fixtureMonkey, member).sample()
+            notificationSetting(member).sample()
         );
 
         var request = new NotificationSettingUpdateRequest(LocalTime.of(hour, minute), days, enabled);

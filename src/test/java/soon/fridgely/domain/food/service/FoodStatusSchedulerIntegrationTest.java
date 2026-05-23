@@ -48,13 +48,13 @@ class FoodStatusSchedulerIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
     }
 
@@ -63,16 +63,16 @@ class FoodStatusSchedulerIntegrationTest extends IntegrationTestSupport {
         // given
         LocalDate today = LocalDate.now();
         Food blackFood = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, expirationDayFor(FoodStatus.BLACK, today), FoodStatus.GREEN).sample()
+            food(refrigerator, member, category, expirationDayFor(FoodStatus.BLACK, today), FoodStatus.GREEN).sample()
         );
         Food redFood = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, expirationDayFor(FoodStatus.RED, today), FoodStatus.GREEN).sample()
+            food(refrigerator, member, category, expirationDayFor(FoodStatus.RED, today), FoodStatus.GREEN).sample()
         );
         Food yellowFood = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, expirationDayFor(FoodStatus.YELLOW, today), FoodStatus.GREEN).sample()
+            food(refrigerator, member, category, expirationDayFor(FoodStatus.YELLOW, today), FoodStatus.GREEN).sample()
         );
         Food greenFood = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, expirationDayFor(FoodStatus.GREEN, today), FoodStatus.BLACK).sample()
+            food(refrigerator, member, category, expirationDayFor(FoodStatus.GREEN, today), FoodStatus.BLACK).sample()
         );
 
         // when
@@ -91,10 +91,10 @@ class FoodStatusSchedulerIntegrationTest extends IntegrationTestSupport {
         // given
         LocalDate today = LocalDate.now();
         Food red = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, today.plusDays(FoodStatus.RED.daysThreshold).atStartOfDay(), FoodStatus.GREEN).sample()
+            food(refrigerator, member, category, today.plusDays(FoodStatus.RED.daysThreshold).atStartOfDay(), FoodStatus.GREEN).sample()
         );
         Food yellow = foodRepository.save(
-            food(fixtureMonkey, refrigerator, member, category, today.plusDays(FoodStatus.RED.nextThresholdDay()).atStartOfDay(), FoodStatus.GREEN).sample()
+            food(refrigerator, member, category, today.plusDays(FoodStatus.RED.nextThresholdDay()).atStartOfDay(), FoodStatus.GREEN).sample()
         );
 
         // when

@@ -74,6 +74,6 @@ assertThat(List.of(FoodStatus.BLACK, FoodStatus.RED, FoodStatus.YELLOW))
 |--------|------|
 | `IntegrationTestSupport` | 통합 테스트 (`@TruncateTables`로 DB 초기화) |
 | `ControllerTestSupport` | Controller 테스트 (MockMvc, Security 필터 비활성화) |
-| `E2ETestSupport` | E2E 테스트 (TestRestTemplate + 실제 JWT 토큰) |
+| `AcceptanceTestSupport` | 인수 테스트 (TestRestTemplate + 실제 JWT 토큰) |
 
 테스트 데이터 생성: FixtureMonkey + `src/test/.../fixture/` 의 도메인별 Fixture 헬퍼

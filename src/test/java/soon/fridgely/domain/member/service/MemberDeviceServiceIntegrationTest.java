@@ -34,7 +34,7 @@ class MemberDeviceServiceIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.member = memberRepository.save(member(fixtureMonkey).sample());
+        this.member = memberRepository.save(member().sample());
     }
 
     @Test
@@ -59,7 +59,7 @@ class MemberDeviceServiceIntegrationTest extends IntegrationTestSupport {
         LocalDateTime pastTime = LocalDateTime.of(2024, 1, 1, 0, 0);
 
         memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("token", token)
                 .set("lastUsedAt", pastTime)
                 .sample()

@@ -18,7 +18,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.AcceptanceTestSupport;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.response.ApiResponse;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class MemberControllerE2ETest extends E2ETestSupport {
+class MemberControllerAcceptanceTest extends AcceptanceTestSupport {
 
     private static final String BASE_URL = "/api/v1/members";
 

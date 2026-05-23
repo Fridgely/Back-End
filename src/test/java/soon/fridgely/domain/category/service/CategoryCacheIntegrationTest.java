@@ -51,13 +51,13 @@ class CategoryCacheIntegrationTest extends RedisIntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+            memberRefrigerator(refrigerator, member).sample()
         );
 
         Cache cache = cacheManager.getCache("categories");
@@ -191,10 +191,10 @@ class CategoryCacheIntegrationTest extends RedisIntegrationTestSupport {
     @Test
     void 서로_다른_냉장고의_카테고리_캐시는_독립적으로_동작한다() {
         // given
-        Member member2 = memberRepository.save(member(fixtureMonkey).sample());
-        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        Member member2 = memberRepository.save(member().sample());
+        Refrigerator refrigerator2 = refrigeratorRepository.save(refrigerator().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator2, member2).sample()
+            memberRefrigerator(refrigerator2, member2).sample()
         );
 
         MemberRefrigeratorKey key1 = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());

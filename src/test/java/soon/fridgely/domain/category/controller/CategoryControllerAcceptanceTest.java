@@ -20,7 +20,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.AcceptanceTestSupport;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
@@ -35,7 +35,7 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
-class CategoryControllerE2ETest extends E2ETestSupport {
+class CategoryControllerAcceptanceTest extends AcceptanceTestSupport {
 
     private static final String BASE_URL = "/api/v1/refrigerators";
 
@@ -115,7 +115,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         // given
         setupBasicEnvironment();
         Category anotherCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
 
         var httpEntity = createAuthEntity(member);
@@ -171,7 +171,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
         setupBasicEnvironment();
 
         Category fallbackCategory = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("name", "기타")
                 .set("type", CategoryType.DEFAULT)
                 .sample()
@@ -206,16 +206,16 @@ class CategoryControllerE2ETest extends E2ETestSupport {
 
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+            memberRefrigerator(refrigerator, member).sample()
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member)
+            category(refrigerator, member)
                 .set("type", CategoryType.CUSTOM)
                 .sample()
         );
@@ -223,7 +223,7 @@ class CategoryControllerE2ETest extends E2ETestSupport {
 
     private void createFoods(int count, Category targetCategory) {
         List<Food> foods = IntStream.range(0, count)
-            .mapToObj(i -> food(fixtureMonkey, refrigerator, member, targetCategory)
+            .mapToObj(i -> food(refrigerator, member, targetCategory)
                 .set("createdAt", LocalDate.now().atStartOfDay())
                 .sample())
             .toList();

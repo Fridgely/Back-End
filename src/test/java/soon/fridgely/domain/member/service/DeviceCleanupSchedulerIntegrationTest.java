@@ -7,8 +7,8 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.domain.member.repository.MemberRepository;
-import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.domain.notification.repository.MemberDeviceRepository;
+import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.IntegrationTestSupport;
 
 import java.time.LocalDateTime;
@@ -33,7 +33,7 @@ class DeviceCleanupSchedulerIntegrationTest extends IntegrationTestSupport {
     @BeforeEach
     void setUp() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
     }
 
@@ -42,7 +42,7 @@ class DeviceCleanupSchedulerIntegrationTest extends IntegrationTestSupport {
         // given
         LocalDateTime oldDate = LocalDateTime.now().minusDays(120);
         MemberDevice oldDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", oldDate)
                 .sample()
         );
@@ -63,7 +63,7 @@ class DeviceCleanupSchedulerIntegrationTest extends IntegrationTestSupport {
         LocalDateTime recentDate = LocalDateTime.now().minusDays(10);
 
         MemberDevice recentDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", recentDate)
                 .sample()
         );
@@ -85,12 +85,12 @@ class DeviceCleanupSchedulerIntegrationTest extends IntegrationTestSupport {
         LocalDateTime exactly89DaysAgo = LocalDateTime.now().minusDays(89);
 
         MemberDevice oldDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", exactly90DaysAgo)
                 .sample()
         );
         MemberDevice recentDevice = memberDeviceRepository.save(
-            memberDevice(fixtureMonkey, member)
+            memberDevice(member)
                 .set("lastUsedAt", exactly89DaysAgo)
                 .sample()
         );

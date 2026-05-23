@@ -17,7 +17,7 @@ import soon.fridgely.domain.member.repository.MemberRepository;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.MemberRefrigeratorRepository;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
-import soon.fridgely.global.support.E2ETestSupport;
+import soon.fridgely.global.support.AcceptanceTestSupport;
 import soon.fridgely.global.support.response.ApiResponse;
 import soon.fridgely.global.support.response.ResultType;
 
@@ -32,7 +32,7 @@ import static soon.fridgely.global.support.fixture.MemberFixture.member;
 import static soon.fridgely.global.support.fixture.MemberRefrigeratorFixture.memberRefrigerator;
 import static soon.fridgely.global.support.fixture.RefrigeratorFixture.refrigerator;
 
-public class MyFoodControllerE2ETest extends E2ETestSupport {
+public class MyFoodControllerAcceptanceTest extends AcceptanceTestSupport {
 
     private static final String BASE_URL = "/api/v1/foods";
 
@@ -98,21 +98,21 @@ public class MyFoodControllerE2ETest extends E2ETestSupport {
 
     private void setupBasicEnvironment() {
         this.member = memberRepository.save(
-            member(fixtureMonkey).sample()
+            member().sample()
         );
         this.refrigerator = refrigeratorRepository.save(
-            refrigerator(fixtureMonkey).sample()
+            refrigerator().sample()
         );
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, member).sample()
+            memberRefrigerator(refrigerator, member).sample()
         );
         this.category = categoryRepository.save(
-            category(fixtureMonkey, refrigerator, member).sample()
+            category(refrigerator, member).sample()
         );
     }
 
     private Food createFoodWithExpiration(LocalDateTime expirationDate, LocalDate now) {
-        Food validSample = food(fixtureMonkey, refrigerator, member, category).sample();
+        Food validSample = food(refrigerator, member, category).sample();
 
         // register 메서드 내부에서 status를 계산하기 때문에 팩토리 메서드로 생성
         Food food = Food.register(

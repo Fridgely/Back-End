@@ -50,10 +50,10 @@ class RefrigeratorFacadeIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        this.owner = memberRepository.save(member(fixtureMonkey).sample());
-        this.refrigerator = refrigeratorRepository.save(refrigerator(fixtureMonkey).sample());
+        this.owner = memberRepository.save(member().sample());
+        this.refrigerator = refrigeratorRepository.save(refrigerator().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, owner)
+            memberRefrigerator(refrigerator, owner)
                 .set("role", RefrigeratorRole.OWNER)
                 .sample()
         );
@@ -62,15 +62,15 @@ class RefrigeratorFacadeIntegrationTest extends IntegrationTestSupport {
     @Test
     void OWNER가_냉장고를_삭제하면_냉장고와_연관_데이터가_모두_삭제된다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER)
                 .sample()
         );
 
-        var savedCategory = categoryRepository.save(category(fixtureMonkey, refrigerator, owner).sample());
-        foodRepository.save(food(fixtureMonkey, refrigerator, owner, savedCategory).sample());
+        var savedCategory = categoryRepository.save(category(refrigerator, owner).sample());
+        foodRepository.save(food(refrigerator, owner, savedCategory).sample());
 
         var key = new MemberRefrigeratorKey(owner.getId(), refrigerator.getId());
 
@@ -90,9 +90,9 @@ class RefrigeratorFacadeIntegrationTest extends IntegrationTestSupport {
     @Test
     void MEMBER가_냉장고를_삭제하려하면_예외가_발생한다() {
         // given
-        Member guestMember = memberRepository.save(member(fixtureMonkey).sample());
+        Member guestMember = memberRepository.save(member().sample());
         memberRefrigeratorRepository.save(
-            memberRefrigerator(fixtureMonkey, refrigerator, guestMember)
+            memberRefrigerator(refrigerator, guestMember)
                 .set("role", RefrigeratorRole.MEMBER)
                 .sample()
         );
@@ -108,7 +108,7 @@ class RefrigeratorFacadeIntegrationTest extends IntegrationTestSupport {
     @Test
     void 비멤버가_냉장고를_삭제하려하면_예외가_발생한다() {
         // given
-        Member outsider = memberRepository.save(member(fixtureMonkey).sample());
+        Member outsider = memberRepository.save(member().sample());
         var key = new MemberRefrigeratorKey(outsider.getId(), refrigerator.getId());
 
         // expected
