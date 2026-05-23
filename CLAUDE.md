@@ -18,8 +18,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test --tests "soon.fridgely.domain.food.service.FoodServiceIntegrationTest.메서드명"
 ```
 
-> **캐시 테스트** (`CategoryCacheIntegrationTest`, `RefrigeratorCacheIntegrationTest`)는 Redis 의존성이 있어 Docker 없이 실행하면 컨텍스트 로딩 단계에서 실패한다.
-> 로컬에서 전체 테스트를 돌리기 전에 `docker compose up -d redis` 필요.
+> **캐시 테스트** (`CategoryCacheIntegrationTest`, `RefrigeratorCacheIntegrationTest`)는 Testcontainers로 Redis 컨테이너를 자동 기동한다.
+> 별도 `docker compose` 불필요 — Docker 엔진(Docker Desktop 등)만 실행 중이면 된다.
 
 ## 아키텍처
 

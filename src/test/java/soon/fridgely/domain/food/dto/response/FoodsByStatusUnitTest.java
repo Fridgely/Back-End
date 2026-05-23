@@ -77,7 +77,7 @@ class FoodsByStatusUnitTest {
     }
 
     @Test
-    void toStatusResponse_각_상태의_목록과_개수가_일치한다() {
+    void 각_상태의_목록과_개수가_일치한다() {
         // given
         List<Food> foods = List.of(
             foodOf(FoodStatus.BLACK).sample(),
@@ -128,7 +128,7 @@ class FoodsByStatusUnitTest {
         Food greenFood = foodOf(FoodStatus.GREEN).sample();
         FoodsByStatus result = FoodsByStatus.of(List.of(greenFood), today);
 
-        // when & then
+        // expected
         assertThatThrownBy(() -> result.get(FoodStatus.GREEN).clear())
             .isInstanceOf(UnsupportedOperationException.class);
     }
