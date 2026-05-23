@@ -14,7 +14,6 @@ import java.util.List;
 @Component
 public class DeviceCleanupProcessor {
 
-    public static final int CHUNK_SIZE = 1000;
     private final MemberDeviceRepository memberDeviceRepository;
 
     /**

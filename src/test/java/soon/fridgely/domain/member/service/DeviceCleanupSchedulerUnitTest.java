@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import soon.fridgely.domain.member.batch.DeviceCleanupBatchExecutor;
+import soon.fridgely.domain.member.batch.DeviceIdBuffer;
 import soon.fridgely.domain.member.entity.MemberDevice;
 import soon.fridgely.global.batch.BatchResult;
 import soon.fridgely.global.support.FixtureMonkeyFactory;
@@ -105,7 +106,7 @@ class DeviceCleanupSchedulerUnitTest {
     @Test
     void 처리_건수가_CHUNK_SIZE와_같으면_배치_중_flush는_1회_최종_flush는_없다() {
         // given
-        int count = DeviceCleanupProcessor.CHUNK_SIZE;
+        int count = DeviceIdBuffer.CHUNK_SIZE;
         BatchResult mockResult = new BatchResult(count, 100L);
 
         given(deviceCleanupBatchExecutor.executeCleanup(any(LocalDateTime.class), any()))
