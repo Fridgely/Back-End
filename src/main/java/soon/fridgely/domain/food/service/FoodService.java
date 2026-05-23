@@ -10,14 +10,15 @@ import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
 import soon.fridgely.domain.food.dto.command.FoodInfo;
-import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
 import soon.fridgely.domain.food.dto.response.FoodStatusResponse;
 import soon.fridgely.domain.food.dto.response.FoodsByStatus;
 import soon.fridgely.domain.food.entity.Food;
+import soon.fridgely.domain.food.entity.FoodSortType;
 import soon.fridgely.domain.food.entity.Quantity;
+import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.repository.FoodRepository;
 import soon.fridgely.domain.member.entity.Member;
 import soon.fridgely.domain.member.repository.MemberRepository;
@@ -25,6 +26,7 @@ import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import soon.fridgely.domain.refrigerator.repository.RefrigeratorRepository;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
+import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.image.event.ImageDeleteEvent;
@@ -94,13 +96,14 @@ public class FoodService {
 
     @ValidateRefrigeratorAccess(key = "#key")
     @Transactional(readOnly = true)
-    public Slice<FoodListResponse> findAllFoods(MemberRefrigeratorKey key, FoodCursorPageRequest request) {
+    public Slice<FoodListResponse> findAllFoods(MemberRefrigeratorKey key, CursorPageRequest<FoodSortType> request, StorageType storageType) {
         LocalDate now = LocalDate.now();
+        FoodSortType sortBy = request.getSortBy() != null ? request.getSortBy() : FoodSortType.EXPIRATION;
         return foodRepository.findAllDynamic(
                 key.refrigeratorId(),
                 request.getCursorId(),
-                request.getSortBy(),
-                request.storageType(),
+                sortBy,
+                storageType,
                 request.toPageable()
             )
             .map(food -> FoodListResponse.of(food, now));

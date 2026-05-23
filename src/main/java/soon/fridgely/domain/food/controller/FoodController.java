@@ -9,15 +9,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
-import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
+import soon.fridgely.domain.food.entity.FoodSortType;
+import soon.fridgely.domain.food.entity.StorageType;
 import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -80,10 +82,14 @@ public class FoodController implements FoodControllerDocs {
     @GetMapping
     public ResponseEntity<ApiResponse<Slice<FoodListResponse>>> findAllFoods(
         @LoginMember Long memberId,
-        @ModelAttribute @Valid FoodCursorPageRequest cursorRequest,
+        @RequestParam(required = false) Long cursorId,
+        @RequestParam(required = false) Integer size,
+        @RequestParam(required = false) FoodSortType sortBy,
+        @RequestParam(required = false) StorageType storageType,
         @PathVariable long refrigeratorId
     ) {
-        Slice<FoodListResponse> responses = foodService.findAllFoods(new MemberRefrigeratorKey(memberId, refrigeratorId), cursorRequest);
+        CursorPageRequest<FoodSortType> cursorRequest = new CursorPageRequest<>(cursorId, size, sortBy);
+        Slice<FoodListResponse> responses = foodService.findAllFoods(new MemberRefrigeratorKey(memberId, refrigeratorId), cursorRequest, storageType);
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 

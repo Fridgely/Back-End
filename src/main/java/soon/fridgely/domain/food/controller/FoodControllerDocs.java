@@ -12,14 +12,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.multipart.MultipartFile;
 import soon.fridgely.domain.food.dto.request.FoodCreateRequest;
-import soon.fridgely.domain.food.dto.request.FoodCursorPageRequest;
 import soon.fridgely.domain.food.dto.request.FoodStockUpdateRequest;
 import soon.fridgely.domain.food.dto.request.FoodUpdateRequest;
 import soon.fridgely.domain.food.dto.response.FoodDetailResponse;
 import soon.fridgely.domain.food.dto.response.FoodListResponse;
+import soon.fridgely.domain.food.entity.FoodSortType;
+import soon.fridgely.domain.food.entity.StorageType;
 
 @Tag(name = "식재료 API", description = "냉장고 내 식재료 관리 API")
 public interface FoodControllerDocs {
@@ -154,7 +154,10 @@ public interface FoodControllerDocs {
     })
     ResponseEntity<soon.fridgely.global.support.response.ApiResponse<Slice<FoodListResponse>>> findAllFoods(
         @Parameter(hidden = true) Long memberId,
-        @ModelAttribute @Parameter(description = "커서 기반 페이징 정보") FoodCursorPageRequest cursorRequest,
+        @Parameter(description = "커서 ID (마지막으로 조회한 항목의 ID)", example = "10") Long cursorId,
+        @Parameter(description = "페이지 크기", example = "10") Integer size,
+        @Parameter(description = "정렬 기준 (EXPIRATION: 유통기한 임박순, CREATED: 등록순, NAME: 이름순)", example = "EXPIRATION") FoodSortType sortBy,
+        @Parameter(description = "저장 위치 필터 (FROZEN/REFRIGERATION/ROOM_TEMPERATURE), 미지정 시 전체 조회") StorageType storageType,
         @Parameter(description = "냉장고 ID", example = "1") long refrigeratorId
     );
 
