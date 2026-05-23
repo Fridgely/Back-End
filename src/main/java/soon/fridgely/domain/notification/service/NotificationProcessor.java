@@ -14,11 +14,14 @@ import soon.fridgely.domain.notification.entity.NotificationSetting;
 import soon.fridgely.domain.notification.repository.NotificationSettingRepository;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.logging.SlackMarkers;
 import soon.fridgely.global.support.notification.NotificationSender;
 import soon.fridgely.global.support.utils.TimeRangeUtils;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,35 +38,39 @@ public class NotificationProcessor {
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void processExpiration(long memberId) {
-        try {
-            NotificationSetting setting = notificationSettingRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-            if (!setting.isEnabled()) {
-                return;
-            }
-
-            int daysBefore = setting.getAlertSchedule().getDaysBeforeExpiration();
-            LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
-
-            List<Food> expiringFoods = foodRepository.findMyFoodsExpiringBetween(
-                memberId,
-                TimeRangeUtils.startOfDay(targetDate),
-                TimeRangeUtils.endOfDay(targetDate)
-            );
-            if (expiringFoods.isEmpty()) {
-                return;
-            }
-
-            NotificationMessage message = generateForExpiredFoods(expiringFoods, daysBefore);
-            notificationSender.send(memberId, message.title(), message.body());
-        } catch (Exception e) {
-            log.error("[Notification] 유통기한 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
-        }
+        processNotification(
+            memberId,
+            "유통기한 알림",
+            setting -> {
+                int daysBefore = setting.getAlertSchedule().getDaysBeforeExpiration();
+                LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
+                return foodRepository.findMyFoodsExpiringBetween(
+                    memberId,
+                    TimeRangeUtils.startOfDay(targetDate),
+                    TimeRangeUtils.endOfDay(targetDate)
+                );
+            },
+            (setting, foods) -> generateForExpiredFoods(foods, setting.getAlertSchedule().getDaysBeforeExpiration())
+        );
     }
 
     @Async("applicationTaskExecutor")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void processStockSummary(long memberId) {
+        processNotification(
+            memberId,
+            "재고 소진 알림",
+            setting -> foodRepository.findAllOutOfStock(memberId),
+            (setting, foods) -> generateForOutOfStockSummary(foods)
+        );
+    }
+
+    private void processNotification(
+        long memberId,
+        String errorLabel,
+        Function<NotificationSetting, List<Food>> foodFetcher,
+        BiFunction<NotificationSetting, List<Food>, NotificationMessage> messageGenerator
+    ) {
         try {
             NotificationSetting setting = notificationSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
@@ -71,15 +78,17 @@ public class NotificationProcessor {
                 return;
             }
 
-            List<Food> outOfStockFoods = foodRepository.findAllOutOfStock(memberId);
-            if (outOfStockFoods.isEmpty()) {
+            List<Food> foods = foodFetcher.apply(setting);
+            if (foods.isEmpty()) {
                 return;
             }
 
-            NotificationMessage message = generateForOutOfStockSummary(outOfStockFoods);
+            NotificationMessage message = messageGenerator.apply(setting, foods);
             notificationSender.send(memberId, message.title(), message.body());
+        } catch (CoreException e) {
+            log.error("[Notification] {} 처리 중 오류 발생. (MemberId={})", errorLabel, memberId, e);
         } catch (Exception e) {
-            log.error("[Notification] 재고 소진 알림 처리 중 오류 발생. (MemberId={})", memberId, e);
+            log.error(SlackMarkers.SYSTEM, "[Notification] {} 처리 중 시스템 오류 발생. (MemberId={})", errorLabel, memberId, e);
         }
     }
 
