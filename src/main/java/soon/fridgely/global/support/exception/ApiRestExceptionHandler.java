@@ -26,9 +26,9 @@ public class ApiRestExceptionHandler {
         Object data = e.getData();
 
         if (Objects.requireNonNull(errorType.getLogLevel()) == LogLevel.ERROR) {
-            log.error("[{}] {} (Data: {})", errorType.name(), e.getMessage(), data, e);
+            log.error("[{}] {}. (Data={})", errorType.name(), e.getMessage(), data, e);
         } else {
-            log.warn("[{}] {} (Data: {})", errorType.name(), e.getMessage(), data);
+            log.warn("[{}] {}. (Data={})", errorType.name(), e.getMessage(), data);
         }
 
         return buildResponse(errorType, data);
@@ -43,7 +43,7 @@ public class ApiRestExceptionHandler {
                 FieldError::getField,
                 fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "유효성 검사 실패"
             ));
-        log.warn("[VALIDATION] DTO 검증 실패 (Fields={})", validationData);
+        log.warn("[VALIDATION] DTO 검증 실패. (Fields={})", validationData);
 
         return buildResponse(errorType, validationData);
     }
@@ -52,7 +52,7 @@ public class ApiRestExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleMissingParam(MissingServletRequestParameterException e) {
         ErrorType errorType = ErrorType.MISSING_REQUEST_PARAMETER;
         String message = e.getParameterName() + "는 필수입니다.";
-        log.warn("[VALIDATION] 필수 파라미터 누락 (Parameter={})", e.getParameterName());
+        log.warn("[VALIDATION] 필수 파라미터 누락. (Parameter={})", e.getParameterName());
 
         return buildResponse(errorType, message);
     }
@@ -60,7 +60,7 @@ public class ApiRestExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<?>> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
         ErrorType errorType = ErrorType.METHOD_NOT_SUPPORTED;
-        log.warn("[HTTP] 지원하지 않는 메서드 (Method={}, Supported={})", e.getMethod(), e.getSupportedHttpMethods());
+        log.warn("[HTTP] 지원하지 않는 메서드. (Method={}, Supported={})", e.getMethod(), e.getSupportedHttpMethods());
 
         return buildResponse(errorType, e.getMessage());
     }
@@ -71,7 +71,7 @@ public class ApiRestExceptionHandler {
         String requiredName = e.getRequiredType() != null
             ? e.getRequiredType().getSimpleName()
             : "알 수 없음";
-        log.warn("[VALIDATION] 타입 불일치 (Parameter={}, RequiredType={}, Value={})", e.getName(), requiredName, e.getValue());
+        log.warn("[VALIDATION] 타입 불일치. (Parameter={}, RequiredType={}, Value={})", e.getName(), requiredName, e.getValue());
 
         String message = String.format("'%s' 파라미터는 %s 타입이어야 합니다.", e.getName(), requiredName);
         return buildResponse(errorType, message);
@@ -81,7 +81,7 @@ public class ApiRestExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleUnknown(Exception e) {
         ErrorType errorType = ErrorType.DEFAULT_ERROR;
         String message = e.getMessage() != null ? e.getMessage() : "<no-message>";
-        log.error("[UNHANDLED] 처리되지 않은 예외 (Type={}, Message={})", e.getClass().getSimpleName(), message, e);
+        log.error("[UNHANDLED] 처리되지 않은 예외. (Type={}, Message={})", e.getClass().getSimpleName(), message, e);
 
         return buildResponse(errorType, null);
     }

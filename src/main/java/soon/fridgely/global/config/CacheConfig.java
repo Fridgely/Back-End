@@ -37,7 +37,7 @@ public class CacheConfig {
             "myRefrigerators", defaults.entryTtl(REFRIGERATORS_TTL)
         );
 
-        log.info("[CacheConfig] Redis 캐시 설정 완료 (categories: {}h, myRefrigerators: {}h)",
+        log.info("[CacheConfig] Redis 캐시 설정 완료. (CategoriesTtlH={}, MyRefrigeratorsTtlH={})",
             CATEGORIES_TTL.toHours(), REFRIGERATORS_TTL.toHours());
 
         return RedisCacheManager.builder(connectionFactory)

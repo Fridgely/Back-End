@@ -50,13 +50,13 @@ public class JwtProvider implements TokenProvider {
             getClaimsFromToken(token);
             return true;
         } catch (SignatureException | MalformedJwtException e) {
-            log.warn(SlackMarkers.SYSTEM, "[JWT] 유효하지 않은 서명 (Exception={})", e.getClass().getSimpleName());
+            log.warn(SlackMarkers.SYSTEM, "[JWT] 유효하지 않은 서명. (Exception={})", e.getClass().getSimpleName());
         } catch (ExpiredJwtException e) {
-            log.debug("[JWT] 만료된 토큰 (Exception={})", e.getClass().getSimpleName());
+            log.debug("[JWT] 만료된 토큰. (Exception={})", e.getClass().getSimpleName());
         } catch (UnsupportedJwtException e) {
-            log.debug("[JWT] 지원되지 않는 토큰 (Exception={})", e.getClass().getSimpleName());
+            log.warn("[JWT] 지원되지 않는 토큰. (Exception={})", e.getClass().getSimpleName());
         } catch (IllegalArgumentException e) {
-            log.debug("[JWT] 잘못된 토큰 (Exception={})", e.getClass().getSimpleName());
+            log.warn("[JWT] 잘못된 토큰. (Exception={})", e.getClass().getSimpleName());
         }
         return false;
     }

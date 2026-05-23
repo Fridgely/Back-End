@@ -48,7 +48,7 @@ public class FoodFacade {
             try {
                 imageManager.delete(imageUrl);
             } catch (Exception e) {
-                log.warn(SlackMarkers.SYSTEM, "[Food] 이미지 롤백 실패 - 수동 정리 필요 (ImageUrl={})", imageUrl, e);
+                log.warn(SlackMarkers.SYSTEM, "[Food] 이미지 롤백 실패 - 수동 정리 필요. (ImageUrl={})", imageUrl, e);
             }
         }
     }

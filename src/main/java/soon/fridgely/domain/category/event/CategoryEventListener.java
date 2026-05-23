@@ -26,7 +26,7 @@ public class CategoryEventListener {
         try {
             categoryService.appendDefaultCategories(event.toKey());
         } catch (Exception e) {
-            log.error("[CategoryEvent] 기본 카테고리 생성 실패 (RefrigeratorId={}, MemberId={})", event.refrigeratorId(), event.memberId(), e);
+            log.error("[CategoryEvent] 기본 카테고리 생성 실패. (RefrigeratorId={}, MemberId={})", event.refrigeratorId(), event.memberId(), e);
         }
     }
 

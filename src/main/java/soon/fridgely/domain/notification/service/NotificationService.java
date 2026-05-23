@@ -37,8 +37,8 @@ public class NotificationService {
         );
 
         log.info(SlackMarkers.BATCH,
-            "[유통기한 알림 배치 완료] 시간대: {}, 처리건수: {}건, 소요시간: {}ms",
-            now.getHour() + "시",
+            "[Notification] 유통기한 알림 배치 완료. (Hour={}, Count={}, DurationMs={})",
+            now.getHour(),
             result.submittedCount(),
             result.durationMillis()
         );
@@ -57,7 +57,7 @@ public class NotificationService {
         );
 
         log.info(SlackMarkers.BATCH,
-            "[재고 소진 알림 배치 완료] 처리: {}건, 소요: {}ms",
+            "[Notification] 재고 소진 알림 배치 완료. (Count={}, DurationMs={})",
             result.submittedCount(),
             result.durationMillis()
         );
