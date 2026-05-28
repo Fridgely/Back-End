@@ -2,6 +2,7 @@ package soon.fridgely.domain.food.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.util.StringUtils;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.member.entity.Member;
@@ -10,6 +11,7 @@ import soon.fridgely.domain.refrigerator.entity.Refrigerator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
@@ -142,6 +144,18 @@ public class Food extends BaseEntity {
 
     public long refrigeratorId() {
         return refrigerator.getId();
+    }
+
+    public boolean isCategoryDifferent(long categoryId) {
+        return this.category.getId() != categoryId;
+    }
+
+    public boolean hasImage() {
+        return StringUtils.hasText(this.imageURL);
+    }
+
+    public boolean isImageChangedFrom(String other) {
+        return hasImage() && !Objects.equals(this.imageURL, other);
     }
 
 }

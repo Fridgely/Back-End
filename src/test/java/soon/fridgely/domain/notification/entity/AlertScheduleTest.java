@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,6 +74,34 @@ class AlertScheduleTest {
             .hasMessageContaining("알림 기준일은 최대 30일까지 설정 가능합니다.")
             .extracting("errorType")
             .isEqualTo(ErrorType.INVALID_REQUEST);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "2025-01-01, 3, 2025-01-04",
+        "2025-01-01, 7, 2025-01-08",
+        "2025-01-30, 5, 2025-02-04"
+    })
+    void 기준일에서_설정된_일수를_더한_날짜를_반환한다(LocalDate now, int daysBeforeExpiration, LocalDate expected) {
+        // given
+        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), daysBeforeExpiration);
+
+        // when
+        LocalDate targetDate = schedule.getExpirationTargetDate(now);
+
+        // then
+        assertThat(targetDate).isEqualTo(expected);
+    }
+
+    @Test
+    void 기준일이_null이면_예외가_발생한다() {
+        // given
+        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
+
+        // expected
+        assertThatThrownBy(() -> schedule.getExpirationTargetDate(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("now는 필수입니다.");
     }
 
 }

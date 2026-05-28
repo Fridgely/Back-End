@@ -5,7 +5,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.category.entity.Category;
 import soon.fridgely.domain.category.repository.CategoryRepository;
@@ -33,7 +32,6 @@ import soon.fridgely.global.support.image.event.ImageDeleteEvent;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -64,14 +62,16 @@ public class FoodService {
     public void updateFood(long foodId, FoodInfo updateInfo, MemberRefrigeratorKey key, long categoryId) {
         Food food = foodRepository.findByIdAndRefrigeratorIdAndStatus(foodId, key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        Category category = hasCategoryChanged(food, categoryId)
+        Category category = food.isCategoryDifferent(categoryId)
             ? categoryRepository.findByIdAndRefrigeratorIdAndStatus(categoryId, key.refrigeratorId(), EntityStatus.ACTIVE)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA))
             : null;
 
-        String newImageUrl = updateInfo.imageURL();
-        if (newImageUrl != null) {
-            deleteOldImageIfChanged(food.getImageURL(), newImageUrl);
+        String rawImageUrl = updateInfo.imageURL();
+        String newImageUrl = (rawImageUrl == null || rawImageUrl.isBlank()) ? null : rawImageUrl;
+
+        if (newImageUrl != null && food.isImageChangedFrom(newImageUrl)) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(food.getImageURL()));
         }
 
         food.update(
@@ -81,7 +81,7 @@ public class FoodService {
             updateInfo.condition().expirationDate(),
             updateInfo.condition().storageType(),
             updateInfo.description(),
-            (newImageUrl != null) ? newImageUrl : food.getImageURL(),
+            newImageUrl != null ? newImageUrl : food.getImageURL(),
             LocalDate.now()
         );
     }
@@ -170,19 +170,8 @@ public class FoodService {
     }
 
     private void publishImageDeleteEventIfPresent(Food food) {
-        String imageUrl = food.getImageURL();
-        if (StringUtils.hasText(imageUrl)) {
-            eventPublisher.publishEvent(new ImageDeleteEvent(imageUrl));
+        if (food.hasImage()) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(food.getImageURL()));
         }
-    }
-
-    private void deleteOldImageIfChanged(String oldImageUrl, String newImageUrl) {
-        if (StringUtils.hasText(oldImageUrl) && !Objects.equals(oldImageUrl, newImageUrl)) {
-            eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
-        }
-    }
-
-    private boolean hasCategoryChanged(Food food, long newCategoryId) {
-        return food.getCategory().getId() != newCategoryId;
     }
 }

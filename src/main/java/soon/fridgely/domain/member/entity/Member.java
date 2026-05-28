@@ -3,6 +3,7 @@ package soon.fridgely.domain.member.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
@@ -76,6 +77,10 @@ public class Member extends BaseEntity {
 
     public void updateProfileImage(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public boolean isProfileImageChangedTo(String newUrl) {
+        return StringUtils.hasText(this.profileImageUrl) && !this.profileImageUrl.equals(newUrl);
     }
 
     public String getRole() {
