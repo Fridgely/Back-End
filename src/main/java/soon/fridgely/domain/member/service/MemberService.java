@@ -6,7 +6,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import soon.fridgely.domain.EntityStatus;
 import soon.fridgely.domain.member.dto.command.MemberInfo;
 import soon.fridgely.domain.member.dto.response.MemberProfileResponse;
@@ -55,10 +54,9 @@ public class MemberService {
     @Transactional
     public void updateProfileImage(long memberId, String newImageUrl) {
         Member member = findById(memberId);
-        String oldImageUrl = member.getProfileImageUrl();
-        member.updateProfileImage(newImageUrl);
-        if (StringUtils.hasText(oldImageUrl) && !oldImageUrl.equals(newImageUrl)) {
-            eventPublisher.publishEvent(new ImageDeleteEvent(oldImageUrl));
+        if (member.isProfileImageChangedTo(newImageUrl)) {
+            eventPublisher.publishEvent(new ImageDeleteEvent(member.getProfileImageUrl()));
         }
+        member.updateProfileImage(newImageUrl);
     }
 }
