@@ -93,4 +93,15 @@ class AlertScheduleTest {
         assertThat(targetDate).isEqualTo(expected);
     }
 
+    @Test
+    void 기준일이_null이면_예외가_발생한다() {
+        // given
+        AlertSchedule schedule = AlertSchedule.of(LocalTime.of(9, 0), 3);
+
+        // expected
+        assertThatThrownBy(() -> schedule.getExpirationTargetDate(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("now는 필수입니다.");
+    }
+
 }

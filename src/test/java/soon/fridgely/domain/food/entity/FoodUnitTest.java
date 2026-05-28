@@ -273,7 +273,7 @@ class FoodUnitTest {
     }
 
     @Test
-    void 카테고리_ID가_다르면_isCategoryDifferent가_true를_반환한다() {
+    void 카테고리가_변경되면_변경됨으로_판단한다() {
         // given
         long currentCategoryId = 1L;
         long differentCategoryId = 2L;
@@ -284,12 +284,15 @@ class FoodUnitTest {
             .set("category", sameCategory)
             .sample();
 
-        // when & then
-        assertThat(food.isCategoryDifferent(differentCategoryId)).isTrue();
+        // when
+        boolean result = food.isCategoryDifferent(differentCategoryId);
+
+        // then
+        assertThat(result).isTrue();
     }
 
     @Test
-    void 카테고리_ID가_같으면_isCategoryDifferent가_false를_반환한다() {
+    void 카테고리가_동일하면_변경되지_않음으로_판단한다() {
         // given
         long currentCategoryId = 1L;
         Category sameCategory = fixtureMonkey.giveMeBuilder(category.getClass())
@@ -299,64 +302,82 @@ class FoodUnitTest {
             .set("category", sameCategory)
             .sample();
 
-        // when & then
-        assertThat(food.isCategoryDifferent(currentCategoryId)).isFalse();
+        // when
+        boolean result = food.isCategoryDifferent(currentCategoryId);
+
+        // then
+        assertThat(result).isFalse();
     }
 
     @Test
-    void 이미지_URL이_있으면_hasImage가_true를_반환한다() {
+    void 이미지가_있으면_이미지_존재로_판단한다() {
         // given
         Food food = food(refrigerator, member, category)
             .set("imageURL", "https://example.com/image.jpg")
             .sample();
 
-        // when & then
-        assertThat(food.hasImage()).isTrue();
+        // when
+        boolean result = food.hasImage();
+
+        // then
+        assertThat(result).isTrue();
     }
 
     @Test
-    void 이미지_URL이_비어있으면_hasImage가_false를_반환한다() {
+    void 이미지가_없으면_이미지_미존재로_판단한다() {
         // given
         Food food = food(refrigerator, member, category)
             .set("imageURL", "")
             .sample();
 
-        // when & then
-        assertThat(food.hasImage()).isFalse();
+        // when
+        boolean result = food.hasImage();
+
+        // then
+        assertThat(result).isFalse();
     }
 
     @Test
-    void 이미지가_있고_다른_URL이면_isImageChangedFrom이_true를_반환한다() {
+    void 기존_이미지와_다른_이미지로_변경되면_변경됨으로_판단한다() {
         // given
         Food food = food(refrigerator, member, category)
-            .set("imageURL", "https://example.com/new.jpg")
+            .set("imageURL", "https://example.com/current.jpg")
             .sample();
 
-        // when & then
-        assertThat(food.isImageChangedFrom("https://example.com/old.jpg")).isTrue();
+        // when
+        boolean result = food.isImageChangedFrom("https://example.com/old.jpg");
+
+        // then
+        assertThat(result).isTrue();
     }
 
     @Test
-    void 이미지가_같으면_isImageChangedFrom이_false를_반환한다() {
+    void 기존_이미지와_같은_이미지면_변경되지_않음으로_판단한다() {
         // given
         String imageUrl = "https://example.com/same.jpg";
         Food food = food(refrigerator, member, category)
             .set("imageURL", imageUrl)
             .sample();
 
-        // when & then
-        assertThat(food.isImageChangedFrom(imageUrl)).isFalse();
+        // when
+        boolean result = food.isImageChangedFrom(imageUrl);
+
+        // then
+        assertThat(result).isFalse();
     }
 
     @Test
-    void 이미지가_없으면_isImageChangedFrom이_false를_반환한다() {
+    void 이미지가_없으면_이미지_변경으로_판단하지_않는다() {
         // given
         Food food = food(refrigerator, member, category)
             .set("imageURL", "")
             .sample();
 
-        // when & then
-        assertThat(food.isImageChangedFrom("https://example.com/other.jpg")).isFalse();
+        // when
+        boolean result = food.isImageChangedFrom("https://example.com/other.jpg");
+
+        // then
+        assertThat(result).isFalse();
     }
 
 }

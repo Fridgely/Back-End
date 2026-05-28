@@ -1,6 +1,7 @@
 package soon.fridgely.domain.refrigerator.entity;
 
 import com.navercorp.fixturemonkey.FixtureMonkey;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import soon.fridgely.domain.member.entity.Member;
@@ -25,16 +26,19 @@ class MemberRefrigeratorUnitTest {
     }
 
     @Test
-    void OWNER는_validateOwnership을_호출해도_예외가_발생하지_않는다() {
+    void OWNER는_냉장고를_삭제할_수_있다() {
         // given
         MemberRefrigerator owner = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
 
-        // expected
-        assertThatCode(owner::validateOwnership).doesNotThrowAnyException();
+        // when
+        ThrowingCallable action = owner::validateOwnership;
+
+        // then
+        assertThatCode(action).doesNotThrowAnyException();
     }
 
     @Test
-    void MEMBER가_validateOwnership을_호출하면_예외가_발생한다() {
+    void OWNER가_아니면_냉장고를_삭제할_수_없다() {
         // given
         MemberRefrigerator nonOwner = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.MEMBER);
 
@@ -46,16 +50,19 @@ class MemberRefrigeratorUnitTest {
     }
 
     @Test
-    void MEMBER는_validateCanLeave를_호출해도_예외가_발생하지_않는다() {
+    void MEMBER는_냉장고를_탈퇴할_수_있다() {
         // given
         MemberRefrigerator nonOwner = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.MEMBER);
 
-        // expected
-        assertThatCode(nonOwner::validateCanLeave).doesNotThrowAnyException();
+        // when
+        ThrowingCallable action = nonOwner::validateCanLeave;
+
+        // then
+        assertThatCode(action).doesNotThrowAnyException();
     }
 
     @Test
-    void OWNER가_validateCanLeave를_호출하면_예외가_발생한다() {
+    void OWNER는_냉장고를_탈퇴할_수_없다() {
         // given
         MemberRefrigerator owner = MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.OWNER);
 

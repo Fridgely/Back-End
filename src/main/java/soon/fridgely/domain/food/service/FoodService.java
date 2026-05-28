@@ -67,7 +67,9 @@ public class FoodService {
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA))
             : null;
 
-        String newImageUrl = updateInfo.imageURL();
+        String rawImageUrl = updateInfo.imageURL();
+        String newImageUrl = (rawImageUrl == null || rawImageUrl.isBlank()) ? null : rawImageUrl;
+
         if (newImageUrl != null && food.isImageChangedFrom(newImageUrl)) {
             eventPublisher.publishEvent(new ImageDeleteEvent(food.getImageURL()));
         }
@@ -79,7 +81,7 @@ public class FoodService {
             updateInfo.condition().expirationDate(),
             updateInfo.condition().storageType(),
             updateInfo.description(),
-            (newImageUrl != null) ? newImageUrl : food.getImageURL(),
+            newImageUrl != null ? newImageUrl : food.getImageURL(),
             LocalDate.now()
         );
     }

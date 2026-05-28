@@ -12,6 +12,8 @@ import soon.fridgely.global.support.exception.ErrorType;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import static java.util.Objects.requireNonNull;
+
 @Embeddable
 @Getter
 @EqualsAndHashCode
@@ -43,6 +45,7 @@ public class AlertSchedule {
     }
 
     public LocalDate getExpirationTargetDate(LocalDate now) {
+        requireNonNull(now, "now는 필수입니다.");
         return now.plusDays(this.daysBeforeExpiration);
     }
 
