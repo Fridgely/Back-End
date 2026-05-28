@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Embeddable
@@ -39,6 +40,10 @@ public class AlertSchedule {
 
     public static AlertSchedule createDefault() {
         return new AlertSchedule(DEFAULT_NOTIFICATION_TIME, DEFAULT_DAYS_BEFORE_EXPIRATION);
+    }
+
+    public LocalDate getExpirationTargetDate(LocalDate now) {
+        return now.plusDays(this.daysBeforeExpiration);
     }
 
     private void validate(LocalTime time, int days) {

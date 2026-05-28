@@ -42,8 +42,7 @@ public class NotificationProcessor {
             memberId,
             "유통기한 알림",
             setting -> {
-                int daysBefore = setting.getAlertSchedule().getDaysBeforeExpiration();
-                LocalDate targetDate = LocalDate.now().plusDays(daysBefore);
+                LocalDate targetDate = setting.getAlertSchedule().getExpirationTargetDate(LocalDate.now());
                 return foodRepository.findMyFoodsExpiringBetween(
                     memberId,
                     TimeRangeUtils.startOfDay(targetDate),
