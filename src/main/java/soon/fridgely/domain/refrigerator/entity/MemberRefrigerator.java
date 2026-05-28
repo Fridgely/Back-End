@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import soon.fridgely.domain.BaseEntity;
 import soon.fridgely.domain.member.entity.Member;
+import soon.fridgely.global.support.exception.CoreException;
+import soon.fridgely.global.support.exception.ErrorType;
 
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -42,6 +44,18 @@ public class MemberRefrigerator extends BaseEntity {
 
     public boolean isOwner() {
         return this.role == RefrigeratorRole.OWNER;
+    }
+
+    public void validateOwnership() {
+        if (!isOwner()) {
+            throw new CoreException(ErrorType.ONLY_OWNER_CAN_DELETE_REFRIGERATOR);
+        }
+    }
+
+    public void validateCanLeave() {
+        if (isOwner()) {
+            throw new CoreException(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
+        }
     }
 
 }

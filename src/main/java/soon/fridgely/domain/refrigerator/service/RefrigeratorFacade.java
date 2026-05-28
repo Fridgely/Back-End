@@ -8,8 +8,6 @@ import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.domain.refrigerator.entity.MemberRefrigerator;
 import soon.fridgely.global.security.annotation.ValidateRefrigeratorAccess;
-import soon.fridgely.global.support.exception.CoreException;
-import soon.fridgely.global.support.exception.ErrorType;
 
 @RequiredArgsConstructor
 @Service
@@ -23,9 +21,7 @@ public class RefrigeratorFacade {
     @Transactional
     public void deleteRefrigerator(MemberRefrigeratorKey key) {
         MemberRefrigerator memberRefrigerator = refrigeratorService.findMemberRefrigerator(key.memberId(), key.refrigeratorId());
-        if (!memberRefrigerator.isOwner()) {
-            throw new CoreException(ErrorType.ONLY_OWNER_CAN_DELETE_REFRIGERATOR);
-        }
+        memberRefrigerator.validateOwnership();
         foodService.removeAllByRefrigeratorId(key.refrigeratorId());
         categoryService.removeAllByRefrigeratorId(key.refrigeratorId());
         refrigeratorService.unlinkAll(key.refrigeratorId());

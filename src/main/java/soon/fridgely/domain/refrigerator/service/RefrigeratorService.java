@@ -106,9 +106,7 @@ public class RefrigeratorService {
         if (memberRefrigerator.isEmpty()) {
             return;
         }
-        if (memberRefrigerator.get().isOwner()) {
-            throw new CoreException(ErrorType.OWNER_CANNOT_LEAVE_REFRIGERATOR);
-        }
+        memberRefrigerator.get().validateCanLeave();
         memberRefrigerator.get().delete();
     }
 
