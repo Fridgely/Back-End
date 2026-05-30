@@ -14,6 +14,7 @@ import soon.fridgely.domain.member.service.MemberDeviceService;
 import soon.fridgely.domain.member.service.MemberFacade;
 import soon.fridgely.domain.member.service.MemberService;
 import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.security.ratelimit.UploadRateLimit;
 import soon.fridgely.global.support.response.ApiResponse;
 
 @RequiredArgsConstructor
@@ -54,6 +55,7 @@ public class MemberController implements MemberControllerDocs {
     }
 
     @Override
+    @UploadRateLimit
     @PatchMapping(value = "/me/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> updateProfileImage(
         @RequestPart("file") MultipartFile file,
