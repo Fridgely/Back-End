@@ -60,6 +60,11 @@ management:
 scheduling:
   enabled: true
 
+upload:
+  rate-limit:
+    max-requests: 10
+    period-seconds: 60
+
 # 공통 Resilience4j 설정
 resilience4j:
   retry:

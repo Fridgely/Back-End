@@ -19,6 +19,7 @@ import soon.fridgely.domain.food.facade.FoodFacade;
 import soon.fridgely.domain.food.service.FoodService;
 import soon.fridgely.domain.refrigerator.dto.command.MemberRefrigeratorKey;
 import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.security.ratelimit.UploadRateLimit;
 import soon.fridgely.global.support.CursorPageRequest;
 import soon.fridgely.global.support.response.ApiResponse;
 
@@ -31,6 +32,7 @@ public class FoodController implements FoodControllerDocs {
     private final FoodService foodService;
 
     @Override
+    @UploadRateLimit
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> createFood(
         @RequestPart(value = "request") @Valid FoodCreateRequest request,
@@ -43,6 +45,7 @@ public class FoodController implements FoodControllerDocs {
     }
 
     @Override
+    @UploadRateLimit
     @PatchMapping(value = "/{foodId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> updateFood(
         @RequestPart(value = "request") @Valid FoodUpdateRequest request,
