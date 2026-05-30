@@ -24,7 +24,7 @@ class ImageValidatorUnitTest {
             "image", "photo.jpg", "image/jpeg", createValidJpeg()
         );
 
-        // expected
+        // when & then
         assertThatCode(() -> validator.validate(file)).doesNotThrowAnyException();
     }
 
@@ -35,7 +35,7 @@ class ImageValidatorUnitTest {
             "image", "photo.png", "image/png", createValidPng()
         );
 
-        // expected
+        // when & then
         assertThatCode(() -> validator.validate(file)).doesNotThrowAnyException();
     }
 

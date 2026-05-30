@@ -58,7 +58,7 @@ class UploadRateLimitAspectUnitTest {
         given(stringRedisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.increment("upload:ratelimit:1")).willReturn(5L);
 
-        // expected
+        // when & then
         assertThatCode(() -> aspect.checkRateLimit()).doesNotThrowAnyException();
     }
 
