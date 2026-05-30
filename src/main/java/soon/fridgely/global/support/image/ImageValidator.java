@@ -92,6 +92,9 @@ public class ImageValidator {
         } catch (IOException e) {
             log.debug("[ImageValidator] ImageIO 파싱 실패 — IOException. (Filename={})", file.getOriginalFilename());
             throw new CoreException(ErrorType.INVALID_FILE_TYPE);
+        } catch (RuntimeException e) {
+            log.debug("[ImageValidator] ImageIO 파싱 실패 — RuntimeException. (Filename={})", file.getOriginalFilename());
+            throw new CoreException(ErrorType.INVALID_FILE_TYPE);
         }
     }
 

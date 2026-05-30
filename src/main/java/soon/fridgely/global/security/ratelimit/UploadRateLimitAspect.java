@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import soon.fridgely.global.support.exception.CoreException;
 import soon.fridgely.global.support.exception.ErrorType;
+import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.Duration;
 
@@ -37,11 +38,12 @@ public class UploadRateLimitAspect {
         String key = "upload:ratelimit:" + userId;
 
         Long count = stringRedisTemplate.opsForValue().increment(key);
-        if (Long.valueOf(1L).equals(count)) {
+        Long ttl = stringRedisTemplate.getExpire(key);
+        if (ttl != null && ttl == -1L) {
             stringRedisTemplate.expire(key, Duration.ofSeconds(periodSeconds));
         }
         if (count != null && count > maxRequests) {
-            log.warn("[UploadRateLimitAspect] 업로드 Rate Limit 초과. (UserId={}, Count={})", userId, count);
+            log.warn(SlackMarkers.SYSTEM, "[UploadRateLimitAspect] 업로드 Rate Limit 초과. (UserId={}, Count={})", userId, count);
             throw new CoreException(ErrorType.UPLOAD_RATE_LIMIT_EXCEEDED);
         }
     }
