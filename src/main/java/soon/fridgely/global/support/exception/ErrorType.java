@@ -29,6 +29,7 @@ public enum ErrorType {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "파일 크기가 허용 범위를 초과했습니다. (최대 10MB)", LogLevel.WARN),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "허용되지 않은 파일 형식입니다.", LogLevel.WARN),
     INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다.", LogLevel.WARN),
+    UPLOAD_RATE_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "업로드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.", LogLevel.WARN),
 
     // 멤버 오류
     DUPLICATE_LOGIN_ID(HttpStatus.CONFLICT, "이미 사용 중인 ID입니다.", LogLevel.WARN),
