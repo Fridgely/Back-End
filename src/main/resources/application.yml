@@ -66,6 +66,10 @@ upload:
     max-requests: 10
     period-seconds: 60
 
+auth:
+  rate-limit:
+    trusted-proxies: # nginx 등 신뢰할 프록시 IP 목록 (쉼표 구분). 미설정 시 remoteAddr 직접 사용
+
 # 공통 Resilience4j 설정
 resilience4j:
   retry:

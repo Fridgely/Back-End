@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import soon.fridgely.global.support.exception.ErrorType;
 import soon.fridgely.global.support.logging.SlackMarkers;
 
 import java.time.Duration;
+import java.util.Arrays;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,6 +30,9 @@ public class LoginRateLimitAspect {
     private static final long PERIOD_SECONDS = 60L;
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    @Value("${auth.rate-limit.trusted-proxies:}")
+    private String trustedProxiesConfig;
 
     @Before("@annotation(soon.fridgely.global.security.ratelimit.LoginRateLimit)")
     public void checkRateLimit() {
@@ -47,6 +52,11 @@ public class LoginRateLimitAspect {
 
     private String extractClientIp() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        String remoteAddr = request.getRemoteAddr();
+
+        if (!isTrustedProxy(remoteAddr)) {
+            return remoteAddr;
+        }
 
         String forwarded = request.getHeader("X-Forwarded-For");
         if (StringUtils.hasText(forwarded)) {
@@ -58,6 +68,15 @@ public class LoginRateLimitAspect {
             return realIp;
         }
 
-        return request.getRemoteAddr();
+        return remoteAddr;
+    }
+
+    private boolean isTrustedProxy(String remoteAddr) {
+        if (!StringUtils.hasText(trustedProxiesConfig)) {
+            return false;
+        }
+        return Arrays.stream(trustedProxiesConfig.split(","))
+            .map(String::trim)
+            .anyMatch(remoteAddr::equals);
     }
 }
