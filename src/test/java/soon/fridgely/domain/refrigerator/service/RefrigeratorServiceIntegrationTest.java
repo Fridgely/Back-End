@@ -281,6 +281,44 @@ class RefrigeratorServiceIntegrationTest extends IntegrationTestSupport {
             .containsExactly(newMember.getId(), newRefrigerator.getId(), RefrigeratorRole.OWNER);
     }
 
+    // ======================== 초대 코드로 참여 — 재가입 / 동시성 ========================
+
+    @Test
+    void 탈퇴한_냉장고에_초대코드로_다시_참여할_수_있다() {
+        // given: 게스트가 참여 후 탈퇴
+        Member guestMember = memberRepository.save(member().sample());
+        var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var first = refrigeratorService.generateInvitationCode(ownerKey);
+        refrigeratorService.joinByInvitationCode(guestMember.getId(), first.code());
+        refrigeratorService.leaveRefrigerator(new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId()));
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
+            refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isFalse();
+
+        // when: 새 초대 코드로 재참여
+        var second = refrigeratorService.generateInvitationCode(ownerKey);
+        refrigeratorService.joinByInvitationCode(guestMember.getId(), second.code());
+
+        // then
+        assertThat(memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
+            refrigerator.getId(), guestMember.getId(), EntityStatus.ACTIVE)).isTrue();
+    }
+
+    @Test
+    void 탈퇴_후_재가입은_ALREADY_JOINED_예외를_던지지_않는다() {
+        // given
+        Member guestMember = memberRepository.save(member().sample());
+        var ownerKey = new MemberRefrigeratorKey(member.getId(), refrigerator.getId());
+        var first = refrigeratorService.generateInvitationCode(ownerKey);
+        refrigeratorService.joinByInvitationCode(guestMember.getId(), first.code());
+        refrigeratorService.leaveRefrigerator(new MemberRefrigeratorKey(guestMember.getId(), refrigerator.getId()));
+
+        // expected: 예외 없이 재가입 가능
+        var second = refrigeratorService.generateInvitationCode(ownerKey);
+        assertThatNoException().isThrownBy(
+            () -> refrigeratorService.joinByInvitationCode(guestMember.getId(), second.code())
+        );
+    }
+
     // ======================== 냉장고 나가기 ========================
 
     @Test

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import soon.fridgely.domain.EntityStatus;
@@ -71,13 +72,26 @@ public class RefrigeratorService {
             .orElseThrow(() -> new CoreException(ErrorType.INVALID_INVITATION_CODE));
         refrigerator.validateInvitationCode(code, LocalDateTime.now());
 
-        if (memberRefrigeratorRepository.existsByRefrigeratorIdAndMemberIdAndStatus(
-            refrigerator.getId(), memberId, EntityStatus.ACTIVE)) {
-            throw new CoreException(ErrorType.ALREADY_JOINED_REFRIGERATOR);
-        }
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND_DATA));
-        memberRefrigeratorRepository.save(MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.MEMBER));
+
+        memberRefrigeratorRepository.findByMemberIdAndRefrigeratorIdIgnoreStatus(member.getId(), refrigerator.getId())
+            .ifPresentOrElse(
+                existing -> {
+                    if (existing.isActive()) {
+                        throw new CoreException(ErrorType.ALREADY_JOINED_REFRIGERATOR);
+                    }
+                    existing.active();
+                },
+                () -> {
+                    try {
+                        memberRefrigeratorRepository.save(
+                            MemberRefrigerator.link(member, refrigerator, RefrigeratorRole.MEMBER));
+                    } catch (DataIntegrityViolationException e) {
+                        throw new CoreException(ErrorType.ALREADY_JOINED_REFRIGERATOR);
+                    }
+                }
+            );
     }
 
     @Cacheable(value = "myRefrigerators", key = "#memberId")

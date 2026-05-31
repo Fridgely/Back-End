@@ -60,7 +60,7 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
     @Query("""
             SELECT mr FROM MemberRefrigerator mr
             JOIN FETCH mr.refrigerator r
-            WHERE mr.member.id = :memberId 
+            WHERE mr.member.id = :memberId
             AND mr.refrigerator.id = :refrigeratorId
             AND mr.status = :status
             AND r.status = :status
@@ -69,6 +69,16 @@ public interface MemberRefrigeratorRepository extends JpaRepository<MemberRefrig
         @Param("memberId") long memberId,
         @Param("refrigeratorId") long refrigeratorId,
         @Param("status") EntityStatus status
+    );
+
+    @Query("""
+            SELECT mr FROM MemberRefrigerator mr
+            WHERE mr.member.id = :memberId
+            AND mr.refrigerator.id = :refrigeratorId
+        """)
+    Optional<MemberRefrigerator> findByMemberIdAndRefrigeratorIdIgnoreStatus(
+        @Param("memberId") long memberId,
+        @Param("refrigeratorId") long refrigeratorId
     );
 
 }
