@@ -87,6 +87,28 @@ class FoodStatusSchedulerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    void BLACK_RED_경계값인_당일_만료는_BLACK이고_D플러스1은_RED이다() {
+        // given
+        LocalDate today = LocalDate.now();
+        Food todayExpiry = foodRepository.save(
+            food(refrigerator, member, category, today.atStartOfDay(), FoodStatus.GREEN).sample()
+        );
+        Food tomorrowExpiry = foodRepository.save(
+            food(refrigerator, member, category, today.plusDays(1).atStartOfDay(), FoodStatus.GREEN).sample()
+        );
+
+        // when
+        foodStatusScheduler.updateFoodStatuses();
+
+        // then
+        Food updatedToday = foodRepository.findById(todayExpiry.getId()).orElseThrow();
+        assertThat(updatedToday.getFoodStatus()).isEqualTo(FoodStatus.BLACK);
+
+        Food updatedTomorrow = foodRepository.findById(tomorrowExpiry.getId()).orElseThrow();
+        assertThat(updatedTomorrow.getFoodStatus()).isEqualTo(FoodStatus.RED);
+    }
+
+    @Test
     void RED_YELLOW_경계값인_D플러스10은_RED이고_D플러스11은_YELLOW이다() {
         // given
         LocalDate today = LocalDate.now();

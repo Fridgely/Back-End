@@ -22,7 +22,7 @@ public class FoodStatusProcessor {
      */
     @Transactional
     public int bulkUpdate(LocalDate today) {
-        LocalDateTime redStart = today.atStartOfDay();
+        LocalDateTime redStart = today.plusDays(1).atStartOfDay();
         LocalDateTime yellowStart = today.plusDays(FoodStatus.RED.nextThresholdDay()).atStartOfDay();
         LocalDateTime greenStart = today.plusDays(FoodStatus.YELLOW.nextThresholdDay()).atStartOfDay();
 
