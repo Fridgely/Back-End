@@ -11,6 +11,7 @@ import soon.fridgely.domain.auth.dto.request.LoginRequest;
 import soon.fridgely.domain.auth.dto.request.ReissueTokenRequest;
 import soon.fridgely.domain.auth.service.AuthService;
 import soon.fridgely.global.security.annotation.LoginMember;
+import soon.fridgely.global.security.ratelimit.LoginRateLimit;
 import soon.fridgely.global.security.dto.response.TokenResponse;
 import soon.fridgely.global.support.response.ApiResponse;
 
@@ -22,6 +23,7 @@ public class AuthController implements AuthControllerDocs {
     private final AuthService authService;
 
     @Override
+    @LoginRateLimit
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
         @RequestBody @Valid LoginRequest request
@@ -31,6 +33,7 @@ public class AuthController implements AuthControllerDocs {
     }
 
     @Override
+    @LoginRateLimit
     @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<TokenResponse>> reissue(
         @RequestBody @Valid ReissueTokenRequest request
