@@ -10,6 +10,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import soon.fridgely.global.support.response.ApiResponse;
 
 import java.util.Map;
@@ -75,6 +76,12 @@ public class ApiRestExceptionHandler {
 
         String message = String.format("'%s' 파라미터는 %s 타입이어야 합니다.", e.getName(), requiredName);
         return buildResponse(errorType, message);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<?>> handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.warn("[UPLOAD] 파일 크기 초과. (Message={})", e.getMessage());
+        return buildResponse(ErrorType.FILE_SIZE_EXCEEDED, null);
     }
 
     @ExceptionHandler(Exception.class)
